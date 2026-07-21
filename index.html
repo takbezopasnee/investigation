@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Формула безопасности · Расследование ДТП · Так безопаснее</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAXwElEQVR42u16e3xU1b3vWnvv2XvPa897JgmZvEkgDAkYELE5RB4S+QBCpbS2pblIBZWrntpbvMVKW4UelaKin6pHaGtPfaAVFR9HEOQhFDCQQAiEhLwfk8xkMu/Mcz/WOn8smE55tL3nc25Pe2/XfD7zmZm99m/9nt/fYzbEGIO/50WBv/P1DwH+IcA/BPg7XwzGGGMMIQQA/IWQijGmKIrcQhZCiPwOIaQoinzNbCY/XpdU9k6yIITZlLPpXMUh2Qn/y/NARh1/HZowHA63tbXl5+dLkuT1eiGENE3/iZsRQgihyZMnm81mckmW5XPnzkmSBADgeb6qqqqtrS0ej5O7EEJ6vd7lcl2Xrba2tkQiASFUFIVhGFEUrVZreXn5tRx7vd54PB4Ohw0GQyQSkWW5qKjI4XCAL7/80m6333fffatXr7bZbCUlJQaDwWQyGY1Go9FoMBisVqsgCAaDwWAw6PX6wsJCs9n84YcfYoxFUcQYd3Z2Go1GnU6n1WqdTmcwGLzzzjtZljUYDIIg8DxfU1NDdiKE8B+vuro6nueNRmNBQYHVajWZTM8//zzGWFEUskFRFITQiRMn7rrrrgMHDqxevXrChAkmk8lisXR0dGCML8fAF198QVGUyWS67777du7c6Xa7VSoVhFCSJJ1OJ4piNBolekqn04SPjEdeunQpFoup1WqMcTQajcVihYWFCCGGYZLJJFGex+MpKCi4TggyjCzLCKHNmze73e7a2tpp06YhhLJjhvi5SqXyer0cx3m93tra2sWLF1dUVGCMKXLZ6/X6fD4I4fHjx0VRZBiGoihyWzgcTqVSRB6aphOJRDwezz6gtbWVYRiWZRmGiUaj3d3dLpeLqJCmaZZlA4FAT0/PdUEimUwSPHjuuecqKytPnDjx4x//mKIoRVGI+1EUNTg4+O677yYSiU2bNr399ttOp/OWW27ZsGHDZXiQJMnv96fT6VAo5Pf79+7d29fXFw6HA4FAKBQKBoPhcDgYDIZCoWg0mkgkotGoJEmiKBLdAADOnz8viqIsy0QX3d3dU6ZMYVmWsEtRVDqdbmlpuQpzyNUVK1awLIsQCgaDP//5zzdu3EhYz97z2muvbd++fXBw8Ktf/arBYEgkEl6vlygIAMDY7fZ7772XHA8hRAgJgsAwTAYZAQCyLMfjcQCASqVSFEWSpJKSEuIA6XS6q6uLYZgMrg0MDMyfP1+tViOEeJ4ndDo6OjICZ2PD3LlzX3jhBY/HU11d3dDQ0NjYyHFcNlhjjJubm4uKisbGxoqLi/V6vdfrffDBB2maJqIy5eXlO3fuzDbriRMnRkZGGIZhGEan00mSpNVqb7311mshnKIot9s9ODjIsqxKpSL6DoVCTqfTZrMRn1QUhaKoS5cuKYqSjW8URYmimEql0uk0TdMDAwMQQo7jMhYg0o6OjtrtdlEU9Xo9hNBqtS5atGjGjBnEPy8nsoxliVZ+9KMfHTlyJJvX5cuX7969Ozu2iG5IBI+Pj7Ms63A4wuEwAMBsNqtUKpvNNjw8jDG2Wq0URYXD4ewAIAclEgm1Wn3HHXccPXo0FApt3ryZoihZljOWT6VSq1atunDhgl6vt1gsbrd74sSJixcvJjxfFiAb+Aldk8nE8zzLshzHOZ3OM2fOEOVdN6H29fUhhDiOc7vdGo1GEISKigoAwPr161taWqqqqgwGA4FU4mbZ2tXr9eXl5a+88ko4HJYkKRaLJRIJQRAAAIQlnudffvnlQCBgMpkUReF53mq1qtXqbJ6Z66Z3SZKsVqter580aZJGoyEmuiqzkK/9/f1z587FGIdCoeLiYqPRSJxNo9GIoqhSqTiO6+jo6Ozs1Gq1VVVV2WYkRrBarZ9++ilR6ooVK2iaJupXFOWhhx7y+XwLFy5saWlhGObxxx8XBOEqKGNuVHUQ7zx48KAkSbNmzbo2JZOIP3nyZHd3N4F8jLHT6eR5HgDgdDplWW5ra9u3b19vb68oijU1NVVVVVd50blz5xobG7/3ve9dvHjxa1/72qZNmx577LGGhgYiZ21t7SuvvPLGG280NzcnEgm32/3uu+9eVSzdsBpNpVKpVIqm6WAwmA1t2cePjIyMjo6Koggh1Ov1Ho/H6/XqdDoAAMuyXq83mUy6XC6apimK+uijj7LNSPh46qmnnn766WeeeUaj0Rw4cGDOnDmtra3EQ7Zu3aooyt69ex9++OF58+bpdLrly5dn7POnLJAdpqSkubaQIgJ0dXV5PB6e5yVJ4jiOZdmKigrixCaT6fz584ODg5WVlXPmzOE4LhKJDA0NOZ1Oci95Ly4uPn369JNPPvniiy/eddddDQ0NpBDq7u7etm2b3++fMWPGD37wg2effXZ4eJg4wlWl2nUsQNj9IzNdE7tEDcR5VCpVOp1OJpOBQGDy5Mkkiux2u8Vi6e7uPnnypCRJdXV1L774osViyaaPMX7ppZeOHj368MMP2+32ffv2NTQ0ECfJzc197rnnli1blkgktmzZsn79+pycnEw0/kUxQKpLYodrXYispqYmtVpdWlpKQtDv95tMJhJ/HMetXbv20KFDgUAgEAjs3r27t7f3gQceKCwsJPRJili9enVpaenKlSvvueee3t7eI0eOaDSaUCi0fv36BQsW/PCHP1QU5fTp011dXTk5OdcCyQ1dCCFUVVU1Njbm9/sdDofRaLzWJgih1tZWv9+vKIogCHa7vaCgYNq0aZk9Ho+np6envLy8vLz81KlTzzzzDMdxTzzxBIFwjDHDMGNjY7t27dq2bdvkyZNnzpw5ceLE2bNnDw4OHjt27He/+53FYpk+ffr8+fNXrVplMpmu2xVcXwAIYX9/Pyk8x8fHx8fHs1GIfPB4PCMjIyQAfD7f6Ogoy7IajSZjQ7VaferUqQsXLnAcJwiCyWQaGBjIdkiMsSAIOTk5RqNxeHi4p6cnGo0ODw+vXbs2EokUFxf7/f5jx46dO3dux44dhw8fzs/Pv1aGG6JQMBiMx+OKoiQSias8j/AXCARcLpfVapUkieS4wsLC3NzcDIsul0ulUtnt9oqKivr6+q1bt86ZM4fUF4QPAvyvvfZaTk4ORVEajcblci1YsMBkMm3fvn3z5s2KoiSTSVEUNRpNW1sbueUvsgAJdtJMXBvEBKRPnTpFai9BEGw2m9FonDVrFmnTyP7y8vI1a9Y4HA6e58Ph8KFDh9xu99y5czM2pGna7/e/+eabRqPx7rvvrqurKysrKy0tJWX56OjowoULKysrFyxY4HA4fD5fMpkkXUe2Ea4fxAghRVGsViuEkJQ018JUc3NzKBSaOHEiKTxbW1sLCgpIr0NCPzc3V6fT7d6922Aw6HS6+vp60vRlKCCEPvvss4qKiqeeeqqvr++TTz4ZGRlxu9319fUTJkzQ6/WPPvrogQMH3nnnnZMnT3Z0dDz22GObNm3KVEE3FCADcxRFxWKxG6WI9vZ2tVrNsmxnZydCKJVKTZo0ieiemAhjPDo6SsqYtWvXFhUV+Xy+48eP19fXZyy5ZcsWSZLWrVu3b98+n8/ncDh+8pOfQAi//vWvv/7664sWLbp06ZIgCCzLrlu37tZbb5Uk6ao8wNxoBJA9OLm2kAyFQh6PR1GUQCBgsVj0ev3g4GB7e/vPfvYzv98/ffr0999//9VXX50wYcLQ0BBN0+3t7W+99VZjY+PChQuJAASFfvGLX3z88cc8z0cikdra2g0bNpBujqZpIq1Op1u/fn19ff3g4ODWrVtbW1sfeeSRP6rMs1ts4gBLly6FEGq1WpPJROqChQsXZhpt8n769GlBEPR6fVFR0YoVK2pqarRabUlJyapVq4iqAABffPHF/v37rVar2WzWaDRWq5XjuEmTJsXj8cxxNTU1Go3GZDLV1NQ0NzcvWrRo/fr1GGNZlmVZdrlcGzdu/OCDDyZPnky06XA4+vr6sucDzI3mMIqixGIxhmFIX3sVBLW1tcViMY1GEwgEmpqaQqEQhNDr9R48eFCn0/l8vtzc3EQiQQYTgiAUFxc7HA6n00m6hQy1ZcuWrVixQqVSLVu27PTp036/f9GiRRn77Nq1S6vVPvroo3l5edXV1UTUdDqdPYxj/sQ4KTP5Ilk5W4CWlhaWZWmaliRpeHjYarXyPO/1eiVJCoVCZBTQ2Ni4Zs0ahFBBQcHNN99ss9lycnKqqqpkWVapVISDJUuWjI6Oulyu/Px8lmUrKysLCwtJs4oxdrlcCKEdO3aEw+Hh4eHx8XHSnf8ZFCKdBKlwCPRmYiADkd3d3YqikBKD47hUKgUhtFgsiqIQfEQI9fb2arXaRCJx9OjRQ4cOkZ1TpkxZuXLlgw8+iBCCEG7cuJEk6alTp957770zZ8781re+dfvtt5OrCKHu7u6VK1eKojh//vyFCxd2dnYKguDxeOx2++WO7LoCZA8drp2KRqPR/v7+jDVYlg2FQsuXL3/yySeTyWQmvEiKmD59elNTE8dxdrud5/mRkZEzZ85kzKvT6WpqaoqLi10uF8MwFy9ebGlpuf322zOaKigoKCsr+/73v88wzMmTJ51OZ3V1td/vRwjl5eXdEEaJ1skUMVsSwnFfX9/w8DDHcTRNJ5NJMn2YM2eO0+m8lprJZIpEIkVFRcFgEGNcVVVFJmUkriiKGh8fj8ViGzZsGB4ejsVi8+bNy9YXz/MPPPDAnj17cnJytmzZEg6HH3/8cVJT3H///Qih6wtAEjtp+TKZmIQOAKCrq0uj0dhstlgsNj4+bjQaEUKTJk0iAmfSNhnOEZ9OJpOxWExRlMbGxra2toceemjixIlkHNTe3t7U1HTgwAGGYRwOR3brTErGuXPn7tmzZ+vWrRaLpaKi4p133oEQulyulStXms1mCgCAMMIY4SuIKooiQiieiCUSCQwQAABAgDFGACGMEEZd3V2KokQikUQiLsmSP+DneC4/P5+iKIqiAAQAAgAxBlhBSkVFhSzL8URcxalESUxL6aGhoa6uLoSRrEipdIpiqB07d0iSZDabx2PjkUjkMgyiy+NRQIE1312jIFlSJIRQKBIyW82fHzyw45c7IIQMAICCV7psCgIASkpKam6q4Rh1WkyaDGZJlPJy8iCEKkoFKAAgaG067/cHAMR6tcDzfDAQZBwqh9VxVdVEMTQA4OaZs7773e/arQ5exaVSKYzxoGeQHMqquCX1i+tuqTPoDTItQwihRE2ZNoWgUKYkAwDcNP2mV1/YeeL4yWBsrGpSdTqdthnsvgF/KpaGKSm5r/29EnOFgbdIKC1jxUzZxiKjRzs/N6msg6Eeb2R05YyGguKCvS3vpZV0ucN16Oj+Cv1Ug9p82n2coujhwKDNbL//2/+zyFyWkOLucN9IdKg/7FZj/YXQ2X/+yvdt2pwT3cebB5tFIBkE3f+oXoMx7vC3HWzfZ2LtPZEeTIENdRtkjP7l0JNzS+YucS3v9fa82fJvi6YuLhLKXmrcVm2v6Y91ekPuVdXrDvUcFsVEgbHoSMe+GcW1lKjIPz248eXj2z5r+3Dnl8+/9PvNar0qrko80bjJy3mb0oc+DXxsybW+cOy5n36xYVfbLw93Hd6P9hbU5d229La9qg+MM/RiZei8/vd371p6xnO2efjEDz566NUT2w+17+3yt75z7jdDoSEAwPHhw8dHDsYToX5PN6Qhy7I/P/JUXEo4DLZEPHpm4NTzR55VYQanFU90BAAwFvOd7WlGIoqK4fHxcQ3QQpkJJ6IxKaoX9KyaStERRmBG4n0MBelYWh4K+59bti6ppABGGpUQjyfDwYQALL/9xv64mDCojZ6gp9Q4c//9B73R0bd2vB4JhYeg2xcOqoHw66/uOdx/cOmvF8dSMY7RnvO0v7fq45nFN/+6caeWtqTTEsbgVP/ZQkf+FOPU35z9lTvkLjIXDYZ78jR5d7iWFpiKtux/os8/4I/7g7Fwf6AfYxxVQkNyL8MwEIP+UK9OLfxz1aME3zuHOw8PHfvtst81TF+fllMMBABjBBBQcxo10GSAiFZRtIriVDyn4gEATyzaIsppVsXp1LrpEyY5hDwNz9UWzS40FbIqzqHJqbAVUJSsZ40WnSmF4wAAESRpCA0aI4RAzatKjZPNZtsEe76KVomSWGautBtyIIQ2Q069a6mRM7AsW5JXVp1bDSG8acLM2QW13vhodc5NE/SFg7H+W8FXAAAUDS06h8s2laFpAAGn4hmSYxnIvNu0qz80YNaZvzNzNYSQBkwoFVj91reMvGn7XS8V20oAAB+3va/CqoSErXqHrMj+uE8FIQb4kveSlhWMnMWf9vEMK0kyAMDAGdSMQAFaUtL+mDucCpfayryhsYu+trkl8/SccHawKZlM2gX76lmrAQBDoaGT7t9/pWB2z1jnJ20f6ljBrDb7Ez6nJZ+juKcP/bTYVPaNad8+NnygwFh4sO/zD1rffWTO/2IAABhgBjBvnPpto/uULxlMJVO3lvwThBghrOAkwxoAADKSEcK/PP2vNbbpM3NnQoQ4irOrHdF0BAKoVWuSoixDrKV1EF6eVHM0P9Hh1PNqb9Q7xT5tccWSHK2jzOE0sMa0kjKqjdNs1YAmGUOBFBQ4/c050yNiaF9L+7g8npBjWpUOQiqN0gzDzC6s7Ri7oGCl0lY5EHHXOK3zJ85lIM0AACCASZR8+5493WNdt79c64uPQghTkmhWW1//9gcAAIwRQzGAAm9+871APPC1N+7goW7FTSsPdx2dV7hMQUoqmYokwrIiJaSEP+lTlDQAwJ/0dYW6EYJtvramkebbgvNpQLvjwwe6P6m0V/YGemKp8DdAgy/m+/TCh4JKWDRlSaevE2H6kboNPe6uZ4//rD/eZ+LM+/v2T86bUle6vK50AULo39s/z1GbpuXcNKtgNgCAIUUCBkiv1hdbS7ACOYYlyQteafkxAD/e9z2bbsLDtRswRBgqIpKBQkkYpGGKpmiz3gwpWRRTAqcFsjieigMAkpKIZUrNqkeiw2attTvUFYlHK01T1SxPM0yZo8IIBTXHp5Rk+1ibyzolKaVuK1tQkTvFrLfoywx3p1ebVCaz1jzPOR/iP4z1G6Z/+6ynEcDMH90AAABUkN1/8bNWb2saJBJiGmBAYSouxj44/140Hr2tZP77rR/oWc6mzbXyNkkGKTGhICWWGBfT4idtH39yaY8/6VewkpbTk20TtZwWAMCx3NTcSRQEHYF2o1qztOJOp6H07ZZ/O+c5PxJydwTbS7Vln3d+RiE6mIz0hQYwxr/vPwpouq50brun9a1zv/nh7T9JKfEco71EW9Y6cq5l6OySyiWzym6BHAzFgwhiICEGAIyBREN6y4HHTw03TdCb5pcvSCkpmoHhlG/73o29I9FjD5y8Z9a6X3357P/+dN2d5d/JFfJnl32lyFZwS+HM4bB7x9lfiGJoet60cmt548jJM6MtopIGAIxGfJ9fOtpQ3flZz0fF2pIi80SKpv2xwCtNL62s/ubiqUt+dejV86NnuoIXoYpdtOBplmJ5yIZTAQghTasGIr1DoT6BMew49TJVBXc2vxoD0Rl507Yf3UZx4OxI6y+Pv7B88jegoig9gQ6W5hmKGpfiBtaUa8gbT40PRfpt2pyUFE7LUr6hhGf5gWAPhJilNQzNWrVWAEAqnQomA5hCNKZMGgun4kPJwGB4qMBYZFIbx+I+b9RTbC4ZS4wCAIuMJRBCT8QTSI0VCEWCWhgJDwEAIumwXeewaO2yIqfEhAJkg9oMAPDHfAACE28ZCg2wKpWkpAFFO7Q5o+MeCkKWVfuiI1pWuM6jBgijTHV0w//rMaIgqdr+Dx4ywADDK7dkf77qUAzw5Rj8CxbEGCtYuRzKGFCQIrUnOYDQogAEV56qIHQvzxivvK78BElJC8lnQoTM4QCAkCJXAcAQUhBAhBEAGANAASoztMTwsmAZOgijDCdXqMErKrhyTEZFEMI/fL1WXPBf/BTHX/V5ob9B7q9pKeHVjGKM/ybZ/v/okTP4Rxjy/44F/naEYf7zj4FdkeGvGdx/iEkM/vxo8XIdB/+vQBMmgw6Q9bcxgCSjZRO/6gEXBBDRG8KIAczlqcR/z8J/iDKcpak/oREIIXXF5zO57z+ZyLL3/Pfmh797GP0PuURSIxuCbmUAAAAASUVORK5CYII=">
+<style>
+:root{
+  --bg:#F7F9FB;--panel:#FFFFFF;--ink:#1E2A38;--mut:#5B6B7C;--line:#E2E8EF;
+  --blue:#4A79A8;--blue-l:#E3EDF6;--coral:#C4674A;--coral-l:#F8E7DF;
+  --gold:#B8922A;--gold-l:#F7EFD6;--green:#5E8C4A;--green-l:#E4EFDC;
+  --amber:#B07D2B;--amber-l:#F5EAD4;--gray-l:#EDF0F3;--r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+.mono{font-family:"SF Mono",Consolas,monospace}
+header{position:sticky;top:0;z-index:30;background:var(--ink);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header .logo-img{height:32px;width:auto;display:block;flex:none;margin-right:12px;cursor:pointer;opacity:.97;transition:opacity .15s}
+.logo-img:hover{opacity:1}
+.brand{font-weight:700}
+header .brand small{display:block;font-weight:400;opacity:.72;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+header .caseName{opacity:.85;font-size:13px;border-left:1px solid rgba(255,255,255,.3);padding-left:14px}
+#causeCounter{margin-left:auto;background:var(--green);padding:6px 14px;border-radius:20px;font-weight:700;font-size:14px;white-space:nowrap}
+#causeCounter.zero{background:#54646F}
+header button{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}
+header button:hover{background:rgba(255,255,255,.12)}
+.layout{display:flex;min-height:calc(100vh - 56px)}
+nav{width:220px;flex:0 0 220px;padding:16px 10px;border-right:1px solid var(--line);position:sticky;top:56px;align-self:flex-start;max-height:calc(100vh - 56px);overflow-y:auto}
+nav .step{display:flex;gap:9px;align-items:flex-start;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--mut);margin-bottom:2px}
+nav .step:hover{background:#E4EAF0}
+nav .step.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(20,40,60,.12);font-weight:600}
+nav .step .n{font-family:monospace;font-size:12px;background:var(--gray-l);border-radius:6px;padding:2px 7px;margin-top:1px}
+nav .step.active .n{background:var(--ink);color:#fff}
+nav .step .badge{margin-left:auto;font-size:11px;background:var(--blue-l);color:var(--blue);border-radius:10px;padding:1px 8px;font-weight:700}
+nav .back{color:var(--mut);font-size:13px;cursor:pointer;padding:8px 10px;border-radius:8px;margin-bottom:8px}
+nav .back:hover{background:#E4EAF0}
+main{flex:1;padding:20px 24px;max-width:1120px}
+h2{font-size:20px;margin-bottom:4px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:14px;max-width:860px}
+.sub .f,.f{font-family:monospace;background:var(--gray-l);padding:1px 6px;border-radius:5px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px;font-weight:600}
+input[type=text],textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+textarea{resize:vertical;min-height:36px}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--blue);border-color:var(--blue)}
+.btn{border:none;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;font-weight:600;background:var(--ink);color:#fff}
+.btn:hover{opacity:.92}.btn.sec{background:var(--gray-l);color:var(--ink)}.btn.small{padding:5px 10px;font-size:13px}
+.btn.danger{background:#fff;color:#A33;border:1px solid #DBB}.btn.coral{background:var(--coral)}
+.warn{background:var(--gold-l);border-left:3px solid var(--gold);padding:7px 10px;border-radius:0 8px 8px 0;font-size:13px;color:#6B5510;margin-top:6px}
+.hint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.empty{color:var(--mut);font-style:italic;padding:18px;text-align:center;border:1px dashed var(--line);border-radius:var(--r);background:#FBFCFD}
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+table.t th{background:var(--blue-l);text-align:left;padding:7px 8px;font-size:12px;color:#2E4A66;border:1px solid var(--line)}
+table.t td{border:1px solid var(--line);padding:5px 7px;vertical-align:top}
+.lane-В{background:var(--coral-l)}.lane-А{background:var(--blue-l)}.lane-Д{background:#EAF3EE}.lane-С{background:var(--gray-l)}.lane-О{background:var(--gold-l)}.lane-П{background:#EFEAF6}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:16px;padding:4px 11px;margin:3px 4px 0 0;cursor:pointer;font-size:13px;background:#fff;user-select:none}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.fam{font-size:11px;border:none;background:none;color:var(--mut);cursor:default;padding:4px 0 0;display:block;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.review{border:1px solid var(--line);border-left:5px solid var(--coral);border-radius:var(--r);background:var(--panel);padding:14px;margin-bottom:12px}
+.review.cause{border-left-color:var(--green)}.review.stop{border-left-color:#9AA6B1;opacity:.94}
+.review h4{font-size:15px;margin-bottom:8px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.review h4 .who{font-size:12px;color:var(--mut);font-weight:400}.review h4 .from{font-size:11px;background:var(--gray-l);border-radius:6px;padding:2px 7px;color:var(--mut)}
+.fieldrow{display:grid;grid-template-columns:150px 1fr;gap:8px;align-items:start;margin-bottom:9px}
+.fieldrow>span{font-size:12px;color:var(--mut);font-weight:600;padding-top:8px}
+.verdict{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.verdict button{border:1.5px solid;border-radius:8px;padding:7px 13px;font-size:13.5px;cursor:pointer;background:#fff;font-weight:600}
+.verdict .v-rec{border-color:var(--coral);color:var(--coral)}.verdict .v-rec.on{background:var(--coral);color:#fff}
+.verdict .v-cause{border-color:var(--green);color:var(--green)}.verdict .v-cause.on{background:var(--green);color:#fff}
+.verdict .v-stop{border-color:#9AA6B1;color:#5B6B7C}.verdict .v-stop.on{background:#7A8894;color:#fff}
+.causebox{background:var(--green-l);border-radius:8px;padding:9px 11px;margin-top:8px;font-size:14px}.causebox b{color:var(--green)}
+.child{margin-left:24px;position:relative}.child::before{content:"";position:absolute;left:-15px;top:0;bottom:0;width:2px;background:var(--line)}
+.causeItem{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:var(--r);background:var(--panel);padding:12px;margin-bottom:10px}
+.causeItem.dup{opacity:.55;border-left-color:#B9C2CC}
+.causeItem .num{font-family:monospace;font-weight:700;background:var(--green-l);color:var(--green);border-radius:8px;padding:4px 9px}
+.klist{font-size:12.5px;color:var(--mut)}
+.saveflash{position:fixed;bottom:14px;right:16px;background:var(--ink);color:#fff;border-radius:8px;padding:7px 13px;font-size:12.5px;opacity:0;transition:opacity .3s;pointer-events:none}
+.saveflash.show{opacity:.92}
+/* список расследований */
+.caseGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.caseCard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px;cursor:pointer;transition:box-shadow .15s}
+.caseCard:hover{box-shadow:0 3px 12px rgba(20,40,60,.13)}
+.caseCard h3{font-size:16px;margin-bottom:4px}
+.caseCard .meta{font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.caseCard .stat{display:inline-block;font-size:12px;background:var(--green-l);color:var(--green);border-radius:12px;padding:2px 10px;font-weight:700}
+.caseCard .stat.z{background:var(--gray-l);color:var(--mut)}
+.caseCard.arch{opacity:.6}
+.newCase{border:2px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:600;min-height:120px}
+.newCase:hover{border-color:var(--blue);color:var(--blue)}
+/* STEP-шкала */
+.step-scale{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:#FBFCFD;padding:10px}
+.step-lane{display:flex;align-items:center;height:34px;border-bottom:1px dashed var(--line)}
+.step-lane:last-child{border-bottom:none}
+.step-lane .lname{flex:0 0 120px;font-size:12px;color:var(--mut);font-weight:600}
+.step-track{position:relative;flex:1;height:100%;min-width:520px;padding-right:6px}
+.step-dot{position:absolute;top:50%;transform:transl(-50%,-50%);width:13px;height:13px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 1px var(--blue)}
+.step-bar{position:absolute;top:50%;transform:translateY(-50%);height:10px;border-radius:5px;background:var(--blue-l);border:1px solid var(--blue)}
+.step-dot.inchain{background:var(--coral);box-shadow:0 0 0 1px var(--coral)}
+.step-dot.laneО,.step-bar.laneО{background:var(--gold-l);border-color:var(--gold)}
+.step-dot.laneП,.step-bar.laneП{background:#EFEAF6;border-color:#8A6FA8}
+.step-time{position:absolute;font-size:9px;color:var(--mut);white-space:nowrap;pointer-events:none;background:rgba(255,255,255,.88);padding:0 2px;border-radius:3px;z-index:2}
+.step-dot,.step-bar{cursor:pointer}
+.step-dot:hover,.step-bar:hover{outline:2px solid var(--ink);outline-offset:1px}
+tr.hl td{background:var(--gold-l)!important;transition:background .1s}
+.sdk-node{border:1px solid var(--line);border-radius:10px;padding:12px;background:#FBFCFD;margin-top:8px}
+.sdk-q{font-weight:600;margin-bottom:8px}
+.sdk-opts{display:flex;gap:8px;flex-wrap:wrap}
+.sdk-opts .opt{border:1.5px solid var(--line);border-radius:8px;padding:7px 13px;cursor:pointer;background:#fff;font-size:13.5px}
+.sdk-opts .opt:hover{border-color:var(--blue)}
+.sdk-result{background:var(--blue-l);border-radius:8px;padding:10px 12px;margin-top:8px}
+.sdk-cond{background:#fff;border:1px dashed var(--gold);border-radius:8px;padding:9px 11px;margin-top:8px;font-size:13px}
+.sdk-cond b{color:var(--amber)}
+.pill{display:inline-block;background:var(--coral-l);color:var(--coral);border-radius:10px;padding:2px 9px;font-size:12px;font-weight:700;margin-left:6px}
+.rowbtns{display:flex;flex-direction:column;gap:2px}
+.rowbtns button{border:none;background:var(--gray-l);border-radius:5px;cursor:pointer;font-size:11px;padding:2px 6px;color:var(--mut)}
+.rowbtns button:hover{background:var(--blue-l);color:var(--blue)}
+.catalog-pop{position:relative}
+.catalog-list{border:1px solid var(--line);border-radius:8px;max-height:230px;overflow:auto;background:#fff;margin-top:4px}
+.catalog-list .stg{background:var(--gray-l);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--mut);padding:4px 9px;position:sticky;top:0}
+.catalog-list .it{padding:7px 9px;cursor:pointer;border-top:1px solid var(--line);font-size:13px}
+.catalog-list .it:hover{background:var(--blue-l)}
+.catalog-list .it small{color:var(--mut);display:block}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:10px;align-items:stretch;position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.two-col .col{padding:14px 16px;position:relative}
+.two-col .col.left{background:linear-gradient(180deg,#F2F7FC 0%,#FBFCFD 55%);border-right:2px dashed var(--line)}
+.two-col .col.right{background:linear-gradient(180deg,#FDF6EE 0%,#FDFCFA 55%)}
+.two-col .col.left::before,.two-col .col.right::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+.two-col .col.left::before{background:var(--blue)}
+.two-col .col.right::before{background:var(--gold)}
+.colnum{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;font-size:11px;font-weight:700;color:#fff;margin-right:7px;vertical-align:-3px}
+.col.left .colnum{background:var(--blue)}
+.col.right .colnum{background:var(--gold)}
+.vchart{display:flex;align-items:flex-end;gap:4px;height:150px;padding:6px 2px 0}
+.vcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.vbar{width:100%;max-width:36px;background:var(--blue);border-radius:4px 4px 0 0}
+.vval{font-size:10px;color:var(--mut);margin-bottom:2px}
+.vlbl{font-size:9.5px;color:var(--mut);margin-top:3px;white-space:nowrap;overflow:hidden;max-width:100%}
+.vchart.gold .vbar{background:var(--gold)}.vchart.green .vbar{background:var(--green)}.vchart.coral .vbar{background:var(--coral)}
+.pieLegend{font-size:12px;display:flex;flex-direction:column;gap:3px}
+.pieLegend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+tr.st-done td{background:var(--green-l)!important}
+tr.st-prog td{background:var(--gold-l)!important}
+tr.st-none td{background:#FBEAE5!important}
+tr.cs-zero td{background:#FBEAE5!important}
+tr.cs-stat td{background:var(--gold-l)!important}
+.hbar{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12.5px}
+.hbar .lbl{width:220px;flex:0 0 220px;text-align:right;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .track{flex:1;background:var(--gray-l);border-radius:5px;height:20px;position:relative}
+.hbar .fill{height:100%;border-radius:5px;background:var(--blue);min-width:2px}
+.hbar .val{width:38px;flex:0 0 38px;font-weight:700;color:var(--mut);font-size:12px}
+.hbar.green .fill{background:var(--green)}.hbar.coral .fill{background:var(--coral)}.hbar.gold .fill{background:var(--gold)}
+.chartrow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.chartrow{grid-template-columns:1fr}.hbar .lbl{width:130px;flex-basis:130px}}
+.verdict-zone{margin-top:14px;padding:14px;background:var(--green-l);border:1px solid #CADFBB;border-radius:10px}
+.verdict-zone .verdict{margin-bottom:4px}
+.two-col .col-h{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--line)}
+.two-col .col.left .col-h{color:#2E5E8C}
+.two-col .col.right .col-h{color:#9A7020}
+@media (max-width:760px){.two-col{grid-template-columns:1fr}.two-col .col.left{border-right:none;border-bottom:2px dashed var(--line)}}
+@media (max-width:900px){.layout{flex-direction:column}nav{width:100%;flex:none;display:flex;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line)}nav .step{white-space:nowrap}.grid2{grid-template-columns:1fr}.fieldrow{grid-template-columns:1fr}}
+@media print{header,nav,.noprint{display:none!important}main{max-width:none;padding:0}body{background:#fff}}
+</style>
+</head>
+<body>
+<header id="topbar"></header>
+<div class="layout">
+<nav id="nav"></nav>
+<main id="main"></main>
+</div>
+<div class="saveflash" id="saveflash">Сохранено</div>
+<script>
+/* ================= КАТАЛОГ ОШИБОК ВОДИТЕЛЯ (из монографии, 3.2.2 + 3.4.3) =================
+   Группировка — по РЕЖИМАМ ДВИЖЕНИЯ (порядок автора); этап сенсомоторной реакции — метка строки. */
+const MODES=["Начало движения","Разгон","Равномерное движение","Манёвры","Торможение","Остановка в потоке","Малые скорости и задний ход","Динамические режимы"];
+const ERR_LIST=[
+ // Начало движения
+ {m:"Начало движения", e:"Формальный осмотр зеркал и мёртвой зоны без концентрации", st:"восприятие", sub:"невосприятие",
+  circ:["скоростное ТС на обгоне в слепой зоне в момент начала движения"], ev:"боковое столкновение при начале движения"},
+ {m:"Начало движения", e:"Несинхронное действие педалями при трогании", st:"действие", sub:"координация",
+  circ:["трогание на подъёме","скользкое покрытие"], ev:"откат / пробуксовка / остановка двигателя в опасном месте"},
+ // Разгон
+ {m:"Разгон", e:"Резкий разгон при старте", st:"действие", sub:"усилие",
+  circ:["скользкое покрытие","асимметричная нагрузка на ведущую ось"], ev:"пробуксовка с потерей курсовой устойчивости"},
+ // Равномерное движение
+ {m:"Равномерное движение", e:"Скорость не соответствует пространству спереди", st:"анализ", sub:"количественная оценка",
+  circ:["туман, осадки, скользкая дорога","ограниченная видимость (поворот, гребень, плотный поток)"], ev:"выход дистанции остановки за пределы видимости"},
+ {m:"Равномерное движение", e:"Залипание взгляда на одной точке", st:"восприятие", sub:"несвоевременное восприятие",
+  circ:["внезапное препятствие или изменение скорости лидера в ненаблюдаемой зоне"], ev:"несвоевременное восприятие изменения обстановки"},
+ {m:"Равномерное движение", e:"Самоуверенность на знакомом месте без личной проверки", st:"анализ", sub:"качественная оценка",
+  circ:["новое препятствие или участник, не встречавшиеся в прежних поездках"], ev:"позднее распознавание изменившейся обстановки"},
+ {m:"Равномерное движение", e:"Отсутствие прогноза развития ситуации", st:"анализ", sub:"прогнозирование",
+  circ:["закрытые зоны (припаркованные ТС, автобус, поворот, гребень)","нерегулируемые выезды"], ev:"появление объекта из закрытой зоны без подготовительного снижения скорости"},
+ {m:"Равномерное движение", e:"Приоритет ложной задачи над безопасностью (успеть, не опоздать)", st:"решение", sub:"приоритизация",
+  circ:["дефицит времени","плотный трафик","ограничение видимости"], ev:"пропуск признаков опасности из-за сбитой цели"},
+ {m:"Равномерное движение", e:"Игнорирование собственного состояния при продолжении движения", st:"восприятие", sub:"утрата восприятия",
+  circ:["ночной перегон, монотонная трасса","физиологический минимум 02:00–05:00"], ev:"полная потеря контроля обстановки (микросон)"},
+ // Манёвры
+ {m:"Манёвры", e:"Не осмотрена мёртвая зона при перестроении", st:"восприятие", sub:"невосприятие",
+  circ:["мотоцикл, велосипед, узкое ТС или самокат в слепой зоне зеркал"], ev:"боковое столкновение с участником в непросмотренной зоне"},
+ {m:"Манёвры", e:"Не ищем мотоциклы и велосипеды, скрытые стойками кузова", st:"восприятие", sub:"искажённое восприятие",
+  circ:["мотоциклист/велосипедист в зоне А-стойки, за встречным ТС или фурой"], ev:"наезд на скрытого стойкой участника"},
+ {m:"Манёвры", e:"Резание угла на повороте налево", st:"решение", sub:"выбор варианта",
+  circ:["встречное ТС, поворачивающее налево навстречу","пешеход на ближнем углу"], ev:"столкновение на пересечении траекторий"},
+ {m:"Манёвры", e:"Перестроение без запаса по времени на высокой скорости", st:"решение", sub:"своевременность",
+  circ:["догоняющая машина в полосе перестроения","мотоциклист в межрядье"], ev:"боковое столкновение при перестроении"},
+ {m:"Манёвры", e:"Отсутствие запаса по ускорению", st:"решение", sub:"запасной вариант",
+  circ:["препятствие спереди, требующее ухода вперёд по скорости (завершение обгона, объезд)"], ev:"невозможность выйти ускорением, переход к торможению как единственному варианту"},
+ {m:"Манёвры", e:"Сигнал поворота подан одновременно с началом руления", st:"действие", sub:"сигнализация",
+  circ:["мотоциклист/велосипедист в соседнем ряду","ТС на обгоне сзади"], ev:"боковое столкновение при манёвре"},
+ // Торможение
+ {m:"Торможение", e:"Торможение на дуге поворота", st:"действие", sub:"усилие",
+  circ:["низкое сцепление (мокрый асфальт, лёд, гравий, листья, разлив топлива)"], ev:"снос / занос на дуге"},
+ {m:"Торможение", e:"Только штатное торможение на затяжном спуске (без горного тормоза)", st:"действие", sub:"усилие",
+  circ:["затяжной спуск","перегруз ТС","отсутствие резервной тормозной системы"], ev:"перегрев / выработка ресурса тормозов, отказ"},
+ // Остановка в потоке
+ {m:"Остановка в потоке", e:"Старт сразу за впередистоящим без оценки его движения", st:"действие", sub:"момент начала",
+  circ:["малая дистанция","тенденция потока к повторным остановкам"], ev:"наезд на впередистоящее ТС"},
+ // Малые скорости и задний ход
+ {m:"Малые скорости и задний ход", e:"Перепутывание педалей (газ вместо тормоза)", st:"действие", sub:"направление",
+  circ:["стеснённое пространство","стресс","нестандартная компоновка педалей"], ev:"неконтролируемое ускорение"},
+ // Динамические режимы
+ {m:"Динамические режимы", e:"Поворот руля в неправильную сторону при заносе", st:"действие", sub:"направление",
+  circ:["занос на скользком покрытии"], ev:"углубление заноса, разворот"},
+ {m:"Динамические режимы", e:"Отключение систем стабилизации без объективной причины", st:"решение", sub:"выбор варианта",
+  circ:["скользкое покрытие","манёвр с поперечной нагрузкой","разгон с асимметричным сцеплением"], ev:"потеря курсовой устойчивости"},
+ {m:"Динамические режимы", e:"Недовершённое действие (не довёл руль / недотормозил)", st:"действие", sub:"завершённость",
+  circ:["короткая дистанция","ограниченный радиус"], ev:"неполный уход от препятствия"}
+];
+/* Операторы, кроме водителя: каталог пополняется практикой. */
+const OP_CATALOG = {
+  "контролёр технического состояния":[{e:"Осмотр при выпуске проведён формально (подпись без проверки)", circ:["давление графика выпуска; нет работающего чек-листа"], ev:"выпуск неисправного ТС на линию"}],
+  "оператор погрузки":[{e:"Загрузка ТС сверх нормы", circ:["нет весового контроля на выезде"], ev:"перегруз ТС"}],
+  "диспетчер":[{e:"Назначен маршрут без учёта массы и профиля", circ:["затяжной спуск на маршруте, альтернатива существовала"], ev:"движение перегруженного ТС по опасному профилю"}],
+  "специалист по БДД":[{e:"Модуль обучения не включён в программу подготовки", circ:["нет требования в корпоративном стандарте"], ev:"допуск водителя без нужного навыка"}]
+};
+
+/* ================= СДК-МАСТЕР: дерево вопросов + условия ошибок (© Комаров) ================= */
+const SDK_TREE = {
+  q:"Было ли действие намеренным (то, что планировалось сделать)?",
+  no:{
+    q:"Ошибка была на основе памяти или внимания?",
+    attention:{type:"промах", cls:"ошибки на основе навыков",
+      cond:["отвлечение от задачи","сильная старая привычка","задержка в выполнении действия"]},
+    memory:{type:"упущение", cls:"ошибки на основе навыков",
+      cond:["изменение характера задачи","изменение среды задачи","забывчивость"]}
+  },
+  yes:{
+    q:"Действие считалось правильным (по правилам или добросовестной практике)?",
+    yes:{
+      q:"Были ли определённые правила для принятия решения? Знал ли оператор их содержание?",
+      rule:{
+        q:"Правило было применено правильно?",
+        good_bad:{type:"заблуждение", sub:"плохое правило", cls:"ошибки на основе правил",
+          cond:["неверное/неэффективное/нецелесообразное правило","отсутствие проверок","с правилом связан высокий риск"]},
+        wrong_apply:{type:"заблуждение", sub:"неправильное применение хорошего правила", cls:"ошибки на основе правил",
+          cond:["правило больше не подходит для обстоятельств","первый опыт использования правила","информационная перегрузка"]}
+      },
+      knowledge:{type:"заблуждение", sub:"на основе знаний", cls:"ошибки на основе знаний",
+        cond:["предвзятость, самоуверенность, эвристика доступности","дефицит времени, давление","отсутствие описания процессов, плохая подготовка"]}
+    },
+    no:{
+      q:"При каких условиях совершено нарушение?",
+      routine:{type:"нарушение", sub:"рутинное", cls:"дисциплинарное воздействие",
+        cond:["«все так делают»","неработающие/необязательные правила","плохое отношение к соблюдению","отсутствие контроля или мотивации"]},
+      situational:{type:"нарушение", sub:"ситуационное", cls:"дисциплинарное воздействие",
+        cond:["невозможно выполнить работу, не нарушив правила","цейтнот","высокая рабочая нагрузка, нехватка ресурсов"]},
+      exceptional:{type:"нарушение", sub:"исключительное", cls:"дисциплинарное воздействие",
+        cond:["неожиданная ситуация","отсутствие подходящих правил","решение проблем в стрессовой ситуации, ЧС"]},
+      optimizing:{type:"нарушение", sub:"оптимизационное", cls:"дисциплинарное воздействие",
+        cond:["отступление в интересах выгоды","нажим со стороны руководства или коллег","личная выгода"]},
+      sabotage:{type:"нарушение", sub:"саботаж", cls:"дисциплинарное воздействие / расследование умысла",
+        cond:["сознательный умысел причинить вред"]}
+    }
+  }
+};
+if(typeof module!=="undefined") module.exports={MODES,ERR_LIST,OP_CATALOG,SDK_TREE};
+/* ===== СПРАВОЧНИКИ ===== */
+const LANES=["В","А","Д","С","О","П"];
+const LANE_NAMES={В:"Водитель",А:"Автомобиль",Д:"Дорога",С:"Среда",О:"Операторы",П:"Прочее (контекст)"};
+const STOPWORDS=["ошибочно","слишком","не справился","превысил","нарушил","неправильно","забыл","отвлёкся","отвлекся"];
+const STAGES=["восприятие","анализ","решение","действие"];
+const ROLES=["топ-руководитель","руководитель СП","линейный руководитель","водитель","водитель-наставник","контролёр технического состояния","специалист по БДД","диспетчер","медработник","служба спасения","оператор погрузки","другое (указать)"];
+const BSTATES=["отсутствовал","отказал","неадекватный","эффективный"];
+const ACT_STATUS=["не выполнено","в процессе","выполнено"];
+const DTP_KINDS=["встречное","попутное","попутное (наезд сзади)","перекрёстное","опрокидывание","съезд с дороги","наезд на препятствие","наезд по высоте","наезд на пешехода","падение пассажира","столкновение с поездом","падение груза","прочее"];
+const PLACE_AREA=["населённый пункт","вне населённого пункта","межцеховая дорога","внутрицеховая дорога","карьерная дорога"];
+const PLACE_SPOT=["участок дороги","кривая в плане","регулируемый перекрёсток","нерегулируемый перекрёсток","перекрёсток с круговым движением","пересечение с прилегающей территорией","регулируемый пешеходный переход","нерегулируемый пешеходный переход","ж/д переезд","парковка","мост/тоннель/путепровод","производственное помещение","территория СП"];
+const TS_TYPES=["легковой","грузовой","автобус","ТТ","СДМ","НПТ","КГП","ОГ"];
+const WEEKDAYS=["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+function weekdayOf(iso){ if(!/^\d{4}-\d{2}-\d{2}$/.test(iso||""))return ""; const d=new Date(iso+"T00:00:00"); return isNaN(d)?"":WEEKDAYS[d.getDay()]; }
+function inpT(obj,key,type){
+  const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
+    e.oninput=()=>{obj[key]=e.value;save();};
+    e.onchange=()=>{obj[key]=e.value;save();render();};},0);
+  return `<input type="${type}" id="${id}">`;
+}
+function isoToRu(iso){const m=(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(m[3]+"."+m[2]+"."+m[1]):"";}
+function inpDate(obj,key){ // текстовое дд.мм.гггг ↔ ISO в данных
+  const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=isoToRu(obj[key]);
+    const parse=v=>{const m=v.trim().match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})$/);
+      return m?(m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0")):"";};
+    e.oninput=()=>{const iso=parse(e.value);obj[key]=iso||(e.value.trim()?obj[key]:"");if(iso)obj[key]=iso;save();};
+    e.onchange=()=>{const iso=parse(e.value);obj[key]=iso;e.value=isoToRu(iso);save();render();};},0);
+  return `<input type="text" id="${id}" placeholder="дд.мм.гггг" style="max-width:140px">`;
+}
+function inpTime(obj,key){ // чч:мм с нормализацией
+  const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
+    e.oninput=()=>{obj[key]=e.value;save();};
+    e.onchange=()=>{const m=e.value.trim().match(/^(\d{1,2})[:.](\d{2})$/);
+      obj[key]=m?(m[1].padStart(2,"0")+":"+m[2]):e.value.trim();e.value=obj[key];save();render();};},0);
+  return `<input type="text" id="${id}" placeholder="чч:мм" style="max-width:100px">`;
+}
+const CATS=["структура управления","управление рисками","контроль обеспечения БДД","популяризация","отбор и обучение водителей","повышение квалификации водителей","поддержание ТС в технически исправном состоянии","организация дорожного движения","управление поездками","управление подрядными организациями","отсутствие системной причины","системная причина не выявлена"];
+const CLASS_BY_TYPE={"промах":"тренировка, дрилл","упущение":"тренировка, дрилл","заблуждение":"обучение / переработка регламента","нарушение":"контроль, мотивация, санкции","утрата":"управление готовностью (РТО, медконтроль)"};
+const FACT_ABILITY=["квалификация: знание","квалификация: навык","квалификация: опыт","физиология","усталость","отвлечение","эмоции"];
+const FACT_WILL=["установки / мотивация","устойчивые черты"];
+const TOP_ROLES=["топ-руководитель","руководитель СП"];
+const LEVEL=r=> r==="водитель"?"водитель": TOP_ROLES.includes(r)?"руководство":"операторы";
+
+/* ===== ХРАНИЛИЩЕ (переносимое: Claude → localStorage → память) ===== */
+const DBKEY="fb-mvp2-db";
+const store={
+  async get(){ if(window.storage){try{const r=await window.storage.get(DBKEY);return r?r.value:null;}catch(e){return null;}}
+               try{return localStorage.getItem(DBKEY);}catch(e){return null;} },
+  async set(v){ if(window.storage){try{await window.storage.set(DBKEY,v);return true;}catch(e){return false;}}
+               try{localStorage.setItem(DBKEY,v);return true;}catch(e){return false;} }
+};
+let DB=null, S=null, seq=1, saveTimer=null, memOnly=false, cur=0, statsView=0, localMode=false;
+const uid=()=>"id"+(seq++);
+const newCaseId=()=>{ // идентификатор дела — формат базы
+  try{ if(crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0, v=c==="x"?r:(r&0x3|0x8); return v.toString(16); });
+};
+function relinkSeq(){let m=1;JSON.stringify(DB).replace(/"id(\d+)"/g,(_,n)=>{m=Math.max(m,+n+1);return _;});seq=m;}
+const blankCase=(name)=>({id:newCaseId(),name:name||"Новое расследование",created:Date.now(),updated:Date.now(),archived:false,
+  info:{num:"",dateISO:"",time:"",kind:"",area:"",spot:"",tsType:"",ts:"",driver:"",exp:"",age:"",victims:"",unit:"",desc:"",harm:""},
+  chrono:[],links:[],reviews:[],circs:[],acts:[],causeMeta:{},concl:{candidates:"",notes:""}});
+function migrateCase(c){
+  for(const L of (c.links||[])){
+    // авто-код: если ошибка текстом совпадает со строкой каталога — проставить код
+    if(!L.errCode&&(L.error||"").trim()){
+      const gi=ERR_LIST.findIndex(x=>x.e.trim().toLowerCase()===L.error.trim().toLowerCase());
+      if(gi>=0){L.errCode="E"+String(gi+1).padStart(2,"0");L.catStage=ERR_LIST[gi].st;L.catMode=ERR_LIST[gi].m;}
+    }
+    if(L.circs) continue;
+    L.circs=[];
+    const letters={}; (c.links||[]).forEach((x,i)=>letters[String.fromCharCode(65+i)]=x.id);
+    for(let part of (L.circ||"").split(";")){
+      part=part.trim(); if(!part)continue;
+      const m=part.match(/\(→\s*звено\s*([A-ZА-Я])\)/i);
+      const text=part.replace(/\(→[^)]*\)/g,"").trim();
+      if(m&&letters[m[1].toUpperCase()]) L.circs.push({id:uid(),text,kind:"prev",linkRef:letters[m[1].toUpperCase()]});
+      else L.circs.push({id:uid(),text,kind:"ext",linkRef:""});
+    }
+    delete L.circ;
+  }
+  // миграция мероприятий: actions(key/action/done) → acts(causeId/text/status)
+  if(c.actions&&!c.acts){
+    c.acts=[];
+    for(const a of c.actions){
+      if(!(a.action||"").trim()&&!(a.key||"").startsWith("free:"))continue;
+      const causeId=(a.key||"").startsWith("c:")?a.key.slice(2):null;
+      const status=(a.done||"").trim()?"выполнено":"";
+      c.acts.push({id:uid(),causeId,text:a.action||"",who:a.who||"",due:a.due||"",status,dup:false});
+    }
+    delete c.actions;
+  }
+  if(!c.acts)c.acts=[];
+  const inf=c.info||(c.info={});
+  if(inf.date!==undefined&&inf.dateISO===undefined){
+    inf.dateISO="";inf.time="";
+    const m=(inf.date||"").match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+    if(m)inf.dateISO=m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0");
+    const t=(inf.date||"").match(/(\d{1,2}):(\d{2})/);
+    if(t)inf.time=t[1].padStart(2,"0")+":"+t[2];
+    if(!m&&(inf.date||"").trim())inf.desc=((inf.desc||"")+" [дата по старой записи: "+inf.date+"]").trim();
+    delete inf.date;
+  }
+  ["kind","area","spot","tsType","exp","age","victims","unit"].forEach(k=>{if(inf[k]===undefined)inf[k]="";});
+  for(const r of (c.chrono||[])){ // «со слов» → «факт» (обратная логика)
+    if(r.isFact===undefined){ r.isFact = !r.assume; delete r.assume; }
+    if(!r.isFact) r.inchain=false;
+  }
+}
+async function loadLocalDB(){
+  const v=await store.get();
+  if(v){try{DB=JSON.parse(v);relinkSeq();}catch(e){}}
+  if(!DB) DB={cases:[]};
+  DB.cases.forEach(migrateCase);
+}
+function save(){
+  if(S)S.updated=Date.now();
+  if(typeof CLOUD!=="undefined"&&CLOUD){ if(S) cloudSaveCase(S); return; }
+  clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{
+    const ok=await store.set(JSON.stringify(DB));
+    if(ok)flash("Сохранено"); else if(!memOnly){memOnly=true;flash("Хранилище недоступно — данные в этой вкладке");}
+  },600);
+}
+function flash(t){const f=document.getElementById("saveflash");f.textContent=t;f.classList.add("show");setTimeout(()=>f.classList.remove("show"),1400);}
+
+/* ===== UI ХЕЛПЕРЫ ===== */
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function inp(obj,key,ph="",multi=false){const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
+    e.oninput=()=>{obj[key]=e.value;save();};},0);
+  return multi?`<textarea id="${id}" placeholder="${esc(ph)}"></textarea>`:`<input type="text" id="${id}" placeholder="${esc(ph)}">`;}
+function inpStop(obj,key,ph){const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
+    const w=document.getElementById(id+"w");if(w)w.innerHTML=stopHTML(e.value);
+    e.oninput=()=>{obj[key]=e.value;save();if(w)w.innerHTML=stopHTML(e.value);};},0);
+  return `<textarea id="${id}" placeholder="${esc(ph)}"></textarea><div id="${id}w"></div>`;}
+function stopHTML(t){const low=(t||"").toLowerCase();const hit=STOPWORDS.filter(w=>low.includes(w));
+  return hit.length?`<div class="warn">Оценка вместо факта: «${hit.join("», «")}». Запишите наблюдение (что показала бы камера).</div>`:"";}
+function sel(obj,key,opts,onch){const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
+    e.onchange=()=>{obj[key]=e.value;save();if(onch)onch();};},0);
+  return `<select id="${id}"><option value="">—</option>${opts.map(o=>`<option>${esc(o)}</option>`).join("")}</select>`;}
+function chk(obj,key,label,onch){const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.checked=!!obj[key];
+    e.onchange=()=>{obj[key]=e.checked;save();(onch||render)();};},0);
+  return `<label style="display:flex;gap:6px;align-items:center;font-weight:400;color:var(--ink);font-size:13px"><input type="checkbox" id="${id}">${esc(label)}</label>`;}
+/* ===== ОБЛАКО: вход, дела, каталоги (без внешних библиотек) ===== */
+const SUPA_URL="https://mwlogdphkclydurugmky.supabase.co";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bG9nZHBoa2NseWR1cnVnbWt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MjEyOTAsImV4cCI6MjEwMDE5NzI5MH0.lXyj8cxGkc9uGwZiYRa6DfeB9nLBiChTGE3B_fNZoO0";
+const SESS_KEY="fb_session_v1";
+
+let SESSION=null;     // {access_token, refresh_token, user:{id,email}}
+let PROFILE=null;     // {id, full_name, org, is_admin}
+let CLOUD=false;      // работаем ли с облаком
+let REFS=null;        // справочники из базы
+let CATALOG=null;     // каталог ошибок из базы
+
+function loadSession(){
+  try{ const v=localStorage.getItem(SESS_KEY); if(v) SESSION=JSON.parse(v); }catch(e){}
+  return SESSION;
+}
+function saveSession(s){
+  SESSION=s;
+  if(s) localStorage.setItem(SESS_KEY,JSON.stringify(s)); else localStorage.removeItem(SESS_KEY);
+}
+
+async function api(path,opts={}){
+  opts.headers=Object.assign({
+    "apikey":SUPA_KEY,
+    "Content-Type":"application/json"
+  },opts.headers||{});
+  if(SESSION&&SESSION.access_token) opts.headers["Authorization"]="Bearer "+SESSION.access_token;
+  let r=await fetch(SUPA_URL+path,opts);
+  if(r.status===401&&SESSION&&SESSION.refresh_token){
+    const ok=await refreshSession();
+    if(ok){ opts.headers["Authorization"]="Bearer "+SESSION.access_token; r=await fetch(SUPA_URL+path,opts); }
+  }
+  return r;
+}
+async function refreshSession(){
+  try{
+    const r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{
+      method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({refresh_token:SESSION.refresh_token})});
+    if(!r.ok) return false;
+    const d=await r.json(); saveSession(d); return true;
+  }catch(e){ return false; }
+}
+function isFileMode(){ return location.protocol==="file:"; }
+async function signIn(email,password){
+  let r;
+  try{
+    r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{
+      method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email,password})});
+  }catch(e){
+    if(isFileMode())
+      throw new Error("Браузер не пускает файл, открытый с диска, к интернету. Откройте приложение по интернет-ссылке — как это сделать, написано в инструкции. Пока можно работать без облака.");
+    throw new Error("Нет связи с базой: проверьте интернет. Если сеть корпоративная — возможно, адрес заблокирован администратором.");
+  }
+  let d={}; try{ d=await r.json(); }catch(e){}
+  if(!r.ok){
+    const m=(d.error_description||d.msg||d.message||"").toLowerCase();
+    if(m.includes("invalid login")) throw new Error("Неверная почта или пароль.");
+    if(m.includes("email not confirmed")) throw new Error("Пользователь не подтверждён: в Supabase → Authentication → Users включите Auto Confirm.");
+    throw new Error(d.error_description||d.msg||d.message||("Ошибка входа, код "+r.status));
+  }
+  saveSession(d); return d;
+}
+async function testConnection(){
+  const el=document.getElementById("connState");
+  const say=(t,c)=>{ if(el){ el.innerHTML=t; el.style.color=c||"var(--mut)"; } };
+  say("Проверяю связь…");
+  try{
+    const r=await fetch(SUPA_URL+"/auth/v1/settings",{headers:{"apikey":SUPA_KEY}});
+    if(r.ok) say("✓ Связь с базой есть. Значит дело в почте или пароле.","#5E8C4A");
+    else say("Сервер ответил кодом "+r.status+" — база доступна, но что-то с настройками.","#B8922A");
+  }catch(e){
+    say(isFileMode()
+      ? "✗ Файл открыт с диска (file://) — браузер запрещает ему обращаться к базе. Нужно открыть приложение по интернет-ссылке."
+      : "✗ Нет связи с базой. Проверьте интернет или блокировки в корпоративной сети.","#C4674A");
+  }
+}
+async function signOut(){
+  try{ await api("/auth/v1/logout",{method:"POST"}); }catch(e){}
+  saveSession(null); PROFILE=null; CLOUD=false; DB={cases:[]}; S=null;
+  location.reload();
+}
+async function fetchProfile(){
+  if(!SESSION||!SESSION.user) return null;
+  const r=await api("/rest/v1/profiles?select=*&id=eq."+SESSION.user.id);
+  if(!r.ok) return null;
+  const a=await r.json(); PROFILE=a[0]||null; return PROFILE;
+}
+
+/* --- справочники и каталог --- */
+async function fetchRefs(){
+  const r=await api("/rest/v1/ref_items?select=list,value,sort&active=eq.true&order=list,sort");
+  if(!r.ok) return null;
+  const rows=await r.json(); const out={};
+  rows.forEach(x=>{ (out[x.list]=out[x.list]||[]).push(x.value); });
+  return out;
+}
+async function fetchCatalog(){
+  const r=await api("/rest/v1/catalog_errors?select=code,mode,mode_sort,text,circumstances,event,stage&active=eq.true&order=mode_sort,code");
+  if(!r.ok) return null;
+  return await r.json();
+}
+function applyRefs(){
+  if(!REFS) return;
+  const set=(name,key)=>{ if(REFS[key]&&REFS[key].length) window[name]=REFS[key]; };
+  // подменяем справочники приложения значениями из базы
+  if(REFS.roles&&REFS.roles.length) ROLES.splice(0,ROLES.length,...REFS.roles);
+  if(REFS.cats&&REFS.cats.length) CATS.splice(0,CATS.length,...REFS.cats);
+  if(REFS.dtp_kinds&&REFS.dtp_kinds.length) DTP_KINDS.splice(0,DTP_KINDS.length,...REFS.dtp_kinds);
+  if(REFS.place_area&&REFS.place_area.length) PLACE_AREA.splice(0,PLACE_AREA.length,...REFS.place_area);
+  if(REFS.place_spot&&REFS.place_spot.length) PLACE_SPOT.splice(0,PLACE_SPOT.length,...REFS.place_spot);
+  if(REFS.ts_types&&REFS.ts_types.length) TS_TYPES.splice(0,TS_TYPES.length,...REFS.ts_types);
+  if(REFS.barrier_states&&REFS.barrier_states.length) BSTATES.splice(0,BSTATES.length,...REFS.barrier_states);
+  if(REFS.act_status&&REFS.act_status.length) ACT_STATUS.splice(0,ACT_STATUS.length,...REFS.act_status);
+}
+function applyCatalog(){
+  if(!CATALOG||!CATALOG.length) return;
+  const modes=[];
+  CATALOG.forEach(r=>{ if(!modes.includes(r.mode)) modes.push(r.mode); });
+  MODES.splice(0,MODES.length,...modes);
+  ERR_LIST.splice(0,ERR_LIST.length,...CATALOG.map(r=>({
+    m:r.mode, e:r.text, st:r.stage||"", sub:"",
+    circ:(r.circumstances||"").split(";").map(x=>x.trim()).filter(Boolean),
+    ev:r.event||"", code:r.code
+  })));
+}
+
+/* --- дела --- */
+function caseRow(c){ // вынесенные колонки для статистики и поиска
+  const st=caseStats(c);
+  return {
+    id:c.id, name:c.name||"Без названия", unit:(c.info&&c.info.unit)||null,
+    num:(c.info&&c.info.num)||null,
+    date_iso:(c.info&&c.info.dateISO)||null,
+    time_str:(c.info&&c.info.time)||null,
+    kind:(c.info&&c.info.kind)||null, area:(c.info&&c.info.area)||null,
+    spot:(c.info&&c.info.spot)||null, ts_type:(c.info&&c.info.tsType)||null,
+    victims:(c.info&&c.info.victims)?parseInt(c.info.victims,10)||null:null,
+    causes_count:st.causes, acts_total:st.acts, acts_done:st.done,
+    archived:!!c.archived,
+    data:c
+  };
+}
+async function cloudLoadCases(){
+  const r=await api("/rest/v1/cases?select=id,updated_at,data&order=updated_at.desc");
+  if(!r.ok){ const t=await r.text(); throw new Error("Не удалось загрузить дела: "+t.slice(0,200)); }
+  const rows=await r.json();
+  return rows.map(x=>{ const c=x.data||{}; c.id=x.id; c.updated=new Date(x.updated_at).getTime(); migrateCase(c); return c; });
+}
+let cloudTimer=null, savingQueue=new Set();
+function cloudSaveCase(c){
+  if(!CLOUD) return;
+  savingQueue.add(c.id);
+  clearTimeout(cloudTimer);
+  cloudTimer=setTimeout(flushSaves,900);
+}
+async function flushSaves(){
+  if(!CLOUD||!savingQueue.size) return;
+  const ids=[...savingQueue]; savingQueue.clear();
+  const rows=ids.map(id=>DB.cases.find(c=>c.id===id)).filter(Boolean).map(caseRow);
+  if(!rows.length) return;
+  try{
+    const r=await api("/rest/v1/cases?on_conflict=id",{
+      method:"POST",
+      headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+      body:JSON.stringify(rows)});
+    if(!r.ok){ const t=await r.text(); cloudWarn("Не сохранено в облако: "+t.slice(0,120)); }
+    else cloudOk();
+  }catch(e){ cloudWarn("Нет связи с облаком — правки сохранены локально"); }
+}
+async function cloudDeleteCase(id){
+  if(!CLOUD) return;
+  try{ await api("/rest/v1/cases?id=eq."+id,{method:"DELETE"}); }catch(e){}
+}
+function cloudWarn(msg){
+  const el=document.getElementById("cloudState");
+  if(el){ el.textContent="⚠ "+msg; el.style.color="#B8922A"; }
+}
+function cloudOk(){
+  const el=document.getElementById("cloudState");
+  if(el){ el.textContent="✓ сохранено в облаке"; el.style.color="rgba(255,255,255,.75)";
+    setTimeout(()=>{ if(el.textContent.startsWith("✓")) el.textContent=""; },2500); }
+}
+
+/* --- экран входа --- */
+function screenLogin(msg){
+  return `<div style="max-width:420px;margin:8vh auto">
+    <div class="card">
+      <h2 style="margin-top:0">Вход</h2>
+      <div class="sub">Экспертный центр «Так безопаснее» · расследование ДТП по «Формуле безопасности»</div>
+      ${msg?`<div class="warn" style="margin-bottom:10px">${esc(msg)}</div>`:""}
+      <label>Почта</label><input type="email" id="loginEmail" autocomplete="username">
+      <div style="height:8px"></div>
+      <label>Пароль</label><input type="password" id="loginPass" autocomplete="current-password">
+      <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn" onclick="doLogin()">Войти</button>
+        <button class="btn sec" onclick="workLocal()">Работать без облака</button>
+        <button class="btn sec" onclick="testConnection()">Проверить связь</button>
+      </div>
+      <div id="connState" class="hint" style="margin-top:10px"></div>
+      ${isFileMode()?`<div class="warn" style="margin-top:10px">Приложение открыто как файл с диска. В этом режиме браузер обычно не пускает его к облачной базе — войти не получится. Работайте без облака или откройте приложение по интернет-ссылке.</div>`:""}
+      <div class="hint" style="margin-top:10px">Без облака дела хранятся только в этом браузере.</div>
+    </div></div>`;
+}
+async function doLogin(){
+  const email=(document.getElementById("loginEmail")||{}).value||"";
+  const pass=(document.getElementById("loginPass")||{}).value||"";
+  if(!email||!pass){ showLogin("Введите почту и пароль"); return; }
+  const m=document.getElementById("main");
+  if(m) m.innerHTML=`<div style="max-width:420px;margin:8vh auto"><div class="card">Вход…</div></div>`;
+  try{
+    await signIn(email.trim(),pass);
+    await startCloud();
+  }catch(e){
+    showLogin(e.message||"Не удалось войти");
+  }
+}
+function showLogin(msg){
+  const m=document.getElementById("main");
+  if(m) m.innerHTML=screenLogin(msg);
+}
+function workLocal(){
+  CLOUD=false; localMode=true;
+  loadLocalDB().then(()=>{ render(); });
+}
+async function startCloud(){
+  const m=document.getElementById("main");
+  if(m) m.innerHTML=`<div style="max-width:420px;margin:8vh auto"><div class="card">Загрузка данных…</div></div>`;
+  await fetchProfile();
+  try{
+    const [refs,cat]=await Promise.all([fetchRefs(),fetchCatalog()]);
+    REFS=refs; CATALOG=cat; applyRefs(); applyCatalog();
+  }catch(e){}
+  try{
+    const cases=await cloudLoadCases();
+    DB={cases}; CLOUD=true; S=null; cur=0; statsView=0;
+    render();
+  }catch(e){
+    showLogin("Вход выполнен, но не удалось получить дела: "+(e.message||""));
+  }
+}
+/* ===== ТОПБАР + НАВИГАЦИЯ ===== */
+const stepsDef=[["0","Регистрация"],["1","Хронология"],["2","Звенья цепи"],["3","Разбор ошибок"],
+  ["4","Обстоятельства"],["5","Причины"],["6","Мероприятия"],["7","Выводы"]];
+function topbar(){
+  const el=document.getElementById("topbar");
+  const inCase=!!S;
+  el.innerHTML=`<img class="logo-img" onclick="window.open('https://takbezopasnee.ru','_blank')" title="takbezopasnee.ru" src="data:image/png;base64,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" alt="Так безопаснее"><div class="brand">Формула безопасности<small>Экспертный центр «Так безопаснее» · takbezopasnee.ru</small></div>
+    ${inCase?`<div class="caseName">${esc(S.name)}</div>`:""}
+    <div id="causeCounter" class="${inCase&&causes().filter(c=>!c.dup).length?"":"zero"}">${inCase?"Причин: "+causes().filter(c=>!c.dup).length:"Мои расследования"}</div>
+    ${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button><button onclick="closeCase()">К списку</button>`:""}
+    <span id="cloudState" style="font-size:11px;color:rgba(255,255,255,.75);margin-left:10px"></span>
+    ${(typeof CLOUD!=="undefined"&&CLOUD)
+      ? `<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
+      : `<span style="font-size:11px;color:rgba(255,255,255,.55);margin-left:10px">локальный режим</span>`}`;
+}
+function nav(){
+  const el=document.getElementById("nav");
+  if(!S){el.innerHTML="";return;}
+  el.innerHTML=`<div class="back" onclick="closeCase()">← Мои расследования</div>`+
+    stepsDef.map((s,i)=>{
+      let b="";
+      if(i===3&&S.reviews.length)b=`<span class="badge">${S.reviews.length}</span>`;
+      if(i===5){const n=causes().filter(c=>!c.dup).length;if(n)b=`<span class="badge" style="background:var(--green-l);color:var(--green)">${n}</span>`;}
+      return `<div class="step ${i===cur?"active":""}" onclick="goto(${i})"><span class="n">${s[0]}</span><span>${s[1]}</span>${b}</div>`;
+    }).join("");
+}
+function goto(i){cur=i;render();}
+function openCase(id){S=DB.cases.find(c=>c.id===id);cur=0;statsView=0;render();}
+function closeCase(){S=null;render();}
+function newCase(){const c=blankCase();DB.cases.push(c);save();openCase(c.id);}
+function delCase(id,ev){ev.stopPropagation();if(!confirm("Удалить расследование безвозвратно?"))return;
+  if(typeof cloudDeleteCase==="function") cloudDeleteCase(id);
+  DB.cases=DB.cases.filter(c=>c.id!==id);
+  if(typeof CLOUD!=="undefined"&&CLOUD){render();} else save();
+  render();}
+function archCase(id,ev){ev.stopPropagation();const c=DB.cases.find(x=>x.id===id);c.archived=!c.archived;save();render();}
+
+/* ===== ЭКРАН СПИСКА ===== */
+function plural(n,one,few,many){
+  const m10=n%10,m100=n%100;
+  if(m10===1&&m100!==11)return one;
+  if(m10>=2&&m10<=4&&(m100<10||m100>=20))return few;
+  return many;
+}
+function caseStats(c){ // причины (без дублей) и мероприятия — как в самом деле
+  const meta=c.causeMeta||{};
+  let causes=0;
+  for(const r of (c.reviews||[])) for(const x of (r.causes||[])) if(!(meta[x.id]&&meta[x.id].dup)) causes++;
+  for(const x of (c.circs||[])) if(x.verdict&&x.verdict.kind==="cause"&&!(meta[x.id]&&meta[x.id].dup)) causes++;
+  const acts=(c.acts||[]).filter(a=>!a.dup&&(a.text||"").trim());
+  return {causes,acts:acts.length,done:acts.filter(a=>a.status==="выполнено").length};
+}
+function screenList(){
+  const act=DB.cases.filter(c=>!c.archived), arch=DB.cases.filter(c=>c.archived);
+  const card=c=>{
+    const st=caseStats(c);
+    const d=new Date(c.updated);
+    const dt=(c.info.dateISO?isoToRu(c.info.dateISO):"дата не указана")+(c.info.time?" "+c.info.time:"");
+    return `<div class="caseCard ${c.archived?"arch":""}" onclick="openCase('${c.id}')">
+      <h3>${esc(c.name)}</h3>
+      <div class="meta">${esc(dt)}${c.info.kind?" · "+esc(c.info.kind):""} · ${esc(c.info.ts||c.info.tsType||"ТС —")}<br>изменено ${d.toLocaleDateString("ru")} ${d.toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"})}</div>
+      <span class="stat ${st.causes?"":"z"}" title="системных причин (дубли не считаются)">${st.causes} ${plural(st.causes,"причина","причины","причин")}</span>
+      ${st.acts?`<span class="stat" title="мероприятий: выполнено / всего" style="margin-left:6px">${st.done}/${st.acts} мер.</span>`:""}
+      <div style="margin-top:10px" class="noprint">
+        <button class="btn small sec" onclick="archCase('${c.id}',event)">${c.archived?"из архива":"в архив"}</button>
+        <button class="btn small danger" onclick="delCase('${c.id}',event)">удалить</button>
+      </div></div>`;
+  };
+  return `<div style="display:flex;align-items:baseline;gap:14px"><h2>Мои расследования</h2>
+    <span style="flex:1"></span>
+    <button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button></div>
+  <div class="sub">Каждое ДТП — отдельное расследование; можно вести долго и возвращаться. Данные сохраняются в этом браузере. Вход по учётной записи появится в следующей версии.</div>
+  <div class="caseGrid">
+    <div class="caseCard newCase" onclick="newCase()">＋ Новое расследование</div>
+    ${act.map(card).join("")}
+  </div>
+  ${arch.length?`<h2 style="margin-top:24px;font-size:16px">Архив</h2><div class="caseGrid">${arch.map(card).join("")}</div>`:""}`;
+}
+
+/* ===== ШАГ 0 ===== */
+function screen0(){
+  setTimeout(()=>{const e=document.getElementById("caseName");if(e){e.value=S.name;e.oninput=()=>{S.name=e.value;save();topbar();};}},0);
+  const wd=weekdayOf(S.info.dateISO);
+  return `<h2>Шаг 0 · Регистрация</h2>
+  <div class="sub">Шапка расследования. Водителя обозначаем номером — фамилии в базе не хранятся.</div>
+  <div class="card">
+    <label>Название расследования (для списка)</label><input type="text" id="caseName" style="margin-bottom:10px">
+    <div class="grid2">
+      <div><label>Номер</label>${inp(S.info,"num","№ …")}</div>
+      <div><label>Вид ДТП</label>${sel(S.info,"kind",DTP_KINDS)}</div>
+      <div><label>Дата ДТП ${wd?`<span class="pill" style="background:var(--blue-l);color:var(--blue)">${wd}</span>`:""}</label>${inpDate(S.info,"dateISO")}</div>
+      <div><label>Время ДТП</label>${inpTime(S.info,"time")}</div>
+      <div><label>Место происшествия</label>${sel(S.info,"area",PLACE_AREA)}</div>
+      <div><label>Место ДТП</label>${sel(S.info,"spot",PLACE_SPOT)}</div>
+      <div><label>Тип ТС</label>${sel(S.info,"tsType",TS_TYPES)}</div>
+      <div><label>ТС (модель, гос. №)</label>${inp(S.info,"ts","")}</div>
+      <div><label>Подразделение</label>${inp(S.info,"unit","автоколонна, участок, филиал")}</div>
+      <div><label>Идентификатор водителя</label>${inp(S.info,"driver","табельный или условный номер")}</div>
+      <div><label>Стаж</label>${inpT(S.info,"exp","number")}</div>
+      <div><label>Возраст</label>${inpT(S.info,"age","number")}</div>
+      <div><label>Количество пострадавших</label>${inpT(S.info,"victims","number")}</div>
+      <div style="grid-column:1/-1"><label>Краткое описание</label>${inp(S.info,"desc","",true)}</div>
+      <div style="grid-column:1/-1"><label>Последствия</label>${inp(S.info,"harm","",true)}</div>
+    </div></div>`;
+}
+
+/* ===== ШАГ 1: ХРОНОЛОГИЯ + ШКАЛА ===== */
+function timeVal(t){ const m=(t||"").match(/(\d{1,2}):(\d{2})/); return m?(+m[1]*60+ +m[2]):-1; }
+function isPeriod(r){ return !!(r.end&&r.end.trim()) || /—|–|до\s*ДТП/i.test(r.time||""); }
+function inChainAuto(rec){
+  const t=(rec.text||"").trim().toLowerCase(); if(!t)return false;
+  return S.links.some(L=>[L.event,L.error,L.circ].some(x=>(x||"").toLowerCase().includes(t.slice(0,18))));
+}
+function isInChain(rec){ return rec.inchain!==undefined ? !!rec.inchain : inChainAuto(rec); }
+function stepScale(){
+  const rows=S.chrono.filter(r=>r.lane&&(r.time||r.text));
+  if(!rows.length)return "";
+  const allV=[]; rows.forEach(r=>{const a=timeVal(r.time);if(a>=0)allV.push(a);const b=timeVal(r.end);if(b>=0)allV.push(b);});
+  const tmin=allV.length?Math.min(...allV):0, tmax=allV.length?Math.max(...allV):1;
+  const span=Math.max(tmax-tmin,1);
+  const pos=v=> v<0?4: 4+((v-tmin)/span)*92;
+  const laneHTML=LANES.map(l=>{
+    const laneRows=rows.filter(r=>r.lane===l);
+    // вертикальная раскладка: группируем по позиции начала, совпадающие идут ниже
+    const usedLevels=[]; // массив занятых [left, level]
+    const H=l==="О"?"laneО":"";
+    let inner="";
+    const CAPLEN=14, PXW=760; // ориентировочная ширина трека для оценки подписей
+    laneRows.forEach(r=>{
+      const va=timeVal(r.time); const left=pos(va);
+      const vbP=isPeriod(r)?timeVal(r.end):-1;
+      const figR=isPeriod(r)?(vbP>=0?pos(vbP):100):(left+3);
+      // ширина подписи в % (время + текст)
+      const capTxt=S._noCap?"":(" · "+(r.text||"").slice(0,CAPLEN));
+      const lblLen=(isPeriod(r)?11:5)+capTxt.length;
+      const lblW=Math.min((lblLen*7.2+20)/PXW*100, 66);
+      const nearEnd=isPeriod(r)? (figR+lblW>99) : (left+lblW>99);
+      const l0=nearEnd? Math.max(Math.min(left,figR)-lblW,0) : left;
+      const r0=nearEnd? figR : Math.max(figR,(isPeriod(r)?figR:left)+lblW);
+      let lvl=0; while(usedLevels.some(u=>u.lvl===lvl && l0<u.r+1 && r0>u.l-1)) lvl++;
+      usedLevels.push({l:l0,r:r0,lvl});
+      const top=8+lvl*17;
+      const chain=isInChain(r)?"inchain":"";
+      if(isPeriod(r)){
+        const vb=timeVal(r.end); const right2=vb>=0?pos(vb):100;
+        const w=Math.max(right2-left,3);
+        inner+=`<div class="step-bar ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" title="${esc(r.time)}–${esc(r.end||"ДТП")} · ${esc(r.text)}" onmouseenter="hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="hlRow(${S.chrono.indexOf(r)},0)"></div>`;
+        const cap=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
+        const lblP=`${esc((r.time||"").slice(0,5))}–${esc((r.end||"ДТП").slice(0,5))}${cap}`;
+        inner+= (right2+lblW>99)
+          ? `<div class="step-time" style="left:${left}%;top:${top}px;transform:translateX(calc(-100% - 5px))">${lblP}</div>`
+          : `<div class="step-time" style="left:${right2}%;top:${top}px;margin-left:5px">${lblP}</div>`;
+      } else {
+        inner+=`<div class="step-dot ${chain} ${H}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;top:${top}px" title="${esc(r.time)} · ${esc(r.text)}" onmouseenter="hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="hlRow(${S.chrono.indexOf(r)},0)"></div>`;
+        const capT=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
+        const lblT=esc((r.time||"").slice(0,5))+capT;
+        inner+= (left+lblW>99)
+          ? `<div class="step-time" style="left:${left}%;top:${top}px;transform:translateX(calc(-100% - 9px))">${lblT}</div>`
+          : `<div class="step-time" style="left:${left}%;top:${top}px;margin-left:11px">${lblT}</div>`;
+      }
+    });
+    const maxLvl=usedLevels.reduce((m,u)=>Math.max(m,u.lvl),0);
+    const laneH=Math.max(34, 20+(maxLvl+1)*17);
+    return `<div class="step-lane" style="height:${laneH}px"><div class="lname">${l} · ${LANE_NAMES[l]}</div><div class="step-track">${inner}</div></div>`;
+  }).join("");
+  return `<div style="display:flex;justify-content:flex-end;margin-bottom:2px" class="noprint"><button class="btn small sec" onclick="S._noCap=!S._noCap;render()">${S._noCap?"показать подписи":"скрыть подписи"}</button></div>
+    <div class="step-scale">${laneHTML}</div>
+    <div class="hint">Точка — событие, отрезок — период (от начала до конца). Совпадающие по времени раскладываются по вертикали. Коралловым — факт, отмеченный «в цепь». Дорожка «Операторы» — золотом.</div>`;
+}
+function laneCoverage(){
+  const used=new Set(S.chrono.map(r=>r.lane).filter(Boolean));
+  return `<div class="hint" style="margin-bottom:8px">${LANES.map(l=>`<span class="chip" style="cursor:default;${used.has(l)?"":"opacity:.42"}">${l} · ${LANE_NAMES[l]}${used.has(l)?"":" — пусто"}</span>`).join("")}</div>`;
+}
+function setFact(i){
+  const r=S.chrono[i];
+  if(!r.isFact&&r.inchain)r.inchain=false;
+  save();render();
+}
+function moveRow(arr,i,d){const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];save();render();}
+function sortChrono(){S.chrono.sort((a,b)=>{const x=timeVal(a.time),y=timeVal(b.time);if(x<0)return 1;if(y<0)return -1;return x-y;});save();render();}
+function hlRow(i,on){const tr=document.getElementById("crow"+i);if(tr)tr.classList.toggle("hl",!!on);}
+function hlDot(i,on){document.querySelectorAll('.step-dot[data-ci="'+i+'"],.step-bar[data-ci="'+i+'"]').forEach(el=>{el.style.outline=on?"2px solid var(--ink)":"";el.style.outlineOffset=on?"1px":"";});}
+function screen1(){
+  const rows=S.chrono.map((r,i)=>`<tr id="crow${i}" onmouseenter="hlDot(${i},1)" onmouseleave="hlDot(${i},0)">
+    <td style="width:88px">${inp(r,"time","14:32")}</td>
+    <td style="width:88px">${inp(r,"end","конец / до…")}</td>
+    <td style="width:64px" class="${r.lane?("lane-"+r.lane):""}">${sel(r,"lane",LANES,()=>render())}</td>
+    <td>${inpStop(r,"text","факт без оценки")}</td>
+    <td style="width:100px">${inp(r,"src","источник")}</td>
+    <td style="width:34px;text-align:center">${chk(r,"isFact","",()=>setFact(i))}<div style="font-size:9px;color:var(--mut)">факт</div></td>
+    <td style="width:34px;text-align:center">${r.isFact?chk(r,"inchain","",()=>render()):`<span title="в цепь можно взять только факт" style="opacity:.35;font-size:15px">☐</span>`}<div style="font-size:9px;color:${r.isFact?"var(--mut)":"#C4B0A8"}">в цепь</div></td>
+    <td style="width:30px"><div class="rowbtns"><button onclick="moveRow(S.chrono,${i},-1)">▲</button><button onclick="moveRow(S.chrono,${i},1)">▼</button><button onclick="S.chrono.splice(${i},1);save();render()" style="color:#A33">✕</button></div></td>
+  </tr>`).join("");
+  return `<h2>Шаг 1 · Хронология по дорожкам</h2>
+  <div class="sub">Черновик всего известного, вперёд от начала смены. Запись — на дорожку носителя (В·А·Д·С·О). Длящееся — заполните «конец / до…» (на шкале станет отрезком). Отметьте «факт» там, где это установленный факт (есть источник), а не мнение; только факты можно взять «в цепь».</div>
+  ${laneCoverage()}
+  ${S.chrono.length?stepScale():""}
+  <div class="card" style="margin-top:12px">
+  ${S.chrono.length?`<table class="t"><tr><th>Время</th><th>Конец / до…</th><th>Дор.</th><th>Запись (факт)</th><th>Источник</th><th>факт</th><th>в цепь</th><th></th></tr>${rows}</table>`:`<div class="empty">Хронология пуста. Начните со свободного рассказа водителя и телематики.</div>`}
+  <div style="margin-top:10px" class="noprint">
+    <button class="btn" onclick="S.chrono.push({id:uid(),time:'',end:'',lane:'',text:'',src:'',isFact:false,inchain:false});save();render()">+ Запись</button>
+    <button class="btn sec" onclick="sortChrono()">Сортировать по времени</button>
+  </div></div>`;
+}
+/* ===== ШАГ 2: ЗВЕНЬЯ — обстоятельства-объекты, каталог с кодами, схема ===== */
+function linkLetter(i){return String.fromCharCode(65+i);}
+function errCode(idx){return "E"+String(idx+1).padStart(2,"0");}
+function errByCode(code){const i=parseInt((code||"").slice(1),10)-1;return ERR_LIST[i]||null;}
+function errSeenCount(code,text){ // в скольких делах встречалась (по коду, иначе по тексту)
+  let n=0; const t=(text||"").toLowerCase();
+  for(const c of DB.cases){ if(S&&c.id===S.id)continue;
+    if((c.links||[]).some(L=> code? L.errCode===code : (L.error||"").toLowerCase()===t)) n++; }
+  return n;
+}
+function catalogPicker(L,i){
+  if(!L._catOpen) return `<button class="btn small sec noprint" onclick="S.links[${i}]._catOpen=1;render()">📖 Каталог ошибок</button>`;
+  let html=`<div class="catalog-list">`;
+  for(const mode of MODES){
+    const errs=ERR_LIST.map((x,gi)=>({...x,gi})).filter(x=>x.m===mode);
+    if(!errs.length)continue;
+    html+=`<div class="stg">${mode}</div>`;
+    errs.forEach(er=>{
+      const seen=errSeenCount(errCode(er.gi),er.e);
+      html+=`<div class="it" onclick='pickErr(${i},${er.gi})'>${esc(er.e)}${seen?` <span class="pill" style="background:var(--blue-l);color:var(--blue)">была в ${seen} дел.</span>`:""} <small>этап: ${esc(er.st)} · крит.: ${esc(er.circ.join("; "))}</small></div>`;
+    });
+  }
+  html+=`<div class="it" style="background:var(--gold-l)" onclick="ownErr(${i})"><b>✎ Моей ошибки нет в каталоге — записать свою</b><small>запись станет кандидатом в каталог; вы увидите её в статистике</small></div>`;
+  html+=`</div><button class="btn small sec noprint" style="margin-top:4px" onclick="S.links[${i}]._catOpen=0;render()">свернуть</button>`;
+  return html;
+}
+function pickErr(i,gi){
+  const L=S.links[i]; const er=ERR_LIST[gi]; if(!er)return;
+  L._catOpen=0; L.error=er.e; L.errCode=errCode(gi); L.candidate=false;
+  L.catStage=er.st; L.catMode=er.m; L._suggCirc=er.circ; L._suggEv=er.ev;
+  if(!L.event) L.event=er.ev;
+  if(!L.who) L.who="водитель";
+  save(); render();
+}
+function ownErr(i){
+  const L=S.links[i];
+  L._catOpen=0; L.errCode=""; L.candidate=true; L.catStage=""; L.catMode="";
+  L._suggCirc=null; L._suggEv=null;
+  save(); render();
+}
+/* --- обстоятельства звена: объекты с типом --- */
+function inpCircText(i,ci){
+  const c=S.links[i].circs[ci]; const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=c.text||"";
+    e.oninput=()=>{c.text=e.value;
+      // синхронизация: событие авто-созданного звена правится только здесь
+      if(c.kind==="prev"&&c.linkRef){const T2=S.links.find(x=>x.id===c.linkRef);
+        if(T2&&T2.evLocked&&T2.autoFrom===c.id)T2.event=e.value;}
+      save();};},0);
+  return `<input type="text" id="${id}" placeholder="условие: «затяжной спуск», «перегруз»">`;
+}
+function circRowLink(L,i,c,ci){
+  const linkOpts=S.links.map((x,xi)=>({id:x.id,label:"звено "+linkLetter(xi)+(x.event?" — "+x.event.slice(0,30):"")})).filter(o=>o.id!==L.id);
+  return `<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px">
+    <div style="flex:1">${inpCircText(i,ci)}</div>
+    <select style="width:190px" onchange="setCircKind(${i},${ci},this.value)">
+      <option value="ext" ${c.kind!=="prev"?"selected":""}>внешнее → шаг 4</option>
+      <option value="prev" ${c.kind==="prev"?"selected":""}>событие пред. звена</option>
+    </select>
+    ${c.kind==="prev"?`<select style="width:200px" onchange="setCircRef(${i},${ci},this.value)">
+      <option value="">какое звено?</option>
+      <option value="__new">➕ создать новое звено</option>
+      ${linkOpts.map(o=>`<option value="${o.id}" ${c.linkRef===o.id?"selected":""}>${esc(o.label)}</option>`).join("")}
+    </select>`:""}
+    <button class="btn small danger noprint" onclick="S.links[${i}].circs.splice(${ci},1);save();render()">✕</button>
+  </div>`;
+}
+function makePrevLink(c){ // создать/найти звено под событие-обстоятельство
+  const t=(c.text||"").trim();
+  if(!t){flash("Сначала запишите текст обстоятельства");return "";}
+  let ex=S.links.find(x=>(x.event||"").trim().toLowerCase()===t.toLowerCase());
+  if(!ex){ ex={id:uid(),event:t,evLocked:true,autoFrom:c.id,error:"",errCode:"",who:"",circs:[],pure:false}; S.links.push(ex); flash("Создано новое звено"); }
+  return ex.id;
+}
+function setCircKind(i,ci,v){const c=S.links[i].circs[ci];c.kind=v;
+  if(v==="prev"){ if(!c.linkRef) c.linkRef=makePrevLink(c); }
+  else c.linkRef="";
+  save();render();}
+function setCircRef(i,ci,v){const c=S.links[i].circs[ci];
+  if(v==="__new"){c.linkRef=makePrevLink(c);}
+  else c.linkRef=v;
+  save();render();}
+function addSugg(i){
+  const L=S.links[i]; L.circs=L.circs||[];
+  const have=new Set(L.circs.map(c=>c.text.toLowerCase()));
+  (L._suggCirc||[]).forEach(t=>{ if(!have.has(t.toLowerCase())) L.circs.push({id:uid(),text:t,kind:"ext",linkRef:""}); });
+  save(); render();
+}
+function chronoSelected(){ // отмеченные «в цепь» записи хронологии
+  return S.chrono.filter(r=>r.inchain&&(r.text||"").trim());
+}
+function linkFromChrono(recId){
+  const rec=S.chrono.find(r=>r.id===recId); if(!rec)return;
+  const t=rec.text.trim();
+  if(S.links.some(L=>(L.event||"").trim().toLowerCase()===t.toLowerCase())){flash("Звено с таким событием уже есть");return;}
+  S.links.push({id:uid(),event:t,error:"",errCode:"",who:"",circs:[],pure:false,fromChrono:rec.id});
+  save();render();
+}
+function allFromChrono(){
+  chronoSelected().forEach(rec=>{
+    const t=rec.text.trim();
+    if(!S.links.some(L=>(L.event||"").trim().toLowerCase()===t.toLowerCase()))
+      S.links.push({id:uid(),event:t,error:"",errCode:"",who:"",circs:[],pure:false,fromChrono:rec.id});
+  });
+  save();render();
+}
+function usedAs(rec){ // где факт задействован: по id записи и по тексту
+  const r = (typeof rec==="string") ? {id:null,text:rec} : (rec||{});
+  const t=(r.text||"").trim().toLowerCase(); const id=r.id;
+  const out=[];
+  S.links.forEach((L,i)=>{
+    const A=linkLetter(i);
+    if((id&&L.fromChrono===id)||(t&&(L.event||"").trim().toLowerCase()===t))out.push("событие зв. "+A);
+    if((id&&L.errRec===id)||(t&&(L.error||"").trim().toLowerCase()===t))out.push("ошибка зв. "+A);
+    if((L.circs||[]).some(c=>(id&&c.fromRec===id)||(t&&(c.text||"").trim().toLowerCase()===t)))out.push("обст. зв. "+A);
+  });
+  return [...new Set(out)];
+}
+function chronoPickBlock(){
+  const sel2=chronoSelected();
+  if(!sel2.length)return "";
+  const showDone=!!S._factShowDone;
+  const visible=showDone?sel2:sel2.filter(r=>usedAs(r).length===0);
+  const rows=visible.map(r=>{
+    const used=usedAs(r);
+    return `<div style="display:flex;gap:8px;align-items:center;margin:4px 0;flex-wrap:wrap">
+      <span class="mono" style="font-size:11px;color:var(--mut);width:86px">${esc(r.time)}${r.end?" — "+esc(r.end):""}</span>
+      <span class="pill" style="background:var(--gray-l)">${esc(r.lane||"—")}</span>
+      <span style="flex:1;min-width:180px;font-size:13px">${esc(r.text)}</span>
+      ${used.length? used.map(u=>`<span class="pill" style="background:var(--green-l);color:var(--green)">${u}</span>`).join("")
+        : `<span class="pill" style="background:var(--gold-l);color:var(--amber)">не разобран</span>`}
+    </div>`;
+  }).join("");
+  const left=sel2.filter(r=>usedAs(r).length===0).length;
+  const done=sel2.length-left;
+  return `<div class="card" style="border-left:5px solid var(--coral)">
+    <div style="display:flex;align-items:baseline;gap:10px"><b style="font-size:13px">Отобрано из хронологии (✓ «в цепь»)</b>
+      <span style="flex:1"></span>
+      ${left?`<span class="pill" style="background:var(--gold-l);color:var(--amber)">не разобрано: ${left}</span>`
+        :`<span class="pill" style="background:var(--green-l);color:var(--green)">все факты разложены</span>`}
+      ${done?`<button class="btn small sec noprint" onclick="S._factShowDone=!S._factShowDone;render()">${showDone?"скрыть разобранные":"показать разобранные ("+done+")"}</button>`:""}</div>
+    ${visible.length?rows:`<div class="hint">Все отобранные факты разложены по звеньям.</div>`}
+    <div class="hint">Разобранные факты уходят из списка. Раскладывать по ролям — в самих звеньях кнопками «⏱ из фактов».</div></div>`;
+}
+function chronoMiniList(i,mode){ // все факты хронологии; уже разобранные скрыты
+  const L=S.links[i];
+  const flagUsed = mode==="err" ? L._usedErr : L._usedCirc;
+  const base = S.chrono.filter(r=>(r.text||"").trim());
+  const list = flagUsed ? base : base.filter(r=>usedAs(r).length===0);
+  const hidden = base.length-list.length;
+  const fn = mode==="err"?"pickChronoErr":"pickChronoCirc";
+  const tUsed = mode==="err"?"_usedErr":"_usedCirc";
+  return `<div style="margin-top:6px;padding:8px;background:var(--gray-l);border-radius:8px">
+    <div class="hint" style="margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <b>Факты хронологии</b>${hidden?` · разобранные скрыты (${hidden})`:""}
+      ${hidden?`<button class="btn small sec noprint" onclick="S.links[${i}].${tUsed}=!S.links[${i}].${tUsed};render()">${flagUsed?"скрыть разобранные":"показать разобранные"}</button>`:""}
+    </div>
+    ${list.length? list.map(r=>{
+        const u=usedAs(r);
+        return `<button class="btn small sec noprint" style="margin:2px 4px 2px 0;${u.length?"opacity:.55":""}" onclick="${fn}(${i},'${r.id}')">${r.inchain?"✓ ":""}${esc((r.time||"")+(r.time?" · ":"")+r.text.slice(0,44))}${u.length?" · "+esc(u[0]):""}</button>`;
+      }).join("")
+      :`<div class="hint">Свободных фактов нет — все уже разобраны.</div>`}
+  </div>`;
+}
+function pickChronoErr(i,recId){
+  const rec=S.chrono.find(r=>r.id===recId); if(!rec)return;
+  const L=S.links[i];
+  L.error=rec.text.trim(); L.errCode=""; L.candidate=true; L._pickErr=0; L.errRec=recId;
+  if(!L.who)L.who="водитель";
+  save();render();
+}
+function pickChronoCirc(i,recId){
+  const rec=S.chrono.find(r=>r.id===recId); if(!rec)return;
+  const L=S.links[i]; L.circs=L.circs||[];
+  const t=rec.text.trim();
+  if(!L.circs.some(c=>(c.text||"").trim().toLowerCase()===t.toLowerCase()))
+    L.circs.push({id:uid(),text:t,kind:"ext",linkRef:"",fromRec:recId});
+  L._pickCirc=0;
+  save();render();
+}
+function chronoDrop(i,field){
+  const sel2=chronoSelected(); if(!sel2.length)return "";
+  const items=sel2.map(r=>`<div class="it" onclick="applyChrono(${i},'${r.id}','${field}')">
+      <span class="mono" style="font-size:10px;color:var(--mut)">${esc(r.time)}</span> ${esc(r.text)}</div>`).join("");
+  return `<details class="noprint" style="display:inline-block;margin-left:8px;position:relative"><summary style="list-style:none;cursor:pointer;font-size:11px;color:var(--blue)">⭑ из отобранного</summary>
+    <div class="catalog-list" style="position:absolute;z-index:20;min-width:340px;background:#fff">${items}</div></details>`;
+}
+function applyChrono(i,recId,field){
+  const rec=S.chrono.find(r=>r.id===recId); if(!rec)return;
+  const L=S.links[i]; const t=rec.text.trim();
+  if(field==="event"){ if(!L.evLocked) L.event=t; }
+  if(field==="error"){ L.error=t; L.errCode=""; if(!L.who&&rec.lane==="В")L.who="водитель"; }
+  if(field==="circ"){ L.circs=L.circs||[]; if(!L.circs.some(c=>(c.text||"").trim().toLowerCase()===t.toLowerCase())) L.circs.push({id:uid(),text:t,kind:"ext",linkRef:""}); }
+  save(); render();
+}
+function screen2(){
+  const cards=S.links.map((L,i)=>{
+    const letter=linkLetter(i);
+    L.circs=L.circs||[];
+    return `<div class="card" style="border-left:5px solid var(--blue)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span class="mono" style="font-weight:700;background:var(--blue-l);color:var(--blue);border-radius:8px;padding:3px 10px">Звено ${letter}</span>
+        ${L.errCode?`<span class="pill" style="background:var(--blue-l);color:var(--blue)">${esc(L.errCode)}</span>`:""}
+        ${L.candidate?`<span class="pill" style="background:var(--gold-l);color:var(--amber)">кандидат в каталог</span>`:""}
+        ${chk(L,"pure","чистое развитие — без новой ошибки")}
+        <span style="flex:1"></span>
+        <div class="rowbtns noprint"><button onclick="moveRow(S.links,${i},-1)">▲</button><button onclick="moveRow(S.links,${i},1)">▼</button></div>
+        <button class="btn small danger noprint" onclick="delLink(${i})">удалить</button>
+      </div>
+      <div class="fieldrow"><span>Событие-результат</span><div>${L.evLocked?"":chronoDrop(i,"event")}${L.evLocked?
+        `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--gray-l)">${esc(L.event)}</div>
+         <div class="hint">⛓ Звено создано из обстоятельства ${lockParentLabel(L)}; текст события правится там и здесь заблокирован.</div>`
+        :inpStop(L,"event","«начался занос», «отказали тормоза»")}</div></div>
+      ${L.pure?`<div class="hint">Чистое развитие: нового акта нет — выдумывать не нужно.</div>`:`
+      <div class="fieldrow"><span>Ошибка — одна</span><div>${chronoDrop(i,"error")}
+        ${inpStop(L,"error","акт оператора")}
+        ${catalogPicker(L,i)}
+        <button class="btn small sec noprint" onclick="S.links[${i}]._pickErr=!S.links[${i}]._pickErr;render()">⏱ из фактов</button>
+        ${L._pickErr?chronoMiniList(i,"err"):""}
+        ${L._suggCirc?`<div class="hint">Каталог подсказывает: ${esc(L._suggCirc.join("; "))} <button class="btn small sec noprint" onclick="addSugg(${i})">добавить обстоятельствами</button></div>`:""}
+        <div style="margin-top:6px;max-width:340px"><label>Чья</label>${sel(L,"who",ROLES)}</div>
+      </div></div>`}
+      <div class="fieldrow"><span>Обстоятельства</span><div>
+        ${L.circs.map((c,ci)=>circRowLink(L,i,c,ci)).join("")}
+        <button class="btn small sec noprint" onclick="S.links[${i}].circs.push({id:uid(),text:'',kind:'ext',linkRef:''});save();render()">+ Обстоятельство</button>
+        <button class="btn small sec noprint" onclick="S.links[${i}]._pickCirc=!S.links[${i}]._pickCirc;render()">⏱ из фактов</button>
+        ${L._pickCirc?chronoMiniList(i,"circ"):""}${chronoDrop(i,"circ")}
+        <div class="hint">«Внешнее» уйдёт в шаг 4 на вопрос о влиянии; «событие пред. звена» свяжет дерево (выберите звено).</div>
+      </div></div>
+      ${(!L.pure&&(L.error||"").trim())?`<div class="noprint" style="margin-top:6px">
+        ${L.reviewId?`<span class="hint">Разбор создан → шаг 3</span>`:`<button class="btn small coral" onclick="makeReviewFromLink(${i})">Разобрать ошибку →</button>`}
+      </div>`:""}
+    </div>`;
+  }).join("");
+  return `<h2>Шаг 2 · Звенья цепи</h2>
+  <div class="sub"><span class="f">Событие = Ошибка × Обстоятельства</span> · одна ошибка в звене; обстоятельства — отдельными строками с типом. Ошибку берите из каталога (код сохранится для статистики); своей нет — запишите, станет кандидатом в каталог.</div>
+  ${chronoPickBlock()}
+  ${S.links.length?`<div class="noprint" style="margin-bottom:10px"><button class="btn sec" onclick="S._scheme=!S._scheme;render()">${S._scheme?"скрыть схему":"🗺 Схема цепи"}</button></div>${S._scheme?schemeSVG():""}`:""}
+  ${S.links.length?cards:`<div class="empty">Звеньев нет. Возьмите из хронологии события, без которых ДТП не состоялось бы, и идите от финала назад.</div>`}
+  <button class="btn noprint" onclick="S.links.push({id:uid(),event:'',error:'',errCode:'',who:'',circs:[],pure:false});save();render()">+ Звено</button>`;
+}
+function lockParentLabel(L){
+  for(let xi=0;xi<S.links.length;xi++){
+    const P=S.links[xi];
+    if((P.circs||[]).some(c=>c.kind==="prev"&&c.linkRef===L.id)) return "звена "+linkLetter(xi);
+  }
+  return "верхнего звена";
+}
+function delLink(i){
+  const id=S.links[i].id;
+  for(const L of S.links) for(const c of (L.circs||[])) if(c.linkRef===id) c.linkRef="";
+  S.links.splice(i,1);save();render();
+}
+function makeReviewFromLink(i){
+  const L=S.links[i];
+  const r={id:uid(),parent:null,from:"звено "+linkLetter(i),error:L.error,owner:L.who||"",ownerOther:"",stage:L.catStage||"",sdk:{},type:"",subtype:"",factors:[],causes:[]};
+  S.reviews.push(r);L.reviewId=r.id;save();goto(3);
+}
+/* --- схема цепи SVG: вход-блоки (ОШИБКА / СОБЫТИЕ·X / ОБСТОЯТЕЛЬСТВА) → событие --- */
+function schemeSVG(){
+  const links=S.links; if(!links.length)return "";
+  const byId={}; links.forEach((L,i)=>byId[L.id]={L,i});
+  const isSource={}; const kids={}; // потомки источника
+  links.forEach(L=>(L.circs||[]).forEach(c=>{
+    if(c.kind==="prev"&&c.linkRef&&byId[c.linkRef]){isSource[c.linkRef]=true;(kids[c.linkRef]=kids[c.linkRef]||[]).push(L.id);}
+  }));
+  const depth={};
+  function d(id,seen){
+    if(depth[id]!==undefined)return depth[id];
+    seen=seen||new Set(); if(seen.has(id))return 0; seen.add(id);
+    const L=byId[id].L;
+    const parents=(L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef&&byId[c.linkRef]).map(c=>c.linkRef);
+    depth[id]=parents.length?1+Math.max(...parents.map(p=>d(p,seen))):0;
+    return depth[id];
+  }
+  links.forEach(L=>d(L.id));
+  const IN_W=175,EV_W=175,GX=95,GY=26,BH=48,BGAP=10;
+  const trim=(t,n)=> (t||"").length>n?(t.slice(0,n-1)+"…"):(t||"");
+  function nodeBlocks(L){
+    const bl=[];
+    if(L.pure) bl.push({kind:"pure"});
+    else bl.push({kind:"err",text:L.error,who:L.who,code:L.errCode});
+    (L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef&&byId[c.linkRef]).forEach(c=>bl.push({kind:"prevIn",ref:c.linkRef,text:byId[c.linkRef].L.event||c.text}));
+    const ext=(L.circs||[]).filter(c=>c.kind!=="prev").map(c=>c.text).filter(Boolean);
+    if(ext.length||bl.length===0) bl.push({kind:"ext",text:ext.join("; ")||"—"});
+    return bl;
+  }
+  const blocksOf={}; links.forEach(L=>blocksOf[L.id]=nodeBlocks(L));
+  const nodeH=L=>{const n=blocksOf[L.id].length;return n*BH+(n-1)*BGAP;};
+  const nodeW=L=> isSource[L.id]? IN_W : IN_W+20+EV_W;
+  const cols={}; links.forEach(L=>{const dd=depth[L.id];(cols[dd]=cols[dd]||[]).push(L.id);});
+  const dds=Object.keys(cols).map(Number).sort((a,b)=>a-b);
+  const colW={}; dds.forEach(dd=>{colW[dd]=Math.max(...cols[dd].map(id=>nodeW(byId[id].L)));});
+  const pos={}; let xAcc=20, maxBottom=0;
+  dds.forEach(dd=>{
+    let yAcc=30;
+    cols[dd].forEach(id=>{pos[id]={x:xAcc,y:yAcc};yAcc+=nodeH(byId[id].L)+GY;});
+    maxBottom=Math.max(maxBottom,yAcc);
+    xAcc+=colW[dd]+GX;
+  });
+  const svgW=xAcc+10, svgH=maxBottom+20;
+  // координаты вход-блоков (для прицела стрелок): inPos[nodeId][refId]={x,y}
+  const inPos={};
+  links.forEach(L=>{
+    const p=pos[L.id]; inPos[L.id]={};
+    blocksOf[L.id].forEach((b,bi)=>{ b._y=p.y+bi*(BH+BGAP); if(b.kind==="prevIn") inPos[L.id][b.ref]={x:p.x,y:b._y+BH/2}; });
+  });
+  let out="";
+  // внешние стрелки: от каждого блока источника к его блоку «СОБЫТИЕ · Y» в потомке
+  links.forEach(Y=>{
+    if(!isSource[Y.id])return;
+    const p=pos[Y.id];
+    (kids[Y.id]||[]).forEach(childId=>{
+      const tgt=inPos[childId][Y.id]; if(!tgt)return;
+      blocksOf[Y.id].forEach(b=>{
+        const ay=b._y+BH/2, ax=p.x+IN_W;
+        const mk=b.kind==="err"?"arrc":(b.kind==="prevIn"?"arr":"arrg");
+        const col=b.kind==="err"?"#C4674A":(b.kind==="prevIn"?"#4A79A8":"#8A96A3");
+        out+=`<path d="M${ax},${ay} C${ax+GX/2},${ay} ${tgt.x-GX/2},${tgt.y} ${tgt.x},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
+      });
+    });
+  });
+  // узлы
+  links.forEach((L,i)=>{
+    const p=pos[L.id], NH=nodeH(L);
+    // литера над блоками
+    out+=`<text x="${p.x}" y="${p.y-8}" font-size="12" font-weight="bold" fill="#2E4A66">${linkLetter(i)}</text>`;
+    blocksOf[L.id].forEach(b=>{
+      const y=b._y;
+      if(b.kind==="pure"){
+        out+=`<rect x="${p.x}" y="${y}" width="${IN_W}" height="${BH}" rx="8" fill="#FBFCFD" stroke="#9AA6B1" stroke-dasharray="4 3"/>
+          <text x="${p.x+8}" y="${y+28}" font-size="10.5" fill="#5B6B7C">чистое развитие</text>`;
+      } else if(b.kind==="err"){
+        out+=`<rect x="${p.x}" y="${y}" width="${IN_W}" height="${BH}" rx="8" fill="#F8E7DF" stroke="#C4674A" stroke-width="1.8"/>
+          <text x="${p.x+8}" y="${y+15}" font-size="9.5" font-weight="bold" fill="#C4674A">ОШИБКА${b.who?" · "+esc(trim(b.who,15)):""}${b.code?" · "+esc(b.code):""}</text>
+          <text x="${p.x+8}" y="${y+33}" font-size="10.5" fill="#1E2A38">${esc(trim(b.text,30))}</text>`;
+      } else if(b.kind==="prevIn"){
+        const litera=linkLetter(byId[b.ref].i);
+        out+=`<rect x="${p.x}" y="${y}" width="${IN_W}" height="${BH}" rx="8" fill="#EAF3FB" stroke="#4A79A8" stroke-width="1.8"/>
+          <text x="${p.x+8}" y="${y+15}" font-size="9.5" font-weight="bold" fill="#2E5E8C">СОБЫТИЕ · ${litera}</text>
+          <text x="${p.x+8}" y="${y+33}" font-size="10.5" fill="#1E2A38">${esc(trim(b.text,30))}</text>`;
+      } else {
+        out+=`<rect x="${p.x}" y="${y}" width="${IN_W}" height="${BH}" rx="8" fill="#EDF0F3" stroke="#8A96A3" stroke-width="1.5"/>
+          <text x="${p.x+8}" y="${y+15}" font-size="9.5" font-weight="bold" fill="#5B6B7C">ОБСТОЯТЕЛЬСТВА</text>
+          <text x="${p.x+8}" y="${y+33}" font-size="10" fill="#1E2A38">${esc(trim(b.text,32))}</text>`;
+      }
+    });
+    // собственный синий блок события (если не источник) + внутренние стрелки
+    if(!isSource[L.id]){
+      const evX=p.x+IN_W+20, evY=p.y+NH/2-27;
+      out+=`<rect x="${evX}" y="${evY}" width="${EV_W}" height="54" rx="9" fill="#E3EDF6" stroke="#4A79A8" stroke-width="2"/>
+        <text x="${evX+9}" y="${evY+21}" font-size="12.5" font-weight="bold" fill="#2E4A66">${linkLetter(i)} · событие</text>
+        <text x="${evX+9}" y="${evY+39}" font-size="11" fill="#1E2A38">${esc(trim(L.event,26))}</text>`;
+      blocksOf[L.id].forEach(b=>{
+        const ay=b._y+BH/2;
+        const mk=b.kind==="err"?"arrc":(b.kind==="prevIn"?"arr":"arrg");
+        const col=b.kind==="err"?"#C4674A":(b.kind==="prevIn"?"#4A79A8":"#8A96A3");
+        out+=`<line x1="${p.x+IN_W}" y1="${ay}" x2="${evX}" y2="${evY+27}" stroke="${col}" stroke-width="1.6" marker-end="url(#${mk})"/>`;
+      });
+    }
+  });
+  return `<div class="card" style="overflow-x:auto"><svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4A79A8"/></marker>
+      <marker id="arrc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#C4674A"/></marker>
+      <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8A96A3"/></marker>
+    </defs>
+    ${out}</svg>
+    <div class="hint">Событие звена-источника не дублируется: от его <span style="color:var(--coral)">ошибки</span> и <span style="color:#5B6B7C">обстоятельств</span> две стрелки идут в голубой блок «СОБЫТИЕ · литера» следующего звена. Синий блок справа — только у звеньев, чьё событие никуда не передано (финал цепи).</div></div>`;
+}
+
+/* ===== СДК-МАСТЕР ===== */
+function sdkRender(r){
+  const s=r.sdk||(r.sdk={});
+  // путь по дереву согласно s.path (массив ключей)
+  s.path=s.path||[];
+  let node=SDK_TREE, steps=[], result=null;
+  const ask=(node,keyOpts)=>steps.push({node,keyOpts});
+  // ручной обход по фиксированной структуре
+  function walk(node){
+    if(node.type){result=node;return;}
+    // это вопрос
+    const q=node.q;
+    // варианты в зависимости от узла
+    if(node===SDK_TREE){
+      steps.push({q,opts:[["no","Нет — ненамеренное"],["yes","Да — намеренное"]],sel:s.namer});
+      if(s.namer==="no") walk(node.no);
+      else if(s.namer==="yes") walk(node.yes);
+    } else if(node===SDK_TREE.no){
+      steps.push({q,opts:[["attention","Внимание"],["memory","Память"]],sel:s.nomem});
+      if(s.nomem==="attention")result=node.attention; else if(s.nomem==="memory")result=node.memory;
+    } else if(node===SDK_TREE.yes){
+      steps.push({q,opts:[["yes","Да — считал правильным"],["no","Нет — знал, что нельзя"]],sel:s.right});
+      if(s.right==="yes")walk(node.yes); else if(s.right==="no")walk(node.no);
+    } else if(node===SDK_TREE.yes.yes){
+      steps.push({q,opts:[["rule","Правило было (на основе правил)"],["knowledge","Правила не было (на основе знаний)"]],sel:s.hadrule});
+      if(s.hadrule==="rule")walk(node.rule); else if(s.hadrule==="knowledge")result=node.knowledge;
+    } else if(node===SDK_TREE.yes.yes.rule){
+      steps.push({q,opts:[["good_bad","Применено правильно, но правило плохое"],["wrong_apply","Хорошее правило применено неверно"]],sel:s.ruleq});
+      if(s.ruleq==="good_bad")result=node.good_bad; else if(s.ruleq==="wrong_apply")result=node.wrong_apply;
+    } else if(node===SDK_TREE.yes.no){
+      steps.push({q,opts:[["routine","Рутинное («все так делают»)"],["situational","Ситуационное (иначе не выполнить)"],["exceptional","Исключительное (ЧС, нет правил)"],["optimizing","Оптимизационное (ради выгоды)"],["sabotage","Саботаж (умысел)"]],sel:s.viol});
+      const map={routine:node.routine,situational:node.situational,exceptional:node.exceptional,optimizing:node.optimizing,sabotage:node.sabotage};
+      if(s.viol&&map[s.viol])result=map[s.viol];
+    }
+  }
+  walk(SDK_TREE);
+  // применить результат в поля разбора
+  if(result){ r.type=result.type; r.subtype=result.sub||""; r._sdkClass=result.cls; r._sdkCond=result.cond; }
+  else { r.type=""; r.subtype=""; r._sdkCond=null; }
+  // рендер вопросов
+  let html="";
+  steps.forEach((st,idx)=>{
+    html+=`<div class="sdk-node"><div class="sdk-q">${esc(st.q)}</div><div class="sdk-opts">`+
+      st.opts.map(o=>`<span class="opt ${st.sel===o[0]?"":""}" style="${st.sel===o[0]?"border-color:var(--ink);background:var(--ink);color:#fff;font-weight:600":""}" onclick="sdkPick('${r.id}',${idx},'${o[0]}')">${esc(o[1])}</span>`).join("")+
+      `</div></div>`;
+  });
+  if(result){
+    html+=`<div class="sdk-result"><b>Тип:</b> ${esc(result.type)}${result.sub?" · "+esc(result.sub):""} <span class="klist">(${esc(result.cls)})</span></div>`;
+    html+=`<div class="sdk-cond"><b>Условия, при которых возникает такая ошибка</b> (проверьте, что из этого было): ${result.cond.map(c=>esc(c)).join(" · ")}</div>`;
+    html+=`<div class="hint">Класс мер: <b>${esc(CLASS_BY_TYPE[result.type]||"—")}</b>.</div>`;
+  }
+  return html;
+}
+function sdkPick(rid,stepIdx,val){
+  const r=S.reviews.find(x=>x.id===rid)||findReview(rid); if(!r)return;
+  const s=r.sdk||(r.sdk={});
+  const keys=["namer"]; // сбрасываем нижележащие при смене
+  // ключи по глубине
+  const depthKeys=[["namer"],["nomem","right"],["hadrule","viol"],["ruleq"]];
+  // проще: держим отдельные поля и чистим зависимые
+  const map=[ ["namer"], ["nomem","right"], ["hadrule","viol"], ["ruleq"] ];
+  // определить какое поле соответствует шагу
+  const fieldByStep=stepFields(r);
+  const f=fieldByStep[stepIdx]; if(!f)return;
+  s[f]=val;
+  // очистить все поля глубже
+  const order=["namer","nomem","right","hadrule","viol","ruleq"];
+  const clearFrom=order.indexOf(f)+1;
+  // но nomem/right и hadrule/viol на разных ветвях — чистим все глубже по порядку появления
+  for(let k=clearFrom;k<order.length;k++) delete s[order[k]];
+  save();render();
+}
+function stepFields(r){ // порядок полей, соответствующий отрисованным шагам
+  const s=r.sdk||{}; const f=["namer"];
+  if(s.namer==="no")f.push("nomem");
+  else if(s.namer==="yes"){f.push("right");
+    if(s.right==="yes"){f.push("hadrule");
+      if(s.hadrule==="rule")f.push("ruleq");}
+    else if(s.right==="no")f.push("viol");
+  }
+  return f;
+}
+function findReview(id){return S.reviews.find(x=>x.id===id);}
+/* ===== ШАГ 3: РАЗБОР ОШИБОК — две колонки, барьер на каждый фактор ===== */
+/* Модель разбора:
+   r.factors = [ {id, name, barrier, owner, ownerOther, bstate, verdict:{kind,text,target,errText,childId,reviewId}} ]
+   Каждый фактор несёт СВОЙ барьер и СВОЙ вывод → из одного разбора может выйти несколько причин. */
+
+function factorPalette(r){
+  const id=uid();
+  setTimeout(()=>{const box=document.getElementById(id);if(!box)return;
+    box.querySelectorAll(".chip[data-v]").forEach(c=>{
+      const on=(r.factors||[]).some(f=>f.name===c.dataset.v);
+      if(on)c.classList.add("on");
+      c.onclick=()=>{r.factors=r.factors||[];
+        const i=r.factors.findIndex(f=>f.name===c.dataset.v);
+        if(i>=0)r.factors.splice(i,1);
+        else r.factors.push({id:uid(),name:c.dataset.v,barrier:"",owner:"",ownerOther:"",bstate:"",verdict:{}});
+        save();render();};
+    });},0);
+  const mk=a=>a.map(f=>`<span class="chip" data-v="${esc(f)}">${esc(f)}</span>`).join("");
+  return `<div id="${id}"><span class="chip fam">способность — «не смог»</span>${mk(FACT_ABILITY)}<span class="chip fam">воля — «не стал»</span>${mk(FACT_WILL)}</div>`;
+}
+function famWarnF(r,f){
+  if(!r.type)return "";
+  const will=FACT_WILL.includes(f.name),abil=FACT_ABILITY.includes(f.name);
+  if(r.type==="нарушение"&&abil)return `<div class="warn">Нарушение обычно из семьи воли; этот фактор — из способности. Проверьте.</div>`;
+  if(["промах","упущение","заблуждение"].includes(r.type)&&will)return `<div class="warn">Ненамеренный тип обычно из семьи способности; этот фактор — из воли. Проверьте.</div>`;
+  return "";
+}
+function ownerSelect(obj){
+  // роль + поле «другое»
+  const selHtml=sel(obj,"owner",ROLES,()=>render());
+  const other = obj.owner==="другое (указать)" ? `<div style="margin-top:4px">${inp(obj,"ownerOther","укажите роль")}</div>` : "";
+  return selHtml+other;
+}
+
+/* ===== ПРИЧИНЫ РАЗБОРА (простой список) ===== */
+function reviewCauses(r){ return r.causes||(r.causes=[]); }
+function causeRow(r,c,i){
+  return `<div class="card" style="border-left:4px solid var(--green);padding:11px;margin-bottom:8px;background:#F6FAF3">
+    <div style="display:flex;gap:8px;align-items:baseline">
+      <span class="mono" style="font-weight:700;color:var(--green)">${i+1}</span>
+      <div style="flex:1"><label>Системная причина (несработавший барьер)</label>${inp(c,"text","«нет обучения технике спусков»")}</div>
+      <button class="btn small danger noprint" onclick="delCause('${r.id}','${c.id}')">✕</button>
+    </div>
+    <div style="margin-top:6px;max-width:340px"><label>Категория</label>${sel(c,"cat",CATS)}</div>
+  </div>`;
+}
+function addCause(rid){const r=findReview(rid);if(!r)return;
+  reviewCauses(r).push({id:uid(),text:"",owner:"",ownerOther:"",cat:""});save();render();}
+function delCause(rid,cid){const r=findReview(rid);if(!r)return;
+  r.causes=(r.causes||[]).filter(c=>c.id!==cid);save();render();}
+
+function stageHint(stage){
+  if(!stage)return "";
+  if(stage==="восприятие"||stage==="действие")
+    return `<div class="hint" style="background:var(--blue-l);padding:6px 9px;border-radius:8px;margin-top:6px">Подсказка: сбой на этапе «${stage}» — вероятно, <b>ошибка на основе навыка</b> (промах или упущение). Проверьте в мастере.</div>`;
+  return `<div class="hint" style="background:var(--gold-l);padding:6px 9px;border-radius:8px;margin-top:6px">Подсказка: сбой на этапе «${stage}» — вероятно, <b>ошибка на основе правил или знаний</b> (заблуждение). Но проверьте: не сознательное ли это нарушение?</div>`;
+}
+
+function reviewCard(r){
+  const kids=S.reviews.filter(x=>x.parent===r.id);
+  const cls=(r.causes&&r.causes.length)?"cause":"";
+  const canDel=!kids.length;
+  const typePill=r.type?`<span class="pill">${esc(r.type)}${r.subtype?" · "+esc(r.subtype):""}</span>`:"";
+  const facts=validFactors(r);
+  return `<div class="review ${cls}" id="rv${r.id}">
+    <h4>Разбор ошибки <span class="who">${esc(displayRole(r))}</span>${r.from?`<span class="from">${esc(r.from)}</span>`:""}${typePill}
+      <span style="flex:1"></span>${canDel?`<button class="btn small danger noprint" onclick="delReview('${r.id}')">удалить</button>`:""}</h4>
+    <div class="fieldrow"><span>Ошибка (акт)</span><div>${inp(r,"error","",true)}<div style="max-width:340px;margin-top:6px">${ownerSelectReview(r)}</div></div></div>
+
+    <div class="two-col">
+      <div class="col left">
+        <div class="col-h"><span class="colnum">1</span>Где сломалось · что за ошибка</div>
+        ${sdkStage(r)}
+        ${stageHint(r.stage)}
+        <div style="margin-top:10px">${sdkRender(r)}</div>
+      </div>
+      <div class="col right">
+        <div class="col-h"><span class="colnum">2</span>Что вызвало (факторы)</div>
+        ${factorPalette(r)}
+        <div style="margin-top:8px">
+          ${facts.length? facts.map(f=>famWarnF(r,f)+factorCard(r,f)).join("") : `<div class="hint">Выберите факторы — они подскажут, какие барьеры (обучение, РТО, контроль) должны были сработать.</div>`}
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict-zone">
+      <div class="col-h" style="margin-bottom:8px;color:#4A7A3A"><span class="colnum" style="background:var(--green)">3</span>Системные причины этого разбора</div>
+      ${reviewCauses(r).length? reviewCauses(r).map((c,i)=>causeRow(r,c,i)).join("") : `<div class="hint" style="margin-bottom:8px">Причин пока нет. Причина = несработавший барьер, за который отвечает кто-то в организации. Одна ошибка может дать несколько причин.</div>`}
+      <button class="btn coral noprint" onclick="addCause('${r.id}')">+ Добавить системную причину</button>
+    </div>
+    ${kids.map(k=>`<div class="child">${reviewCard(k)}</div>`).join("")}
+  </div>`;
+}
+function factorCard(r,f){
+  return `<div class="card" style="border-left:4px solid var(--gold);padding:10px;margin-bottom:8px">
+    <div style="font-weight:600;font-size:13px;margin-bottom:6px">${esc(f.name)}</div>
+    <div class="hint" style="margin:0 0 5px">Обычно закрывается барьером: <b>${esc(factorBarrierName(f))}</b></div>
+    <label>Барьер, который не сработал</label>${inp(f,"barrier",factorBarrierName(f)!=="—"?factorBarrierName(f):"что должно было не дать фактору стать ошибкой")}
+    <div class="grid2" style="margin-top:6px">
+      <div><label>Кто отвечает за барьер</label>${ownerSelect(f)}</div>
+      <div><label>Состояние барьера</label>${sel(f,"bstate",BSTATES)}</div>
+    </div>
+  </div>`;
+}
+function factorBarrierName(f){
+  // подсказка барьера по фактору
+  const map={"квалификация: знание":"обучение","квалификация: навык":"тренировка/дрилл","квалификация: опыт":"наставничество","физиология":"медконтроль","усталость":"режим труда и отдыха","отвлечение":"политика гаджетов, контроль","эмоции":"поддержка, отбор","установки / мотивация":"мотивация, культура, санкции","устойчивые черты":"профотбор"};
+  return map[f.name]||"—";
+}
+function validFactors(r){ return (r.factors||[]).filter(f=>f&&f.name); }
+function displayRole(r){ return r.owner==="другое (указать)"?(r.ownerOther||"другое"):(r.owner||"—"); }
+function ownerSelectReview(r){
+  const selHtml=sel(r,"owner",ROLES,()=>render());
+  const other=r.owner==="другое (указать)"?`<div style="margin-top:4px">${inp(r,"ownerOther","укажите роль")}</div>`:"";
+  return selHtml+other;
+}
+function sdkStage(r){
+  const id=uid();
+  setTimeout(()=>{const b=document.getElementById(id);if(!b)return;
+    b.querySelectorAll(".opt").forEach(o=>{if(o.dataset.v===r.stage)o.classList.add("on");
+      o.onclick=()=>{r.stage=o.dataset.v;save();render();};});},0);
+  return `<div class="sdk-opts" id="${id}">${STAGES.map(s=>`<span class="opt" style="${r.stage===s?"border-color:var(--ink);background:var(--ink);color:#fff":""}" data-v="${s}">${s}</span>`).join("")}</div>`;
+}
+function delReview(id){const i=S.reviews.findIndex(x=>x.id===id);if(i<0)return;
+  for(const c of S.circs)if(c.verdict&&c.verdict.reviewId===id)delete c.verdict.reviewId;
+  for(const L of S.links)if(L.reviewId===id)delete L.reviewId;
+  S.reviews.splice(i,1);save();render();}
+function pendingErrLinks(){ // звенья с ошибкой, для которых разбор ещё не создан
+  return S.links.map((L,i)=>({L,i})).filter(({L})=>!L.pure&&(L.error||"").trim()&&!(L.reviewId&&S.reviews.some(r=>r.id===L.reviewId)));
+}
+function makeAllReviews(){
+  pendingErrLinks().forEach(({i})=>{
+    const L=S.links[i];
+    const r={id:uid(),parent:null,from:"звено "+linkLetter(i),error:L.error,owner:L.who||"",ownerOther:"",stage:L.catStage||"",sdk:{},type:"",subtype:"",factors:[],causes:[]};
+    S.reviews.push(r);L.reviewId=r.id;
+  });
+  save();render();
+}
+function makeOneReview(i){
+  const L=S.links[i];
+  const r={id:uid(),parent:null,from:"звено "+linkLetter(i),error:L.error,owner:L.who||"",ownerOther:"",stage:L.catStage||"",sdk:{},type:"",subtype:"",factors:[],causes:[]};
+  S.reviews.push(r);L.reviewId=r.id;save();render();
+}
+function pendingBlock(){
+  const p=pendingErrLinks();
+  if(!p.length)return "";
+  return `<div class="card" style="border-left:5px solid var(--coral)">
+    <div style="display:flex;align-items:baseline;gap:10px"><b style="font-size:13px">Ошибки из звеньев без разбора: ${p.length}</b>
+      <span style="flex:1"></span>
+      <button class="btn small coral noprint" onclick="makeAllReviews()">разобрать все</button></div>
+    ${p.map(({L,i})=>`<div style="display:flex;gap:8px;align-items:center;margin:3px 0">
+        <span class="pill" style="background:var(--blue-l);color:var(--blue)">звено ${linkLetter(i)}</span>
+        <span style="flex:1;font-size:13px">${esc(L.error)}${L.who?` <span class="klist">· ${esc(L.who)}</span>`:""}</span>
+        <button class="btn small sec noprint" onclick="makeOneReview(${i})">разобрать</button>
+      </div>`).join("")}</div>`;
+}
+function screen3(){
+  const roots=S.reviews.filter(r=>!r.parent);
+  return `<h2>Шаг 3 · Разбор ошибок</h2>
+  ${pendingBlock()}
+  <div class="sub">Слева — где сломалось и что за ошибка (мастер СДК). Справа — что вызвало (факторы; они подсказывают, какой барьер должен был сработать). Внизу — системные причины: одна ошибка может дать несколько причин, добавляйте кнопкой.</div>
+  ${roots.length?roots.map(reviewCard).join(""):`<div class="empty">Разборов нет. Создайте из звеньев (шаг 2) или из обстоятельств (шаг 4).</div>`}
+  <button class="btn sec noprint" onclick="S.reviews.push({id:uid(),parent:null,from:'',error:'',owner:'',ownerOther:'',stage:'',sdk:{},type:'',subtype:'',factors:[],causes:[]});save();render()">+ Разбор вручную</button>`;
+}
+
+/* ===== ШАГ 4: ОБСТОЯТЕЛЬСТВА (вопрос о влиянии) ===== */
+function circRow(c,i){
+  const v=c.verdict||(c.verdict={});
+  let body="";
+  if(c.influence===undefined||c.influence===""){
+    body=`<div class="sdk-node"><div class="sdk-q">Имеет ли компания влияние на это обстоятельство (сейчас или в будущем)?</div>
+      <div class="sdk-opts">
+        <span class="opt" onclick="setInfl(${i},'yes')">Да — влияние есть</span>
+        <span class="opt" onclick="setInfl(${i},'no')">Нет — управы нет</span></div></div>`;
+  } else if(c.influence==="no"){
+    v.kind="stop";
+    body=`<div class="hint" style="margin-top:6px">Влияния нет → остальные поля бесполезны. Итог: <b>непредотвратимое, стоп</b> (законно). <span class="noprint"><a href="#" onclick="setInfl(${i},'');return false">изменить</a></span></div>`;
+  } else {
+    v.kind="cause";
+    body=`<div style="margin-top:8px"><label>Несработавший барьер (должен был предотвратить или нейтрализовать)</label>${inp(c,"barrier","«нет весового контроля на выезде»")}
+        <div style="max-width:340px;margin-top:6px"><label>Владелец (роль)</label>${ownerSelect(c)}</div></div>
+      <div class="causebox" style="margin-top:8px"><b>Системная причина:</b> ${inp(v,"text","«маршрут назначается без учёта фактической массы и профиля»")}
+        <div style="max-width:230px;margin-top:6px"><label>Категория</label>${sel(v,"cat",CATS)}</div></div>`;
+  }
+  return `<div class="card" style="border-left:5px solid var(--blue)">
+    <div style="display:flex;gap:10px"><div style="flex:1">
+      <div class="fieldrow"><span>Обстоятельство</span><div>${inp(c,"text","",true)}</div></div>${body}
+    </div><button class="btn small danger noprint" style="align-self:flex-start" onclick="S.circs.splice(${i},1);save();render()">✕</button></div></div>`;
+}
+function setInfl(i,val){const c=S.circs[i];c.influence=val;
+  if(val==="no")c.verdict={kind:"stop"};
+  else if(val==="yes"){c.verdict={kind:"cause",text:c.verdict&&c.verdict.text||"",cat:c.verdict&&c.verdict.cat||""};}
+  else {c.verdict={};}
+  save();render();}
+function pullCircs(){
+  const have=new Set(S.circs.map(c=>(c.text||"").trim().toLowerCase()));
+  for(const L of S.links){
+    for(const c of (L.circs||[])){
+      if(c.kind==="prev")continue; // события пред. звена не идут в шаг 4 — они разбираются своим звеном
+      const t=(c.text||"").trim(); if(!t||have.has(t.toLowerCase()))continue;
+      S.circs.push({id:uid(),text:t,influence:"",barrier:"",owner:"",ownerOther:"",verdict:{}});
+      have.add(t.toLowerCase());
+    }
+  }
+  save();render();}
+function screen4(){
+  return `<h2>Шаг 4 · Обстоятельства</h2>
+  <div class="sub">Первый вопрос — <b>имеет ли компания влияние</b>. Нет — «непредотвратимое, стоп». Да — назовите несработавший барьер, владельца и сформулируйте системную причину.</div>
+  <div class="noprint" style="margin-bottom:10px">
+    <button class="btn sec" onclick="pullCircs()">Подтянуть из звеньев</button>
+    <button class="btn sec" onclick="S.circs.push({id:uid(),text:'',influence:'',barrier:'',owner:'',ownerOther:'',verdict:{}});save();render()">+ Вручную</button></div>
+  ${S.circs.length?S.circs.map(circRow).join(""):`<div class="empty">Обстоятельств нет — подтяните из звеньев.</div>`}`;
+}
+/* ===== ПРИЧИНЫ (порядок, дубли, мероприятия-дети) ===== */
+function roleOf(r){return r.owner==="другое (указать)"?(r.ownerOther||"другое"):(r.owner||"");}
+function causes(){
+  const out=[];
+  for(const r of S.reviews) for(const c of (r.causes||[]))
+    out.push({id:c.id,kind:"review",obj:c,text:c.text||"",role:roleOf(c)||roleOf(r),type:r.type||"",src:"разбор: "+(r.error||"").slice(0,45)});
+  for(const c of S.circs) if(c.verdict&&c.verdict.kind==="cause")
+    out.push({id:c.id,kind:"circ",obj:c.verdict,text:c.verdict.text||"",role:roleOf(c),type:"",src:"обстоятельство: "+(c.text||"").slice(0,50)});
+  out.forEach(c=>{const m=S.causeMeta[c.id]||{};c.dup=!!m.dup;c.needStats=!!m.needStats;});
+  const ord=S.causeOrder||[];
+  out.sort((a,b)=>{
+    const ia=ord.indexOf(a.id), ib=ord.indexOf(b.id);
+    return (ia<0?1e9:ia)-(ib<0?1e9:ib);
+  });
+  return out;
+}
+function moveCause(id,d){
+  const ids=causes().map(c=>c.id);
+  const i=ids.indexOf(id), j=i+d;
+  if(i<0||j<0||j>=ids.length)return;
+  [ids[i],ids[j]]=[ids[j],ids[i]];
+  S.causeOrder=ids; save(); render();
+}
+function toggleDup(id){S.causeMeta[id]=S.causeMeta[id]||{};S.causeMeta[id].dup=!S.causeMeta[id].dup;save();render();}
+function toggleNeedStats(id){S.causeMeta[id]=S.causeMeta[id]||{};S.causeMeta[id].needStats=!S.causeMeta[id].needStats;save();render();}
+
+/* мероприятия причины (шаг 5: только текст) */
+function actsOf(causeId){S.acts=S.acts||[];return S.acts.filter(a=>a.causeId===causeId);}
+function addAct(causeId){S.acts=S.acts||[];S.acts.push({id:uid(),causeId,text:"",who:"",due:"",status:"",dup:false});save();render();}
+function delAct(id){S.acts=(S.acts||[]).filter(a=>a.id!==id);save();render();}
+function toggleActDup(id){const a=(S.acts||[]).find(x=>x.id===id);if(a){a.dup=!a.dup;save();render();}}
+
+function screen5(){
+  const cs=causes(); let n=0;
+  const rows=cs.map(c=>{
+    const meta=S.causeMeta[c.id]||(S.causeMeta[c.id]={});
+    const idx=c.dup?"—":(++n);
+    const acts=actsOf(c.id);
+    const actRows=acts.map(a=>`<div style="display:flex;gap:6px;align-items:center;margin-top:5px;${a.dup?"opacity:.5":""}">
+        <span style="color:var(--mut);font-size:12px">↳</span>
+        <div style="flex:1">${inp(a,"text","мероприятие, закрывающее причину")}</div>
+        <button class="btn small danger noprint" onclick="delAct('${a.id}')">✕</button>
+      </div>`).join("");
+    return `<div class="causeItem ${c.dup?"dup":""}">
+      <div class="rowbtns noprint"><button onclick="moveCause('${c.id}',-1)">▲</button><button onclick="moveCause('${c.id}',1)">▼</button></div>
+      <span class="num">${idx}</span>
+      <div style="flex:1">
+        <div>${inp(c.obj,"text","формулировка причины (можно склеить из нескольких)")}</div>
+        <div class="klist" style="margin-top:4px">из: ${esc(c.src)} · уровень: ${LEVEL(c.role)}${c.type?" · тип: "+esc(c.type):""}</div>
+        <div style="margin-top:6px" class="noprint">
+          <button class="btn small sec" onclick="toggleDup('${c.id}')">${c.dup?"вернуть (не дубль)":"пометить дублем"}</button>
+          <span style="max-width:230px;display:inline-block;vertical-align:middle;margin-left:8px">${sel(c.obj,"cat",CATS)}</span>
+        </div>
+        ${c.dup?"":`<div style="margin-top:10px;padding:9px 11px;background:#FBFCFD;border:1px solid var(--line);border-radius:8px">
+          <div style="display:flex;align-items:baseline;gap:10px">
+            <b style="font-size:12.5px;color:var(--mut)">Мероприятия, закрывающие причину</b>
+            <span style="flex:1"></span>
+            ${chk(meta,"needStats","мероприятие пока невозможно — копим статистику",()=>render())}
+          </div>
+          ${meta.needStats?`<div class="warn" style="margin-top:6px">Причина помечена «копим статистику»: мероприятий нет осознанно, в статистике будет выделена.</div>`
+            :(actRows||`<div class="hint" style="margin-top:4px">Пока нет — добавьте кнопкой; исполнителя и срок допишете на шаге 6.</div>`)}
+          ${meta.needStats?"":`<button class="btn small coral noprint" style="margin-top:7px" onclick="addAct('${c.id}')">+ Мероприятие</button>`}
+        </div>`}
+      </div></div>`;
+  }).join("");
+  return `<h2>Шаг 5 · Системные причины</h2>
+  <div class="sub">Собраны из разборов и обстоятельств; порядок — стрелками. Под каждой причиной — мероприятия, которые её закрывают (пока только формулировки; исполнитель, срок и статус — на шаге 6). Если мероприятие сейчас придумать невозможно — отметьте «копим статистику».</div>
+  ${cs.length?rows:`<div class="empty">Причин пока нет. Появятся из разборов (шаг 3) и обстоятельств (шаг 4). Ноль причин при всех «стоп» — законный итог (непредотвратимое).</div>`}`;
+}
+
+/* ===== ШАГ 6: МЕРОПРИЯТИЯ (исполнитель, срок, статус, сортировка) ===== */
+function classForCause(c){ if(c.type&&CLASS_BY_TYPE[c.type])return CLASS_BY_TYPE[c.type]; return ""; }
+function moveAction(id,d){
+  const disp=displayActs();
+  const ids=disp.map(x=>x.a.id);
+  if(S.actionSort&&S.actionSort.col){S.actionSort=null;}
+  const i=ids.indexOf(id), j=i+d;
+  if(i<0||j<0||j>=ids.length){S.actionOrder=ids;save();render();return;}
+  [ids[i],ids[j]]=[ids[j],ids[i]];
+  S.actionOrder=ids; save(); render();
+}
+function sortActions(col){
+  const s0=S.actionSort;
+  if(s0&&s0.col===col){ S.actionSort = s0.dir>0? {col,dir:-1} : null; }
+  else S.actionSort={col,dir:1};
+  save(); render();
+}
+function displayActs(){ // [{a,causeLabel}] в отображаемом порядке
+  S.acts=S.acts||[];
+  const cs=causes().filter(c=>!c.dup);
+  const label={}; cs.forEach(c=>label[c.id]="Причина "+(cs.indexOf(c)+1)+": "+(c.text||"—").slice(0,50));
+  const rows=S.acts.filter(a=>a.causeId===null||label[a.causeId]!==undefined||a.causeId==="")
+    .map(a=>({a,causeLabel:a.causeId?(label[a.causeId]||"Причина (дубль/удалена)"):"Дополнительно (без причины)"}));
+  const aord=S.actionOrder||[];
+  rows.sort((x,y)=>{const ia=aord.indexOf(x.a.id),ib=aord.indexOf(y.a.id);return (ia<0?1e9:ia)-(ib<0?1e9:ib);});
+  const srt=S.actionSort;
+  if(srt&&srt.col){
+    const val=r=> srt.col==="label"?r.causeLabel:String(r.a[srt.col]||"");
+    rows.sort((x,y)=>val(x).localeCompare(val(y),"ru")*srt.dir);
+  }
+  return rows;
+}
+function actStatusClass(st){ return st==="выполнено"?"st-done":(st==="в процессе"?"st-prog":"st-none"); }
+function screen7(){
+  const disp=displayActs();
+  const rows=disp.map(({a,causeLabel})=>`<tr class="${a.dup?"":actStatusClass(a.status)}" style="${a.dup?"opacity:.5":""}">
+    <td style="width:210px">${esc(causeLabel)}</td>
+    <td>${inp(a,"text","что сделать (SMART)")}</td>
+    <td style="width:150px">${sel(a,"who",ROLES)}</td>
+    <td style="width:90px">${inp(a,"due","срок")}</td>
+    <td style="width:120px">${sel(a,"status",ACT_STATUS,()=>render())}</td>
+    <td style="width:70px"><div style="display:flex;gap:2px">
+      <div class="rowbtns noprint"><button onclick="moveAction('${a.id}',-1)">▲</button><button onclick="moveAction('${a.id}',1)">▼</button></div>
+      <button class="btn small sec noprint" title="дубль" onclick="toggleActDup('${a.id}')">${a.dup?"⟲":"дуб"}</button>
+      ${a.causeId?"":`<button class="btn small danger noprint" onclick="delAct('${a.id}')">✕</button>`}
+    </div></td></tr>`).join("");
+  const th=[["label","К чему"],["text","Мероприятие"],["who","Исполнитель (роль)"],["due","Срок"],["status","Статус"]].map(h=>{
+    const on=S.actionSort&&S.actionSort.col===h[0];
+    return `<th style="cursor:pointer" onclick="sortActions('${h[0]}')" title="сортировать">${h[1]} ${on?(S.actionSort.dir>0?"▲":"▼"):"↕"}</th>`;
+  }).join("");
+  return `<h2>Шаг 6 · Корректирующие мероприятия (SMART)</h2>
+  <div class="sub">Мероприятия заведены на шаге 5 под причинами; здесь дописываются исполнитель, срок и статус (не выполнено / в процессе / выполнено — строки подсвечены). Сортировка — кликом по заголовку, порядок — стрелками.</div>
+  ${disp.length?`<div class="card"><table class="t"><tr>${th}<th></th></tr>${rows}</table>
+    <div class="noprint" style="margin-top:10px"><button class="btn sec" onclick="S.acts.push({id:uid(),causeId:null,text:'',who:'',due:'',status:'',dup:false});save();render()">+ Мероприятие без привязки к причине</button></div></div>`
+  :`<div class="empty">Мероприятий нет — добавьте их под причинами на шаге 5.</div>
+    <div class="noprint" style="margin-top:10px"><button class="btn sec" onclick="S.acts=S.acts||[];S.acts.push({id:uid(),causeId:null,text:'',who:'',due:'',status:'',dup:false});save();render()">+ Мероприятие без привязки к причине</button></div>`}`;
+}
+
+/* ===== ШАГ 7: ВЫВОДЫ ===== */
+function screen8(){
+  const cs=causes().filter(c=>!c.dup); const n=cs.length;
+  const anyReviews=S.reviews.length+S.circs.length>0;
+  const rvClosed=S.reviews.every(r=>(r.causes&&r.causes.length>0)||S.reviews.some(k=>k.parent===r.id));
+  const allClosed = anyReviews && n===0 && rvClosed &&
+    S.circs.every(c=>c.verdict&&(c.verdict.kind==="stop"||(c.verdict.kind==="rec"&&c.verdict.reviewId)));
+  const status=n>0?"ПРЕДОТВРАТИМОЕ":(allClosed?"НЕПРЕДОТВРАТИМОЕ (все ветви — стоп)":"— разбор не завершён");
+  const dist={водитель:0,операторы:0,руководство:0}; cs.forEach(c=>dist[LEVEL(c.role)]++);
+  const list=cs.map((c,i)=>`<li><b>${i+1}.</b> ${esc(c.text||"(без формулировки)")} <span class="klist">· ${esc((c.obj&&c.obj.cat)||"категория не выбрана")} · ${LEVEL(c.role)}${c.needStats?" · <b style='color:var(--amber)'>копим статистику</b>":""}</span></li>`).join("");
+  return `<h2>Шаг 7 · Выводы</h2>
+  <div class="sub">Собирается автоматически. Для печати — кнопка «Печать отчёта» в шапке.</div>
+  <div class="card"><div class="grid2">
+    <div><label>Происшествие</label><div style="font-weight:700;font-size:16px">${status}</div></div>
+    <div><label>Системных причин</label><div style="font-weight:700;font-size:16px">${n}</div></div></div>
+    <div style="margin-top:10px"><label>Распределение</label>водитель: <b>${dist["водитель"]}</b> · операторы: <b>${dist["операторы"]}</b> · руководство: <b>${dist["руководство"]}</b></div>
+    ${n?`<div style="margin-top:10px"><label>Причины</label><ul style="padding-left:18px">${list}</ul></div>`:""}
+  </div>
+  <div class="card"><label>Особые мнения / примечания</label>${inp(S.concl,"notes","",true)}</div>`;
+}
+
+/* ===== РЕНДЕР ===== */
+function render(){
+  const m=document.getElementById("main");
+  if(!CLOUD&&!localMode){ // не вошли и не выбрали локальный режим
+    document.getElementById("topbar").innerHTML="";
+    document.getElementById("nav").innerHTML="";
+    m.innerHTML=screenLogin(); return;
+  }
+  topbar(); nav();
+  if(!S){ m.innerHTML=statsView?screenStats():screenList(); return; }
+  m.innerHTML=[screen0,screen1,screen2,screen3,screen4,screen5,screen7,screen8][cur]();
+}
+async function boot(){
+  DB={cases:[]};
+  loadSession();
+  if(SESSION&&SESSION.access_token){
+    try{ await startCloud(); return; }catch(e){}
+  }
+  render();
+}
+boot();
+/* ===== ОТЧЁТ ПО ШАБЛОНУ АКТА v5 ===== */
+function displayOwner2(o){ return o.owner==="другое (указать)"?(o.ownerOther||"другое"):(o.owner||""); }
+function rHead(t){ return `<h2 style="font-family:Arial;font-size:13pt;color:#1F3864;margin:18px 0 4px">${t}</h2>`; }
+function rTable(hs,rows,widths){
+  const wd=i=> widths&&widths[i]?`width:${widths[i]};`:"";
+  return `<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-family:Arial;font-size:10pt;margin:4px 0 12px">
+    <tr>${hs.map((h,i)=>`<th style="${wd(i)}background:#D5E8F0;text-align:left;font-size:9pt;font-family:Arial;color:#1F3864">${h}</th>`).join("")}</tr>
+    ${rows.map(r=>`<tr>${r.map((v,i)=>`<td style="${wd(i)}vertical-align:top;font-family:Arial;font-size:10pt">${v??""}</td>`).join("")}</tr>`).join("")}</table>`;
+}
+function circsText(L){
+  return (L.circs||[]).map(c=>{
+    if(c.kind==="prev"){
+      const xi=S.links.findIndex(x=>x.id===c.linkRef);
+      return esc(c.text)+(xi>=0?" (→ звено "+linkLetter(xi)+")":" (→ звено?)");
+    }
+    return esc(c.text);
+  }).join("; ");
+}
+function buildReport(){
+  const cs=causes().filter(c=>!c.dup);
+  const dist={водитель:0,операторы:0,руководство:0}; cs.forEach(c=>dist[LEVEL(c.role)]++);
+  const anyR=S.reviews.length+S.circs.length>0;
+  const rvClosed=S.reviews.every(r=>(r.causes&&r.causes.length>0)||S.reviews.some(k=>k.parent===r.id));
+  const allClosed=anyR&&cs.length===0&&rvClosed&&S.circs.every(c=>c.verdict&&c.verdict.kind==="stop");
+  const status=cs.length>0?"ПРЕДОТВРАТИМОЕ":(allClosed?"НЕПРЕДОТВРАТИМОЕ":"— разбор не завершён");
+
+  let h=`<div class="WordSection1" style="font-family:Arial,sans-serif;color:#1E2A38;max-width:960px">
+  <div style="text-align:center;margin-bottom:8px"><img src="data:image/png;base64,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" style="height:32px" alt="Так безопаснее"></div>
+  <h1 style="font-family:Arial;font-size:15pt;text-align:center;margin-bottom:2px;color:#1F3864">АКТ расследования дорожно-транспортного происшествия</h1>
+  <p style="font-family:Arial;text-align:center;font-size:11pt;margin:0 0 2px">№ ${esc(S.info.num||"____")}</p>
+  <p style="font-family:Arial;text-align:center;color:#777;font-size:8.5pt;margin:0 0 10px">${esc(S.name)} · сформировано ${new Date().toLocaleDateString("ru")} · поля «со слов» помечены как допущение</p>`;
+
+  h+=rHead("1. Сведения о происшествии");
+  const wd=weekdayOf(S.info.dateISO);
+  const dstr=(S.info.dateISO?S.info.dateISO.split("-").reverse().join("."):"")+(S.info.time?" "+S.info.time:"")+(wd?" ("+wd+")":"");
+  h+=rTable(["Поле","Значение"],[
+    ["Дата и время ДТП",esc(dstr)],["Вид ДТП",esc(S.info.kind)],
+    ["Место происшествия",esc(S.info.area)],["Место ДТП",esc(S.info.spot)],
+    ["Тип ТС",esc(S.info.tsType)],["ТС (модель, гос. №)",esc(S.info.ts)],
+    ["Водитель",esc(S.info.driver)+(S.info.exp?" · стаж "+esc(S.info.exp):"")+(S.info.age?" · "+esc(S.info.age)+" лет":"")],
+    ["Пострадавших",esc(S.info.victims)],
+    ["Краткое описание",esc(S.info.desc)],["Последствия",esc(S.info.harm)]]);
+
+  h+=rHead("2. Комиссия и материалы");
+  h+=rTable(["Ф. И. О.","Должность","Роль"],[["&nbsp;","",""],["","",""],["","",""]]);
+  h+=rTable(["Материал","Есть/нет","Примечание"],
+    [["Опросный лист водителя","",""],["Телематика","",""],["Видеорегистратор","",""],["Дефектовка ТС","",""],["Документы (путевой лист, журналы)","",""]]);
+
+  if(S.chrono.length){
+    h+=rHead("3. Хронология происшествия (по носителям)");
+    const rows=S.chrono.map(r=>{
+      const t=esc(r.time)+(r.end?(" — "+esc(r.end)):"");
+      const txt=esc(r.text)+(r.isFact?"":' <i style="color:#7A4D00">(не подтверждено — допущение)</i>');
+      const cell=l=> r.lane===l?txt:"";
+      return [t,cell("В"),cell("А"),cell("Д"),cell("С"),cell("О"),cell("П"),esc(r.src)];
+    });
+    h+=rTable(["Время / период","Водитель","Автомобиль","Дорога","Среда","Операторы","Прочее","Источник"],rows,["10%","14%","14%","11%","10%","13%","12%","9%"]);
+  }
+
+  if(S.links.length){
+    h+=rHead("4. Звенья цепи");
+    h+=rTable(["Звено","Событие-результат","Ошибка (одна; чья)","Обстоятельства"],
+      S.links.map((L,i)=>[linkLetter(i),esc(L.event),
+        L.pure?"— (чистое развитие)":(esc(L.error)+(L.errCode?" ["+esc(L.errCode)+"]":"")+(L.who?" ("+esc(L.who)+")":"")),circsText(L)]));
+  }
+
+  if(S.reviews.length){
+    h+=rHead("5. Разбор ошибок");
+    h+=rTable(["№","Ошибка (чья)","Где","Тип","Факторы","ВЫВОДЫ (системные причины)"],
+      S.reviews.map((r,i)=>[i+1,
+        esc(r.error)+(displayRole(r)!=="—"?" ("+esc(displayRole(r))+")":""),
+        esc(r.stage),esc(r.type)+(r.subtype?" · "+esc(r.subtype):""),
+        (r.factors||[]).filter(f=>f&&f.name).map(f=>esc(f.name)+(f.barrier?" → барьер: "+esc(f.barrier):"")+(f.owner?" ("+esc(displayOwner2(f))+(f.bstate?", "+esc(f.bstate):"")+")":"")).join("<br>"),
+        (r.causes||[]).length?(r.causes.map(c=>"<b>системная причина:</b> "+esc(c.text)+(c.owner?" — "+esc(displayOwner2(c)):"")).join("<br>")):"—"]));
+  }
+
+  if(S.circs.length){
+    h+=rHead("6. Обстоятельства");
+    h+=rTable(["Обстоятельство","Влияние компании","Несработавший барьер (владелец)","ВЫВОДЫ"],
+      S.circs.map(c=>{
+        const infl=c.influence==="no"?"нет":(c.influence==="yes"?"да":"—");
+        const итог=c.influence==="no"?"непредотвратимое, стоп":
+          (c.verdict&&c.verdict.text?("<b>системная причина:</b> "+esc(c.verdict.text)):"—");
+        return [esc(c.text),infl,esc(c.barrier)+(c.owner?" ("+esc(displayOwner2(c))+")":""),итог];
+      }));
+  }
+
+  h+=rHead("7. Системные причины");
+  if(cs.length){
+    h+=rTable(["№","Системная причина (несработавший барьер)","Владелец","Категория"],
+      cs.map((c,i)=>[i+1,esc(c.text),esc(c.role),esc((c.obj&&c.obj.cat)||"")]));
+  } else h+=`<p style="font-size:11.5px;color:#555">Системные причины не установлены${allClosed?" — все ветви завершены выводом «непредотвратимое»":""}.</p>`;
+
+  const acts=(S.acts||[]).filter(a=>!a.dup&&(a.text||"").trim());
+  h+=rHead("8. Корректирующие действия (SMART)");
+  const actRows=[];
+  cs.forEach((c,i)=>{
+    (S.acts||[]).filter(a=>a.causeId===c.id&&!a.dup&&(a.text||"").trim()).forEach(a=>{
+      actRows.push([String(i+1)+". "+esc((c.text||"").slice(0,55)),esc(a.text),esc(a.who),esc(a.due),esc(a.status||"не выполнено")]);
+    });
+    if(c.needStats) actRows.push([String(i+1)+". "+esc((c.text||"").slice(0,55)),"<i>мероприятие отложено — накапливается статистика</i>","","",""]);
+  });
+  (S.acts||[]).filter(a=>!a.causeId&&!a.dup&&(a.text||"").trim()).forEach(a=>{
+    actRows.push(["Дополнительно (без причины)",esc(a.text),esc(a.who),esc(a.due),esc(a.status||"не выполнено")]);
+  });
+  h+=actRows.length?rTable(["Причина","Мероприятие","Исполнитель (роль)","Срок","Статус"],actRows)
+    :rTable(["Причина","Мероприятие","Исполнитель (роль)","Срок","Статус"],[["","","","",""],["","","","",""]]);
+
+  h+=rHead("9. Выводы");
+  h+=rTable(["Поле","Значение"],[
+    ["Происшествие",status],["Число системных причин",String(cs.length)],
+    ["Распределение по уровням","водитель: "+dist["водитель"]+"   операторы: "+dist["операторы"]+"   руководство: "+dist["руководство"]],
+    ["Особые мнения / примечания",esc(S.concl.notes)]]);
+
+  h+=rHead("10. Подписи");
+  h+=`<p style="font-size:11.5px;margin:8px 0 4px">Председатель комиссии: ________________________________</p>
+  <p style="font-size:11.5px;margin:4px 0">Члены комиссии: ________________________  ________________________</p>
+  <p style="font-size:11.5px;margin:10px 0 0">С актом ознакомлен (водитель): ________________________________</p>`;
+  h+=`</div>`;
+h+=`<div style="margin-top:16pt;font-size:8pt;color:#5B6B7C;text-align:center">Расследование выполнено по методике «Формула безопасности» · Экспертный центр «Так безопаснее» · takbezopasnee.ru</div>`;
+  return h;
+}
+function printReport(){
+  const m=document.getElementById("main");
+  const keep=m.innerHTML;
+  m.innerHTML=buildReport();
+  window.print();
+  m.innerHTML=keep; render();
+}
+function downloadDoc(){
+  const wordCSS=`<style>
+    @page WordSection1{size:595.3pt 841.9pt;margin:56.7pt 42.5pt 56.7pt 56.7pt;}
+    div.WordSection1{page:WordSection1;}
+    body{font-family:Arial,sans-serif;font-size:11pt;color:#1E2A38;}
+    table{border-collapse:collapse;} 
+    h1,h2{font-family:Arial;}
+  </style>`;
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>Акт</title>${wordCSS}</head><body>${buildReport()}</body></html>`;
+  const blob=new Blob(['\ufeff'+html],{type:'application/msword'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(S.name||'akt').replace(/[^\wа-яА-ЯёЁ -]/g,'')+'.doc';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+  flash("Файл .doc сформирован");
+}
+
+/* ===== СТАТИСТИКА: 4 обязательные таблицы ===== */
+function roleOfObj(o){ return o.owner==="другое (указать)"?(o.ownerOther||"другое"):(o.owner||""); }
+
+function statErrors(){ // 1) ошибки по формуле: группировка по коду каталога (иначе по тексту)
+  const m={};
+  const add=(key,error,code,who,cname,type)=>{
+    m[key]=m[key]||{error,code,who,types:new Set(),n:0,cases:new Set()};
+    m[key].n++; m[key].cases.add(cname);
+    if(type)m[key].types.add(type);
+  };
+  for(const c of DB.cases){
+    // тип из разбора подтянем к звену через reviewId
+    const typeByReview={}; (c.reviews||[]).forEach(r=>{ if(r.type) typeByReview[r.id]=r.type+(r.subtype?" ("+r.subtype+")":""); });
+    for(const L of (c.links||[])){
+      if(L.pure||!(L.error||"").trim())continue;
+      const who=L.who||"—";
+      const code=L.errCode||"";
+      const canonical=code&&errByCode(code)?errByCode(code).e:L.error.trim();
+      add((code||L.error.trim().toLowerCase())+"§"+who, canonical, code, who, c.name, typeByReview[L.reviewId]);
+    }
+    for(const r of (c.reviews||[])){ // ручные разборы вне звеньев
+      if(!(r.error||"").trim())continue;
+      const linked=(c.links||[]).some(L=>L.reviewId===r.id);
+      if(linked)continue;
+      const who=roleOfObj(r)||"—";
+      add(r.error.trim().toLowerCase()+"§"+who, r.error.trim(), "", who, c.name, r.type?(r.type+(r.subtype?" ("+r.subtype+")":"")):"");
+    }
+  }
+  return Object.values(m).sort((a,b)=>b.n-a.n);
+}
+function statCandidates(){ // ошибки-кандидаты в каталог (без кода)
+  const m={};
+  for(const c of DB.cases) for(const L of (c.links||[])){
+    if(L.pure||!(L.error||"").trim()||L.errCode)continue;
+    const k=L.error.trim().toLowerCase();
+    m[k]=m[k]||{error:L.error.trim(),n:0,cases:new Set()};
+    m[k].n++; m[k].cases.add(c.name);
+  }
+  return Object.values(m).sort((a,b)=>b.n-a.n);
+}
+function statCircs(){ // 2) обстоятельства
+  const m={};
+  for(const c of DB.cases) for(const x of (c.circs||[])){
+    if(!(x.text||"").trim())continue;
+    const k=x.text.trim().toLowerCase();
+    m[k]=m[k]||{text:x.text.trim(),n:0,cases:new Set(),infl:new Set()};
+    m[k].n++; m[k].cases.add(c.name);
+    if(x.influence==="yes")m[k].infl.add("влияние есть");
+    if(x.influence==="no")m[k].infl.add("управы нет");
+  }
+  return Object.values(m).sort((a,b)=>b.n-a.n);
+}
+function allCauses(){ // 3) причины (по всем делам)
+  const out=[];
+  for(const c of DB.cases){
+    const meta=c.causeMeta||{};
+    const nActs=id=>((c.acts||[]).filter(a=>a.causeId===id&&!a.dup&&(a.text||"").trim()).length);
+    for(const r of (c.reviews||[])) for(const x of (r.causes||[])){
+      if(meta[x.id]&&meta[x.id].dup)continue;
+      out.push({case:c.name,caseId:c.id,id:x.id,text:x.text,role:roleOfObj(x)||roleOfObj(r),cat:x.cat||"",type:r.type||"",nActs:nActs(x.id),needStats:!!(meta[x.id]&&meta[x.id].needStats)});
+    }
+    for(const x of (c.circs||[])) if(x.verdict&&x.verdict.kind==="cause"){
+      if(meta[x.id]&&meta[x.id].dup)continue;
+      out.push({case:c.name,caseId:c.id,id:x.id,text:x.verdict.text||"",role:roleOfObj(x),cat:x.verdict.cat||"",type:"",nActs:nActs(x.id),needStats:!!(meta[x.id]&&meta[x.id].needStats)});
+    }
+  }
+  return out;
+}
+function openFromStats(caseId,step){ statsView=0; openCase(caseId); goto(step); }
+function setActStatusGlobal(caseId,actId,val){
+  const c=DB.cases.find(x=>x.id===caseId); if(!c)return;
+  const a=(c.acts||[]).find(x=>x.id===actId); if(!a)return;
+  a.status=val; save(); render();
+}
+function statActions(){ // 4) мероприятия
+  const out=[];
+  for(const c of DB.cases){
+    const causeText={};
+    for(const r of (c.reviews||[])) for(const x of (r.causes||[])) causeText[x.id]=x.text;
+    for(const x of (c.circs||[])) if(x.verdict) causeText[x.id]=x.verdict.text;
+    for(const a of (c.acts||[])){
+      if(a.dup||!(a.text||"").trim())continue;
+      out.push({case:c.name,caseId:c.id,actId:a.id,cause:a.causeId?(causeText[a.causeId]||"—"):"без причины",action:a.text,who:a.who||"",due:a.due||"",status:a.status||"не выполнено"});
+    }
+  }
+  return out;
+}
+function statStages(){ // где ломается: этапы реакции по разборам
+  const m={}; for(const c of DB.cases) for(const r of (c.reviews||[])) if(r.stage) m[r.stage]=(m[r.stage]||0)+1;
+  return ["восприятие","анализ","решение","действие"].filter(k=>m[k]).map(k=>[k,m[k]]);
+}
+function statModes(){ // режимы движения по звеньям (из каталога)
+  const m={}; for(const c of DB.cases) for(const L of (c.links||[])) if(L.catMode) m[L.catMode]=(m[L.catMode]||0)+1;
+  return MODES.filter(k=>m[k]).map(k=>[k,m[k]]);
+}
+function statPrevent(){ // предотвратимость дел
+  let prev=0,noprev=0,open=0;
+  for(const c of DB.cases){
+    const meta=c.causeMeta||{};
+    let n=0;
+    for(const r of (c.reviews||[])) for(const x of (r.causes||[])) if(!(meta[x.id]&&meta[x.id].dup)) n++;
+    for(const x of (c.circs||[])) if(x.verdict&&x.verdict.kind==="cause"&&!(meta[x.id]&&meta[x.id].dup)) n++;
+    if(n>0){prev++;continue;}
+    const anyR=(c.reviews||[]).length+(c.circs||[]).length>0;
+    const rvClosed=(c.reviews||[]).every(r=>(r.causes&&r.causes.length>0)||(c.reviews||[]).some(k=>k.parent===r.id));
+    const allClosed=anyR&&rvClosed&&(c.circs||[]).every(x=>x.verdict&&x.verdict.kind==="stop");
+    if(allClosed)noprev++; else open++;
+  }
+  return {prev,noprev,open};
+}
+function statPairs(){ // пары «ошибка × обстоятельство» из звеньев — зародыш реестра соответствий
+  const m={};
+  for(const c of DB.cases) for(const L of (c.links||[])){
+    if(L.pure||!(L.error||"").trim())continue;
+    const ename=(L.errCode&&errByCode(L.errCode))?errByCode(L.errCode).e:L.error.trim();
+    for(const cc of (L.circs||[])){
+      const p=(cc.text||"").trim(); if(!p)continue;
+      m[ename+" × "+p]=(m[ename+" × "+p]||0)+1;
+    }
+  }
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,12);
+}
+function statInfoBy(key){
+  const m={};
+  for(const c of DB.cases){const v=(c.info&&c.info[key]||"").trim();if(v)m[v]=(m[v]||0)+1;}
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+const MN=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+function statByWeekday(){ // все 7 дней, кор. подписи
+  const m={};let any=0;
+  for(const c of DB.cases){const w=weekdayOf(c.info&&c.info.dateISO);if(w){m[w]=(m[w]||0)+1;any++;}}
+  if(!any)return [];
+  const map={"понедельник":"пн","вторник":"вт","среда":"ср","четверг":"чт","пятница":"пт","суббота":"сб","воскресенье":"вс"};
+  return ["понедельник","вторник","среда","четверг","пятница","суббота","воскресенье"].map(w=>[map[w],m[w]||0]);
+}
+function statByHour(){ // все 24 часа
+  const m={};let any=0;
+  for(const c of DB.cases){const t=(c.info&&c.info.time||"").match(/^(\d{2}):/);if(t){m[+t[1]]=(m[+t[1]]||0)+1;any++;}}
+  if(!any)return [];
+  return Array.from({length:24},(_,h)=>[String(h),m[h]||0]);
+}
+function statByMonthAll(){ // янв–дек, независимо от года
+  const m={};let any=0;
+  for(const c of DB.cases){const d=(c.info&&c.info.dateISO||"").match(/^\d{4}-(\d{2})/);if(d){m[+d[1]]=(m[+d[1]]||0)+1;any++;}}
+  if(!any)return [];
+  return MN.map((n,i)=>[n,m[i+1]||0]);
+}
+function statLast12(){ // окно последних 12 месяцев
+  const now=new Date(); const keys=[];
+  for(let k=11;k>=0;k--){const d=new Date(now.getFullYear(),now.getMonth()-k,1);
+    keys.push({key:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"),lbl:MN[d.getMonth()]+" "+String(d.getFullYear()).slice(2)});}
+  const m={};let any=0;
+  for(const c of DB.cases){const d=(c.info&&c.info.dateISO||"").match(/^(\d{4}-\d{2})/);if(d){m[d[1]]=(m[d[1]]||0)+1;any++;}}
+  if(!any)return [];
+  return keys.map(k=>[k.lbl,m[k.key]||0]);
+}
+function vbars(pairs,cls){ // вертикальные столбики
+  if(!pairs.length)return "";
+  const mx=Math.max(...pairs.map(p=>p[1]),1);
+  return `<div class="vchart ${cls||""}">`+pairs.map(p=>`<div class="vcol">
+      <div class="vval">${p[1]||""}</div>
+      <div class="vbar" style="height:${p[1]?Math.max(Math.round(p[1]/mx*100),4):0}%"></div>
+      <div class="vlbl">${esc(p[0])}</div></div>`).join("")+`</div>`;
+}
+const PIE_COLORS=["#4A79A8","#C4674A","#7FA65A","#D9A441","#8A6FA8","#5BA8A0","#A85B79","#8A96A3","#B08968","#6B7FA8","#A8A05B","#5B6B7C"];
+function pieSVG(pairs){ // кольцевая диаграмма с легендой
+  if(!pairs.length)return "";
+  const total=pairs.reduce((a,p)=>a+p[1],0); if(!total)return "";
+  const R=62,r0=34,cx=70,cy=70;
+  let a0=-Math.PI/2, paths="";
+  pairs.forEach((p,i)=>{
+    const frac=p[1]/total, a1=a0+frac*2*Math.PI;
+    const col=PIE_COLORS[i%PIE_COLORS.length];
+    if(frac>=0.999){
+      paths+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="${col}"/><circle cx="${cx}" cy="${cy}" r="${r0}" fill="#fff"/>`;
+    } else {
+      const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
+      const xi=cx+r0*Math.cos(a1),yi=cy+r0*Math.sin(a1),xj=cx+r0*Math.cos(a0),yj=cy+r0*Math.sin(a0);
+      const lg=(a1-a0)>Math.PI?1:0;
+      paths+=`<path d="M${x0},${y0} A${R},${R} 0 ${lg} 1 ${x1},${y1} L${xi},${yi} A${r0},${r0} 0 ${lg} 0 ${xj},${yj} Z" fill="${col}"/>`;
+    }
+    a0=a1;
+  });
+  const legend=pairs.map((p,i)=>`<div><span class="sw" style="background:${PIE_COLORS[i%PIE_COLORS.length]}"></span>${esc(p[0])} — <b>${p[1]}</b> (${Math.round(p[1]/total*100)}%)</div>`).join("");
+  return `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+    <svg width="140" height="140" xmlns="http://www.w3.org/2000/svg">${paths}
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="15" font-weight="bold" fill="#1E2A38">${total}</text></svg>
+    <div class="pieLegend">${legend}</div></div>`;
+}
+function hbars(pairs,cls){ // горизонтальный бар-график
+  if(!pairs.length)return "";
+  const mx=Math.max(...pairs.map(p=>p[1]));
+  return pairs.map(p=>`<div class="hbar ${cls||""}"><div class="lbl" title="${esc(p[0])}">${esc(p[0])}</div><div class="track"><div class="fill" style="width:${Math.round(p[1]/mx*100)}%"></div></div><div class="val">${p[1]}</div></div>`).join("");
+}
+function countBy(arr,key){
+  const m={}; arr.forEach(x=>{const k=x[key]||"— не указано"; m[k]=(m[k]||0)+1;});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+
+function csvEscape(v){ v=String(v??""); return /[";\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
+function downloadCSVRows(fname,rows){
+  const csv='\ufeff'+rows.map(r=>r.map(csvEscape).join(";")).join("\n");
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=fname;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+  flash("CSV сформирован");
+}
+function csvErrors(){ downloadCSVRows('oshibki.csv',[["Код","Ошибка","Чья","Тип","Раз","Расследования"],...statErrors().map(e=>[e.code||"",e.error,e.who,[...e.types].join(", "),e.n,[...e.cases].join("; ")])]); }
+function csvCircs(){ downloadCSVRows('obstoyatelstva.csv',[["Обстоятельство","Влияние компании","Раз","Расследования"],...statCircs().map(x=>[x.text,[...x.infl].join(", ")||"—",x.n,[...x.cases].join("; ")])]); }
+function csvCauses(){ downloadCSVRows('prichiny.csv',[["Расследование","Системная причина","Владелец","Категория","Тип ошибки","Мероприятий","Копим статистику"],...allCauses().map(c=>[c.case,c.text,c.role,c.cat,c.type,c.nActs,c.needStats?"да":""])]); }
+function csvActions(){ downloadCSVRows('meropriyatiya.csv',[["Расследование","Причина","Мероприятие","Исполнитель","Срок","Статус"],...statActions().map(a=>[a.case,a.cause,a.action,a.who,a.due,a.status])]); }
+
+function statBlock(title,csvFn,tableHTML){
+  return `<div class="card"><div style="display:flex;align-items:baseline;gap:10px">
+    <div class="col-h" style="margin-bottom:6px">${title}</div><span style="flex:1"></span>
+    <button class="btn small sec noprint" onclick="${csvFn}()">⬇ CSV</button></div>${tableHTML}</div>`;
+}
+function screenStats(){
+  const errs=statErrors(), circ=statCircs(), ac=allCauses(), acts=statActions();
+  const lvl={}; ac.forEach(c=>{const l=LEVEL(c.role); lvl[l]=(lvl[l]||0)+1;});
+  const pv=statPrevent();
+  const actDone=acts.filter(a=>a.status==="выполнено").length;
+  const typePairs=countBy(ac.filter(c=>c.type),"type");
+  const stagePairs=statStages(), modePairs=statModes(), pairs=statPairs();
+  return `<div style="display:flex;align-items:baseline;gap:14px"><h2>Статистика по расследованиям</h2>
+    <span style="flex:1"></span>
+    <button class="btn sec noprint" onclick="statsView=0;render()">← К списку</button></div>
+  <div class="sub">Накопительная картина по ${DB.cases.length} расследованиям — четыре реестра по элементам формулы плюс сводные графики. Эти же данные подсказывают в новых делах («была в N дел.» в каталоге ошибок).</div>
+
+  <div class="card"><div class="col-h" style="margin-bottom:6px">Сводка</div>
+    <div class="hbar green"><div class="lbl">предотвратимые (причины найдены)</div><div class="track"><div class="fill" style="width:${DB.cases.length?Math.round(pv.prev/DB.cases.length*100):0}%"></div></div><div class="val">${pv.prev}</div></div>
+    <div class="hbar"><div class="lbl">непредотвратимые (все ветви — стоп)</div><div class="track"><div class="fill" style="width:${DB.cases.length?Math.round(pv.noprev/DB.cases.length*100):0}%"></div></div><div class="val">${pv.noprev}</div></div>
+    <div class="hbar gold"><div class="lbl">разбор не завершён</div><div class="track"><div class="fill" style="width:${DB.cases.length?Math.round(pv.open/DB.cases.length*100):0}%"></div></div><div class="val">${pv.open}</div></div>
+  </div>
+
+  ${(statInfoBy("kind").length||statInfoBy("area").length||statInfoBy("spot").length||statInfoBy("tsType").length)?`<div class="card"><div class="col-h" style="margin-bottom:6px">Профиль происшествий</div>
+    <div class="chartrow">
+      <div>${statInfoBy("kind").length?`<div class="hint" style="margin:0 0 4px">По виду ДТП</div>${pieSVG(statInfoBy("kind"))}`:""}</div>
+      <div>${statInfoBy("area").length?`<div class="hint" style="margin:0 0 4px">По месту происшествия</div>${pieSVG(statInfoBy("area"))}`:""}</div>
+    </div>
+    <div class="chartrow" style="margin-top:12px">
+      <div>${statInfoBy("spot").length?`<div class="hint" style="margin:0 0 4px">По месту ДТП</div>${pieSVG(statInfoBy("spot"))}`:""}</div>
+      <div>${statInfoBy("tsType").length?`<div class="hint" style="margin:0 0 4px">По типу ТС</div>${pieSVG(statInfoBy("tsType"))}`:""}</div>
+    </div></div>`:""}
+
+  ${(statByWeekday().length||statByHour().length||statByMonthAll().length)?`<div class="card"><div class="col-h" style="margin-bottom:6px">Динамика</div>
+    <div class="chartrow">
+      <div>${statByWeekday().length?`<div class="hint" style="margin:0 0 4px">По дням недели</div>${vbars(statByWeekday())}`:""}</div>
+      <div>${statByMonthAll().length?`<div class="hint" style="margin:0 0 4px">По месяцам (все годы)</div>${vbars(statByMonthAll(),"green")}`:""}</div>
+    </div>
+    ${statByHour().length?`<div class="hint" style="margin:12px 0 4px">По часам суток</div>${vbars(statByHour(),"gold")}`:""}
+    ${statLast12().length?`<div class="hint" style="margin:12px 0 4px">ДТП за последние 12 месяцев</div>${vbars(statLast12(),"coral")}`:""}
+  </div>`:""}
+
+  ${statBlock("1 · Ошибки (по формуле: что за ошибка → чья → тип)","csvErrors",
+    errs.length?`
+    <div class="chartrow" style="margin-bottom:10px">
+      <div><div class="hint" style="margin:0 0 4px">По типам (СДК)</div>${hbars(typePairs,"coral")}</div>
+      <div><div class="hint" style="margin:0 0 4px">По этапам реакции</div>${hbars(stagePairs)}</div>
+    </div>
+    ${modePairs.length?`<div class="hint" style="margin:0 0 4px">По режимам движения (из каталога)</div>${hbars(modePairs,"gold")}<div style="height:8px"></div>`:""}
+    <table class="t"><tr><th style="width:52px">Код</th><th>Ошибка</th><th>Чья</th><th>Тип</th><th style="width:46px">Раз</th><th>Расследования</th></tr>
+    ${errs.map(e=>`<tr><td>${esc(e.code||"—")}</td><td>${esc(e.error)}${e.code?"":" <span class=\"pill\" style=\"background:var(--gold-l);color:var(--amber)\">кандидат</span>"}</td><td>${esc(e.who)}</td><td>${esc([...e.types].join(", ")||"—")}</td><td>${e.n}</td><td>${esc([...e.cases].join("; "))}</td></tr>`).join("")}</table>
+    ${statCandidates().length?`<div class="hint" style="margin-top:8px">Кандидаты в каталог (записаны следователями, кода нет): ${statCandidates().map(x=>esc(x.error)+" ×"+x.n).join(" · ")} — при переносе в каталог получат код, и статистика склеится.</div>`:""}`
+    :`<div class="empty">Ошибок пока нет.</div>`)}
+
+  ${statBlock("2 · Обстоятельства","csvCircs",
+    circ.length?`<table class="t"><tr><th>Обстоятельство</th><th>Влияние компании</th><th style="width:46px">Раз</th><th>Расследования</th></tr>
+    ${circ.map(x=>`<tr><td>${esc(x.text)}</td><td>${esc([...x.infl].join(", ")||"—")}</td><td>${x.n}</td><td>${esc([...x.cases].join("; "))}</td></tr>`).join("")}</table>
+    ${pairs.length?`<div class="hint" style="margin:10px 0 4px">Повторяющиеся пары «ошибка × обстоятельство» — кандидаты в реестр критических соответствий</div>${hbars(pairs,"coral")}`:""}`
+    :`<div class="empty">Обстоятельств пока нет.</div>`)}
+
+  ${statBlock("3 · Системные причины","csvCauses",
+    ac.length?`
+    <div class="chartrow" style="margin-bottom:10px">
+      <div><div class="hint" style="margin:0 0 4px">По категориям (какие барьеры пробиваются)</div>${hbars(countBy(ac,"cat"),"green")}</div>
+      <div><div class="hint" style="margin:0 0 4px">По владельцам (роли)</div>${hbars(countBy(ac,"role"))}
+        <div class="hint" style="margin:10px 0 4px">По уровням</div>${hbars(Object.entries(lvl).sort((a,b)=>b[1]-a[1]),"gold")}</div>
+    </div>
+    <table class="t"><tr><th>Расследование</th><th>Причина</th><th>Владелец</th><th>Категория</th><th style="width:86px">Мероприятий</th><th style="width:36px"></th></tr>
+    ${ac.map(c=>{
+      const cls=c.nActs>0?"":(c.needStats?"cs-stat":"cs-zero");
+      const badge=c.nActs>0?String(c.nActs):(c.needStats?"0 · копим статистику":"0");
+      return `<tr class="${cls}"><td>${esc(c.case)}</td><td>${esc(c.text)}</td><td>${esc(c.role)}</td><td>${esc(c.cat)}</td><td><b>${badge}</b></td><td><button class="btn small sec noprint" title="открыть расследование" onclick="openFromStats('${c.caseId}',5)">→</button></td></tr>`;
+    }).join("")}</table>
+    <div class="hint">Красным — причина без мероприятий; жёлтым — «копим статистику» (осознанный ноль). Кнопка → открывает расследование на шаге причин.</div>`
+    :`<div class="empty">Причин пока нет.</div>`)}
+
+  ${statBlock("4 · Корректирующие мероприятия","csvActions",
+    acts.length?`
+    <div class="hbar green" style="margin-bottom:8px"><div class="lbl">выполнено</div><div class="track"><div class="fill" style="width:${acts.length?Math.round(actDone/acts.length*100):0}%"></div></div><div class="val">${actDone}/${acts.length}</div></div>
+    <table class="t"><tr><th>Расследование</th><th>Причина</th><th>Мероприятие</th><th>Исполнитель</th><th style="width:74px">Срок</th><th style="width:126px">Статус</th><th style="width:36px"></th></tr>
+    ${acts.map(a=>`<tr class="${a.status==="выполнено"?"st-done":(a.status==="в процессе"?"st-prog":"st-none")}">
+      <td>${esc(a.case)}</td><td>${esc((a.cause||"").slice(0,45))}</td><td>${esc(a.action)}</td><td>${esc(a.who)}</td><td>${esc(a.due)}</td>
+      <td><select onchange="setActStatusGlobal('${a.caseId}','${a.actId}',this.value)">
+        ${ACT_STATUS.map(st=>`<option ${((a.status||"не выполнено")===st)?"selected":""}>${st}</option>`).join("")}
+      </select></td>
+      <td><button class="btn small sec noprint" title="открыть расследование" onclick="openFromStats('${a.caseId}',6)">→</button></td></tr>`).join("")}</table>
+    <div class="hint">Статус меняется прямо здесь (сохраняется в деле). Кнопка → открывает расследование на шаге мероприятий.</div>`
+    :`<div class="empty">Мероприятий пока нет.</div>`)}`;
+}</script></body></html>
