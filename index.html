@@ -150,6 +150,14 @@ tr.regRow{cursor:pointer}
 tr.regRow:hover td{background:var(--blue-l)}
 .searchBox{width:100%;max-width:420px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px}
 .zoomBtns{display:flex;gap:4px;align-items:center}
+.undoBtn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;padding:5px 10px;border-radius:8px;font-size:12px;cursor:pointer;transition:background .15s}
+.undoBtn:hover:not(:disabled){background:rgba(255,255,255,.26)}
+.undoBtn:disabled{opacity:.38;cursor:default}
+.undoBtn svg{width:14px;height:14px;display:block}
+.guideStrip{display:flex;gap:9px;align-items:flex-start;background:var(--blue-l);border:1px solid #CADDF0;border-radius:10px;padding:9px 12px;margin-bottom:12px}
+.guideStrip .gi{flex:none;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.guideStrip .gx{font-size:12.5px;line-height:1.5;color:#2E4A63}
+.guideStrip a{color:var(--blue);font-weight:600;cursor:pointer}
 .stepNav{display:flex;gap:10px;align-items:center;margin:22px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
 tr.st-done td{background:var(--green-l)!important}
 tr.st-prog td{background:var(--gold-l)!important}
@@ -573,16 +581,40 @@ function saveSession(s){
   if(s) localStorage.setItem(SESS_KEY,JSON.stringify(s)); else localStorage.removeItem(SESS_KEY);
 }
 
+function jwtExpired(token){ // истёк ли срок вшитого в токен времени
+  try{
+    const p=JSON.parse(atob(token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+    return !p.exp || (p.exp*1000 < Date.now()+15000); // с запасом 15 сек
+  }catch(e){ return false; }
+}
+async function ensureFreshToken(){
+  if(SESSION&&SESSION.access_token&&jwtExpired(SESSION.access_token)&&SESSION.refresh_token){
+    await refreshSession();
+  }
+}
 async function api(path,opts={}){
+  await ensureFreshToken();
   opts.headers=Object.assign({
     "apikey":SUPA_KEY,
     "Content-Type":"application/json"
   },opts.headers||{});
   if(SESSION&&SESSION.access_token) opts.headers["Authorization"]="Bearer "+SESSION.access_token;
   let r=await fetch(SUPA_URL+path,opts);
-  if(r.status===401&&SESSION&&SESSION.refresh_token){
+  let retried=false;
+  const needRefresh = r.status===401 || r.status===403;
+  if(needRefresh&&SESSION&&SESSION.refresh_token){
     const ok=await refreshSession();
-    if(ok){ opts.headers["Authorization"]="Bearer "+SESSION.access_token; r=await fetch(SUPA_URL+path,opts); }
+    if(ok){ opts.headers["Authorization"]="Bearer "+SESSION.access_token; r=await fetch(SUPA_URL+path,opts); retried=true; }
+  }
+  // Supabase может вернуть 200 с телом-ошибкой об истёкшем токене
+  if(!retried&&SESSION&&SESSION.refresh_token&&(r.status===200||r.status===400)){
+    try{
+      const clone=r.clone(); const txt=await clone.text();
+      if(txt&&txt.indexOf("PGRST303")>=0 || /JWT (expired|invalid)/i.test(txt)){
+        const ok=await refreshSession();
+        if(ok){ opts.headers["Authorization"]="Bearer "+SESSION.access_token; r=await fetch(SUPA_URL+path,opts); }
+      }
+    }catch(e){}
   }
   return r;
 }
@@ -591,8 +623,13 @@ async function refreshSession(){
     const r=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{
       method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
       body:JSON.stringify({refresh_token:SESSION.refresh_token})});
-    if(!r.ok) return false;
-    const d=await r.json(); saveSession(d); return true;
+    if(!r.ok){ // refresh-токен недействителен — нужен повторный вход
+      saveSession(null);
+      return false;
+    }
+    const d=await r.json();
+    if(d&&d.access_token){ saveSession(d); return true; }
+    return false;
   }catch(e){ return false; }
 }
 function isFileMode(){ return location.protocol==="file:"; }
@@ -882,7 +919,14 @@ function workLocal(){
 async function startCloud(){
   const m=document.getElementById("main");
   if(m) m.innerHTML=`<div style="max-width:420px;margin:8vh auto"><div class="card">Загрузка данных…</div></div>`;
+  await ensureFreshToken();
+  if(!SESSION||!SESSION.access_token){ showLogin("Сессия истекла — войдите заново."); return; }
   await fetchProfile();
+  if(!PROFILE){ // токен мёртв и не обновился
+    saveSession(null);
+    showLogin("Сессия истекла — войдите заново.");
+    return;
+  }
   try{
     const [refs,cat]=await Promise.all([fetchRefs(),fetchCatalog()]);
     REFS=refs; CATALOG=cat; applyRefs(); applyCatalog();
@@ -897,7 +941,12 @@ async function startCloud(){
     try{ localFound=await checkLocalCases(); }catch(e){ localFound=[]; }
     render();
   }catch(e){
-    showLogin("Вход выполнен, но не удалось получить дела: "+(e.message||""));
+    if(/JWT|PGRST303|expired/i.test(e.message||"")){
+      saveSession(null);
+      showLogin("Сессия истекла — войдите заново.");
+    } else {
+      showLogin("Вход выполнен, но не удалось получить дела. Проверьте связь и войдите ещё раз. ("+(e.message||"")+")");
+    }
   }
 }
 
@@ -1148,7 +1197,11 @@ function topbar(){
   el.innerHTML=`<img class="logo-img" onclick="window.open('https://takbezopasnee.ru','_blank')" title="takbezopasnee.ru" src="${LOGO_LIGHT_SRC}" alt="Так безопаснее"><div class="brand">Формула безопасности<small>Экспертный центр «Так безопаснее» · takbezopasnee.ru</small></div>
     ${inCase?`<div class="caseName">${esc(S.name)}</div>`:""}
     ${(S&&S.closed)?`<span class="pill" style="background:var(--green-l);color:var(--green);margin-right:8px">🔒 закрыто</span>`:""}<div id="causeCounter" class="${inCase&&causes().filter(c=>!c.dup).length?"":"zero"}">${inCase?"Причин: "+causes().filter(c=>!c.dup).length:"Мои расследования"}</div>
-    ${(inCase&&!LOCKED())?`<button onclick="doUndo()" title="отменить (Ctrl+Z)" ${UNDO.length?"":"disabled"}>↶</button><button onclick="doRedo()" title="вернуть (Ctrl+Y)" ${REDO.length?"":"disabled"}>↷</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button><button onclick="closeCase()">К списку</button>`:""}
+    ${(inCase&&!LOCKED())?`
+      <button class="undoBtn" onclick="doUndo()" title="Отменить последнее действие (Ctrl+Z)" ${UNDO.length?"":"disabled"}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg>Отменить</button>
+      <button class="undoBtn" onclick="doRedo()" title="Вернуть отменённое (Ctrl+Y)" ${REDO.length?"":"disabled"}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h4"/></svg>Вернуть</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button><button onclick="closeCase()">К списку</button>`:""}
     <span id="cloudState" style="font-size:11px;color:rgba(255,255,255,.75);margin-left:10px"></span>
     ${(typeof CLOUD!=="undefined"&&CLOUD)
       ? `<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
@@ -1249,6 +1302,15 @@ function screen0(){
   const wd=weekdayOf(S.info.dateISO);
   return `<h2>Шаг 0 · Регистрация</h2>
   <div class="sub">Шапка расследования. Водителя обозначаем номером — фамилии в базе не хранятся.</div>
+  ${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<div class="card" style="border-left:5px solid var(--gold)">
+    <div style="display:flex;align-items:center;gap:10px">
+      ${chk(S,"is_sample","учебный образец — виден специалистам всех организаций",()=>{save();render();})}
+      <span style="flex:1"></span>
+      ${S.is_sample?`<span class="pill" style="background:var(--gold-l);color:var(--amber)">образец</span>`:""}
+    </div>
+    <div class="hint" style="margin-top:5px">Образец доступен всем только для чтения; править его можете вы как администратор. Отметку видите только вы.</div>
+  </div>`:""}
+
   <div class="card">
     <label>Название расследования (для списка)</label>${LOCKED()?roView(S.name):`<input type="text" id="caseName" style="margin-bottom:10px">`}
     <div class="grid2">
@@ -1268,15 +1330,6 @@ function screen0(){
       <div style="grid-column:1/-1"><label>Краткое описание</label>${inp(S.info,"desc","",true)}</div>
       <div style="grid-column:1/-1"><label>Последствия</label>${inp(S.info,"harm","",true)}</div>
     </div></div>
-
-  ${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<div class="card" style="border-left:5px solid var(--gold)">
-    <div style="display:flex;align-items:center;gap:10px">
-      ${chk(S,"is_sample","учебный образец — виден специалистам всех организаций",()=>{save();render();})}
-      <span style="flex:1"></span>
-      ${S.is_sample?`<span class="pill" style="background:var(--gold-l);color:var(--amber)">образец</span>`:""}
-    </div>
-    <div class="hint" style="margin-top:5px">Образец доступен всем только для чтения; править его можете вы как администратор. Отметку видите только вы.</div>
-  </div>`:""}
 
   <div class="card">
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">
@@ -2369,6 +2422,29 @@ function screen8(){
 /* ===== РЕНДЕР ===== */
 const STEP_GOALS=["заполнить сведения","составить хронологию","построить цепь событий","разобрать ошибки","оценить обстоятельства","сформулировать причины","назначить мероприятия","подвести итог"];
 const STEP_NAMES=["Регистрация","Хронология","Звенья цепи","Разбор ошибок","Обстоятельства","Причины","Мероприятия","Выводы"];
+function openSample(){
+  const smp=DB.cases.find(c=>c.is_sample);
+  if(smp){ statsView=0; openCase(smp.id); flash("Открыт учебный образец"); }
+  else { alert("Учебный образец пока не назначен."); }
+}
+const STEP_HELP=[
+  "Заполните паспорт происшествия: дату, вид ДТП, место, тип ТС, номер водителя. Здесь же — комиссия и материалы (доказательная база).",
+  "Занесите всё, что установлено, с источником. Отметка «факт» — если подтверждено; «в цепь» — если без этого события ДТП не случилось бы.",
+  "Разложите ДТП на звенья: одно событие × одна ошибка × обстоятельства. Поля заполняйте кнопками «из отобранного / из хронологии / из каталога».",
+  "Слева — где сломалось действие оператора, справа — что вызвало. Добавляйте барьеры (что должно было не дать ошибке случиться) с владельцем и состоянием.",
+  "По каждому внешнему обстоятельству решите: могла ли компания повлиять. Нет — «стоп». Да — назовите барьер и системную причину.",
+  "Соберите системные причины, задайте категории. Под каждой — мероприятия; если меры пока нет, отметьте «копим статистику».",
+  "У мероприятий укажите исполнителя, срок и статус. Статусы видны в общей статистике и правятся даже в закрытом деле.",
+  "Проверьте вывод и закройте расследование: приложение убедится, что причины и мероприятия заполнены, и отправит дело в архив."
+];
+function guideStrip(){
+  const i=cur;
+  return `<div class="guideStrip noprint">
+    <div class="gi">${i}</div>
+    <div class="gx">${esc(STEP_HELP[i]||"")}
+      <a onclick="statsView=4;render()">Полная инструкция</a> · <a onclick="openSample()">учебный образец</a></div>
+  </div>`;
+}
 function stepNav(){
   const prev=cur>0?cur-1:-1, next=cur<7?cur+1:-1;
   return `<div class="stepNav noprint">
@@ -2388,7 +2464,7 @@ function render(){
   }
   topbar(); nav();
   if(!S){ m.innerHTML = statsView===4?screenGuide() : (statsView===3?screenRegistry() : (statsView===2?screenAudit() : (statsView===1?screenStats():screenList()))); return; }
-  m.innerHTML=[screen0,screen1,screen2,screen3,screen4,screen5,screen7,screen8][cur]()+stepNav();
+  m.innerHTML=guideStrip()+[screen0,screen1,screen2,screen3,screen4,screen5,screen7,screen8][cur]()+stepNav();
 }
 async function boot(){
   DB={cases:[]};
@@ -3071,7 +3147,8 @@ function screenGuide(){
 
   <div class="card" style="border-left:5px solid var(--gold)">
     <b style="font-size:14px">Образцовое расследование</b>
-    <p style="margin-top:6px">В списке дел есть разбор с пометкой «образец» — пройденный от начала до конца. Откройте его и посмотрите, как заполнены хронология, звенья, разбор и мероприятия. Править его нельзя, но можно смотреть на любом шаге.</p>
+    <p style="margin-top:6px">Разбор с пометкой «образец» пройден от начала до конца. Посмотрите, как заполнены хронология, звенья, разбор и мероприятия. Править его нельзя, но можно открыть на любом шаге.</p>
+    <button class="btn coral noprint" style="margin-top:8px" onclick="openSample()">Открыть учебный образец</button>
   </div>
   ${COPYRIGHT_NOTE}`;
 }
