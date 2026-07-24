@@ -667,10 +667,19 @@ async function testConnection(){
       : "✗ Нет связи с базой. Проверьте интернет или блокировки в корпоративной сети.","#C4674A");
   }
 }
+function appReturnUrl(){ // адрес, куда вернуть человека после письма — текущая страница
+  try{
+    if(location.protocol==="file:") return null;      // с диска возвращать некуда
+    return location.origin + location.pathname;         // например https://…/rassledovanie/
+  }catch(e){ return null; }
+}
 async function signUp(email,password,fullName,org){
-  const r=await fetch(SUPA_URL+"/auth/v1/signup",{
+  const ret=appReturnUrl();
+  const url=SUPA_URL+"/auth/v1/signup"+(ret?("?redirect_to="+encodeURIComponent(ret)):"");
+  const r=await fetch(url,{
     method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify({email,password,data:{full_name:fullName,org:org}})});
+    body:JSON.stringify({email,password,data:{full_name:fullName,org:org},
+      ...(ret?{gotrue_meta_security:{},options:{email_redirect_to:ret}}:{})})});
   const d=await r.json();
   if(!r.ok) throw new Error(d.error_description||d.msg||d.message||"Не удалось зарегистрироваться");
   return d;
@@ -1065,6 +1074,17 @@ function approveUser(id){
   setUserField(id,"org",org.trim()||"не указано").then(()=>setUserField(id,"approved",true));
 }
 function pendingUsers(){ return (USERS||[]).filter(u=>!u.approved&&!u.is_admin&&!u.blocked); }
+async function rejectUser(id){
+  const u=(USERS||[]).find(x=>x.id===id); if(!u)return;
+  if(!confirm("Отклонить заявку «"+(u.full_name||u.org_claim||"пользователя")+"»?\n\nЧеловек не получит доступа. Если у него нет дел, заявку можно будет удалить в разделе «Пользователи»."))return;
+  try{
+    await api("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Prefer":"return=minimal"},
+      body:JSON.stringify({approved:false,blocked:true,note:"заявка отклонена"})});
+    const p=(USERS||[]).find(x=>x.id===id); if(p){ p.blocked=true; p.note="заявка отклонена"; }
+    if(typeof logAction==="function") logAction("отклонение заявки",null,u.full_name||u.org_claim||id.slice(0,8));
+    render();
+  }catch(e){ alert("Не удалось отклонить: "+(e.message||e)); }
+}
 function blockUser(id){
   const u=(USERS||[]).find(x=>x.id===id); if(!u)return;
   if(u.is_admin){ alert("Администратора заблокировать нельзя."); return; }
@@ -1136,7 +1156,7 @@ function screenAudit(){
       <td>${esc(u.org_claim||"—")}</td>
       <td>${esc(fmtAt(u.created_at))}</td>
       <td><button class="btn small coral noprint" onclick="approveUser('${u.id}')">Открыть доступ</button>
-          <button class="btn small sec noprint" onclick="setUserField('${u.id}','note','отклонено')">Отклонить</button></td>
+          <button class="btn small sec noprint" onclick="rejectUser('${u.id}')">Отклонить</button></td>
     </tr>`).join("")}</table></div>`:""}
 
   <div class="card">
