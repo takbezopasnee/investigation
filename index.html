@@ -1625,11 +1625,11 @@ function stepScale(){
         const vb=timeVal(r.end); let right2=vb>=0?Math.min(pos(vb),96):96;
         if(right2<left) right2=left+3;
         const w=Math.max(right2-left,3);
-        // Блёкнет ТОЛЬКО фоновая полоса: начинается у самого левого края шкалы (left<3),
-        // тянется почти до конца (right2>90) И заметно длиннее всех остальных полос.
-        // Обычные периоды, где бы они ни стояли, остаются яркими.
-        const spansAll = (left<6 && right2>90 && w>82);
-        const isBackdrop = spansAll;
+        // Блёкнет ТОЛЬКО фоновая запись: её РЕАЛЬНАЯ длительность больше 55% всего
+        // охвата хронологии (span в минутах). Это не зависит от сжатия оси, поэтому
+        // короткие и средние интервалы, где бы они ни стояли, всегда остаются яркими.
+        const realDur = (timeVal(r.end)>=0 && va>=0) ? (timeVal(r.end)-va) : 0;
+        const isBackdrop = realDur > span*0.55;
         const barCls = isBackdrop ? "step-bar backdrop" : "step-bar";
         inner+=`<div class="${barCls} ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" onmouseenter="scaleTip(event,${S.chrono.indexOf(r)});hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="scaleTipHide();hlRow(${S.chrono.indexOf(r)},0)"></div>`;
         const cap=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
@@ -2077,16 +2077,6 @@ function schemeSVG(){
   links.forEach(L=>(L.circs||[]).forEach(c=>{
     if(c.kind==="prev"&&c.linkRef&&byId[c.linkRef]){isSource[c.linkRef]=true;(kids[c.linkRef]=kids[c.linkRef]||[]).push(L.id);}
   }));
-  const depth={};
-  function d(id,seen){
-    if(depth[id]!==undefined)return depth[id];
-    seen=seen||new Set(); if(seen.has(id))return 0; seen.add(id);
-    const L=byId[id].L;
-    const parents=(L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef&&byId[c.linkRef]).map(c=>c.linkRef);
-    depth[id]=parents.length?1+Math.max(...parents.map(p=>d(p,seen))):0;
-    return depth[id];
-  }
-  links.forEach(L=>d(L.id));
   const IN_W=175,EV_W=175,GX=95,GY=26,BH=48,BGAP=10;
   const trim=(t,n)=> (t||"").length>n?(t.slice(0,n-1)+"…"):(t||"");
   function nodeBlocks(L){
@@ -2101,27 +2091,14 @@ function schemeSVG(){
   const blocksOf={}; links.forEach(L=>blocksOf[L.id]=nodeBlocks(L));
   const nodeH=L=>{const n=blocksOf[L.id].length;return n*BH+(n-1)*BGAP;};
   const nodeW=L=> isSource[L.id]? IN_W : IN_W+20+EV_W;
-  const cols={}; links.forEach(L=>{const dd=depth[L.id];(cols[dd]=cols[dd]||[]).push(L.id);});
-  const dds=Object.keys(cols).map(Number).sort((a,b)=>a-b);
-  const colW={}; dds.forEach(dd=>{colW[dd]=Math.max(...cols[dd].map(id=>nodeW(byId[id].L)));});
-  // упорядочиваем узлы внутри каждой колонки по средней высоте их родителей,
-  // чтобы стрелки шли сверху вниз без лишних пересечений (барицентрический метод)
+  // РАСКЛАДКА ПО ПОРЯДКУ ЗВЕНЬЕВ: колонка = номер звена (A слева, далее вправо).
+  // Цепь читается как A → B → C; связи «событие предыдущего звена» лишь рисуют стрелки.
   const pos={}; let xAcc=20, maxBottom=0;
-  const yMid={};
-  dds.forEach(dd=>{
-    if(dd>0){
-      cols[dd].sort((a,b)=>{
-        const pa=(byId[a].L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef).map(c=>yMid[c.linkRef]).filter(v=>v!==undefined);
-        const pb=(byId[b].L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef).map(c=>yMid[c.linkRef]).filter(v=>v!==undefined);
-        const ma=pa.length?pa.reduce((x,y)=>x+y,0)/pa.length:999;
-        const mb=pb.length?pb.reduce((x,y)=>x+y,0)/pb.length:999;
-        return ma-mb;
-      });
-    }
-    let yAcc=30;
-    cols[dd].forEach(id=>{pos[id]={x:xAcc,y:yAcc}; yMid[id]=yAcc+nodeH(byId[id].L)/2; yAcc+=nodeH(byId[id].L)+GY;});
-    maxBottom=Math.max(maxBottom,yAcc);
-    xAcc+=colW[dd]+GX;
+  links.forEach((L,i)=>{
+    pos[L.id]={x:xAcc, y:30};
+    const bottom=30+nodeH(L)+20;
+    if(bottom>maxBottom) maxBottom=bottom;
+    xAcc += nodeW(L) + GX;
   });
   const svgW=xAcc+10, svgH=maxBottom+20;
   // координаты вход-блоков (для прицела стрелок): inPos[nodeId][refId]={x,y}
