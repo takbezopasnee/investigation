@@ -94,10 +94,13 @@ table.t td{border:1px solid var(--line);padding:5px 7px;vertical-align:top}
 .step-lane:last-child{border-bottom:none}
 .step-lane .lname{flex:0 0 120px;font-size:12px;color:var(--mut);font-weight:600}
 .step-track{position:relative;flex:1;height:100%;min-width:520px}
+.modalWrap{position:fixed;inset:0;background:rgba(30,42,56,.45);display:flex;align-items:center;justify-content:center;z-index:9998}
+.modalBox{background:#fff;border-radius:14px;padding:18px 20px;max-width:440px;width:92%;box-shadow:0 12px 40px rgba(0,0,0,.3)}
 .reqBadge{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;background:var(--coral);color:#fff;border-radius:9px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .scaleTip{position:fixed;z-index:9999;display:none;max-width:220px;background:#1E2A38;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none}
 .step-dot{position:absolute;top:50%;transform:transl(-50%,-50%);width:13px;height:13px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 1px var(--blue)}
 .step-bar{position:absolute;height:10px;border-radius:5px;background:var(--blue-l);border:1px solid var(--blue);box-sizing:border-box}
+.step-bar.backdrop{height:6px;opacity:.5;border-style:dashed;background:repeating-linear-gradient(90deg,var(--blue-l),var(--blue-l) 6px,transparent 6px,transparent 12px)}
 .step-dot.inchain{background:var(--coral);box-shadow:0 0 0 1px var(--coral)}
 .step-dot.laneО,.step-bar.laneО{background:var(--gold-l);border-color:var(--gold)}
 .step-dot.laneП,.step-bar.laneП{background:#EFEAF6;border-color:#8A6FA8}
@@ -1099,21 +1102,40 @@ function blockUser(id){
   setUserField(id,"blocked",true);
 }
 function unblockUser(id){ setUserField(id,"blocked",false); }
-async function reassignCases(id){
-  const u=(USERS||[]).find(x=>x.id===id); if(!u)return;
+let reassignFrom=null; // id пользователя, чьи дела передаём (для окна выбора)
+function reassignCases(id){
   const others=(USERS||[]).filter(x=>x.id!==id&&!x.blocked&&(x.approved||x.is_admin));
-  if(!others.length){ alert("Некому передать: нет других пользователей с доступом."); return; }
-  const list=others.map((x,i)=>(i+1)+") "+(x.full_name||"без имени")+" · "+(x.org||"—")).join("\n");
-  const pick=prompt("Кому передать расследования «"+(u.full_name||"пользователя")+"» ("+(CASECNT[id]||0)+" шт.)?\n\n"+list+"\n\nВведите номер:");
-  if(pick===null)return;
-  const idx=parseInt(pick,10)-1;
-  if(!(idx>=0&&idx<others.length)){ alert("Номер не распознан."); return; }
+  if(!others.length){ alert("Некому передать: нет других специалистов с доступом. Сначала откройте доступ кому-то ещё."); return; }
+  reassignFrom=id; render();
+}
+async function doReassign(toId){
+  const from=reassignFrom; if(!from)return;
+  const u=(USERS||[]).find(x=>x.id===from);
+  const to=(USERS||[]).find(x=>x.id===toId);
+  if(!confirm("Передать все расследования «"+(u&&u.full_name||"пользователя")+"» специалисту «"+(to&&to.full_name||"")+"»?"))return;
   try{
-    const n=await rpc("reassign_cases",{from_user:id,to_user:others[idx].id});
-    alert("Передано расследований: "+n);
-    logAction("передача дел",null,(u.full_name||id.slice(0,8))+" → "+(others[idx].full_name||""));
+    const n=await rpc("reassign_cases",{from_user:from,to_user:toId});
+    reassignFrom=null;
+    logAction("передача дел",null,(u&&u.full_name||from.slice(0,8))+" → "+(to&&to.full_name||""));
     USERS=null; DB.cases=await cloudLoadCases(); render();
+    alert("Передано расследований: "+n);
   }catch(e){ alert("Не удалось передать: "+(e.message||e)); }
+}
+function cancelReassign(){ reassignFrom=null; render(); }
+function reassignPanel(){
+  if(!reassignFrom) return "";
+  const u=(USERS||[]).find(x=>x.id===reassignFrom);
+  const others=(USERS||[]).filter(x=>x.id!==reassignFrom&&!x.blocked&&(x.approved||x.is_admin));
+  return `<div class="modalWrap" onclick="if(event.target===this)cancelReassign()">
+    <div class="modalBox">
+      <b style="font-size:14px">Передать расследования</b>
+      <div class="hint" style="margin:6px 0 10px">От: <b>${esc(u&&u.full_name||"—")}</b> · ${CASECNT[reassignFrom]||0} дел. Выберите, кому передать:</div>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto">
+        ${others.map(x=>`<button class="btn sec" style="justify-content:flex-start;text-align:left" onclick="doReassign('${x.id}')">
+          ${esc(x.full_name||"без имени")} · ${esc(x.org||"—")}${x.is_admin?" · админ":""}</button>`).join("")}
+      </div>
+      <div style="margin-top:12px;text-align:right"><button class="btn sec" onclick="cancelReassign()">Отмена</button></div>
+    </div></div>`;
 }
 async function deleteUser(id){
   const u=(USERS||[]).find(x=>x.id===id); if(!u)return;
@@ -1151,7 +1173,7 @@ function screenAudit(){
   if(auditBusy) return `<div class="empty">Загрузка журнала…</div>`;
   const pend=pendingUsers();
   const sum=auditSummary();
-  return `<h2>Журнал</h2>
+  return reassignPanel()+`<h2>Журнал</h2>
   <div class="sub">Кто заходил, что делал и кто просит доступ. Раздел виден только администратору.</div>
 
   ${pend.length?`<div class="card" style="border-left:5px solid var(--coral)">
@@ -1274,7 +1296,8 @@ function mCard(title,body){ return `<div class="card"><b style="font-size:15px;c
 
 function screenMethod(){
   const smp=DB.cases.find(c=>c.is_sample);
-  return `<h2>Методика расследования</h2>
+  return `${(typeof returnTo!=="undefined"&&returnTo)?`<div class="noprint" style="margin-bottom:10px"><button class="btn coral" onclick="backToCase()">← Вернуться к расследованию</button></div>`:""}
+  <h2>Методика расследования</h2>
   <div class="sub">Теоретическая основа приложения: что такое «Формула безопасности», как она разворачивается в цепь и как по ней ведётся расследование. Материал опирается на монографию Д. Ю. Комарова.</div>
 
   ${mCard("1. Формула: ДТП = Ошибка × Обстоятельства", `
@@ -1534,10 +1557,47 @@ function isInChain(rec){ return rec.inchain!==undefined ? !!rec.inchain : inChai
 function stepScale(){
   const rows=S.chrono.filter(r=>r.lane&&(r.time||r.text));
   if(!rows.length)return "";
+  // собираем все моменты времени
   const allV=[]; rows.forEach(r=>{const a=timeVal(r.time);if(a>=0)allV.push(a);const b=timeVal(r.end);if(b>=0)allV.push(b);});
-  const tmin=allV.length?Math.min(...allV):0, tmax=allV.length?Math.max(...allV):1;
+  const uniq=[...new Set(allV)].sort((a,b)=>a-b);
+  // СЖАТАЯ ОСЬ: большие пустые промежутки между событиями ужимаем,
+  // чтобы одна длинная запись (например, 6:00–21:27) не сплющивала остальные.
+  // Строим кусочно-линейное отображение реального времени в «экранное».
+  let scaleMap=null;
+  if(uniq.length>=2){
+    const gaps=[];
+    for(let i=1;i<uniq.length;i++) gaps.push(uniq[i]-uniq[i-1]);
+    const med=gaps.slice().sort((a,b)=>a-b)[Math.floor(gaps.length/2)]||1;
+    const CAP=Math.max(med*4, 6); // пустой промежуток не длиннее 4 медиан (или 6 мин)
+    // накопленная «экранная» координата
+    const pts=[{t:uniq[0],x:0}];
+    let acc=0;
+    for(let i=1;i<uniq.length;i++){
+      const real=uniq[i]-uniq[i-1];
+      const shown=Math.min(real,CAP);
+      acc+=shown;
+      pts.push({t:uniq[i],x:acc});
+    }
+    const total=acc||1;
+    scaleMap={pts,total};
+  }
+  const tmin=uniq.length?uniq[0]:0, tmax=uniq.length?uniq[uniq.length-1]:1;
   const span=Math.max(tmax-tmin,1);
-  const pos=v=> v<0?4: 4+((v-tmin)/span)*92;
+  function screenX(v){ // реальное время → доля 0..1 по сжатой оси
+    if(!scaleMap) return (v-tmin)/span;
+    const p=scaleMap.pts;
+    if(v<=p[0].t) return 0;
+    if(v>=p[p.length-1].t) return 1;
+    for(let i=1;i<p.length;i++){
+      if(v<=p[i].t){
+        const seg=p[i].t-p[i-1].t || 1;
+        const frac=(v-p[i-1].t)/seg;
+        return (p[i-1].x + frac*(p[i].x-p[i-1].x))/scaleMap.total;
+      }
+    }
+    return 1;
+  }
+  const pos=v=> v<0?4: 4+screenX(v)*92;
   const activeLanes=LANES.filter(l=>rows.some(r=>r.lane===l));
   const laneHTML=(activeLanes.length?activeLanes:LANES).map(l=>{
     const laneRows=rows.filter(r=>r.lane===l);
@@ -1565,7 +1625,11 @@ function stepScale(){
         const vb=timeVal(r.end); let right2=vb>=0?Math.min(pos(vb),96):96;
         if(right2<left) right2=left+3;
         const w=Math.max(right2-left,3);
-        inner+=`<div class="step-bar ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" onmouseenter="scaleTip(event,${S.chrono.indexOf(r)});hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="scaleTipHide();hlRow(${S.chrono.indexOf(r)},0)"></div>`;
+        // длинная фоновая полоса (шире ~65% шкалы) не заливается сплошняком,
+        // а рисуется как бледная подложка со штриховкой — чтобы не перекрывать события
+        const isBackdrop = w>65;
+        const barCls = isBackdrop ? "step-bar backdrop" : "step-bar";
+        inner+=`<div class="${barCls} ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" onmouseenter="scaleTip(event,${S.chrono.indexOf(r)});hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="scaleTipHide();hlRow(${S.chrono.indexOf(r)},0)"></div>`;
         const cap=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
         const lblP=`${esc((r.time||"").slice(0,5))}–${esc((r.end||"ДТП").slice(0,5))}${cap}`;
         inner+= (right2+lblW>99)
@@ -1595,7 +1659,12 @@ function stepScale(){
       </div>
       <button class="btn small sec" onclick="S._noCap=!S._noCap;render()">${S._noCap?"показать подписи":"скрыть подписи"}</button></div>
     <div style="overflow-x:auto"><div class="step-scale" style="min-width:${Math.round(760*zoom)}px">${laneHTML}</div></div>
-    <div class="hint">Показаны только заполненные дорожки. Точка — событие, отрезок — период. Совпадающие по времени раскладываются по вертикали. Коралловым — факт «в цепь», дорожка «Операторы» — золотом.</div>`;
+    <div class="hint">${(function(){
+    if(!scaleMap)return"";
+    let big=false;
+    for(let i=1;i<scaleMap.pts.length;i++){}
+    return "";
+  })()}Показаны только заполненные дорожки. Длинные паузы между событиями сжаты, чтобы близкие по времени записи не сливались. Точка — событие, отрезок — период. Совпадающие по времени раскладываются по вертикали. Коралловым — факт «в цепь», дорожка «Операторы» — золотом.</div>`;
 }
 function laneCoverage(){
   const used=new Set(S.chrono.map(r=>r.lane).filter(Boolean));
@@ -2658,8 +2727,15 @@ const STEP_HELP=[
   "У мероприятий укажите исполнителя, срок и статус. Статусы видны в общей статистике и правятся даже в закрытом деле.",
   "Проверьте вывод и закройте расследование: приложение убедится, что причины и мероприятия заполнены, и отправит дело в архив."
 ];
-function openGuide(){ S=null; statsView=4; render(); }
-function openMethodFromCase(){ S=null; statsView=5; render(); }
+let returnTo=null; // {caseId, step} — куда вернуться со служебного экрана
+function openGuide(){ if(S) returnTo={caseId:S.id,step:cur}; S=null; statsView=4; render(); }
+function openMethodFromCase(){ if(S) returnTo={caseId:S.id,step:cur}; S=null; statsView=5; render(); }
+function backToCase(){
+  if(!returnTo){ goHome(); return; }
+  const c=DB.cases.find(x=>x.id===returnTo.caseId);
+  if(c){ S=c; cur=returnTo.step||0; statsView=0; returnTo=null; render(); }
+  else { returnTo=null; goHome(); }
+}
 function guideStrip(){
   const i=cur;
   return `<div class="guideStrip noprint">
@@ -3300,6 +3376,7 @@ function screenGuide(){
   const ex=(t)=>`<div style="margin-top:8px;padding:9px 11px;background:var(--blue-l);border-radius:8px;font-size:13px"><b style="color:var(--blue)">Пример.</b> ${t}</div>`;
   const warn=(t)=>`<div class="warn" style="margin-top:8px">${t}</div>`;
   return `
+  ${(typeof returnTo!=="undefined"&&returnTo)?`<div class="noprint" style="margin-bottom:10px"><button class="btn coral" onclick="backToCase()">← Вернуться к расследованию</button></div>`:""}
   <h2>Как пользоваться</h2>
   <div class="sub">Короткое руководство: сначала — принцип, на котором всё построено, затем восемь шагов расследования с примерами.</div>
 
