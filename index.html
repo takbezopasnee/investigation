@@ -800,24 +800,26 @@ function cloudOk(){
 }
 
 /* --- экран входа --- */
-let pendTimer=null;
+let pendTimer=null, pendChecking=false;
 async function recheckAccess(silent){
+  if(pendChecking) return;
+  pendChecking=true;
   const btn=document.getElementById("pendBtn");
   if(btn&&!silent){ btn.textContent="Проверяем…"; btn.disabled=true; }
-  await fetchProfile();
+  const n=document.getElementById("pendNote");
+  if(n&&silent) n.textContent="Проверяем доступ… ("+new Date().toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit",second:"2-digit"})+")";
+  try{ await ensureFreshToken(); await fetchProfile(); }catch(e){}
+  pendChecking=false;
   if(PROFILE&&!PROFILE.blocked&&(PROFILE.approved||PROFILE.is_admin)){
     clearInterval(pendTimer); pendTimer=null;
     await startCloud(); return;
   }
-  if(btn&&!silent){ btn.textContent="Проверить доступ"; btn.disabled=false;
-    const n=document.getElementById("pendNote");
-    if(n) n.textContent="Проверено "+new Date().toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"})+" — доступ пока не открыт.";
-  }
+  if(btn){ btn.textContent="Проверить доступ сейчас"; btn.disabled=false; }
+  if(n) n.textContent="Проверено "+new Date().toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit",second:"2-digit"})+" — доступ пока не открыт. Следующая автопроверка через 15 секунд.";
 }
 function showPending(){
   const m=document.getElementById("main"); if(!m)return;
-  clearInterval(pendTimer);
-  pendTimer=setInterval(()=>recheckAccess(true),20000);
+  if(!pendTimer) pendTimer=setInterval(()=>recheckAccess(true),15000); // не сбрасывать при повторном рендере
   const tb=document.getElementById("topbar"); if(tb)tb.innerHTML="";
   const nv=document.getElementById("nav"); if(nv)nv.innerHTML="";
   const blocked=!!(PROFILE&&PROFILE.blocked);
@@ -838,7 +840,7 @@ function showPending(){
         обновлять ничего не нужно.</div>`}
     <div class="hint" style="margin-top:10px">Указано при регистрации: ${esc((PROFILE&&PROFILE.full_name)||"—")} · ${esc((PROFILE&&PROFILE.org_claim)||"организация не указана")}</div>
     <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-      ${blocked?"":`<button class="btn" id="pendBtn" onclick="recheckAccess()">Проверить доступ</button>`}
+      ${blocked?"":`<button class="btn" id="pendBtn" onclick="recheckAccess()">Проверить доступ сейчас</button>`}
       <button class="btn sec" onclick="signOut()">Выйти</button>
     </div>
     ${blocked?"":`<div class="hint" id="pendNote" style="margin-top:8px">Страница проверяет доступ каждые 20 секунд автоматически.</div>`}
@@ -1050,7 +1052,7 @@ async function loadAudit(){
   try{
     const since=new Date(Date.now()-auditDays*864e5).toISOString();
     const [ru,rl]=await Promise.all([
-      api("/rest/v1/profiles?select=id,full_name,org,org_claim,approved,blocked,is_admin,created_at,note&order=created_at.desc"),
+      api("/rest/v1/profiles?select=id,full_name,email,org,org_claim,approved,blocked,is_admin,created_at,note&order=created_at.desc"),
       api("/rest/v1/audit_log?select=at,user_id,org,action,case_id,details&at=gte."+since+"&order=at.desc&limit=400")
     ]);
     USERS = ru.ok ? await ru.json() : [];
@@ -1144,15 +1146,16 @@ function screenAudit(){
   if(auditBusy) return `<div class="empty">Загрузка журнала…</div>`;
   const pend=pendingUsers();
   const sum=auditSummary();
-  return `<div class="noprint" style="margin-bottom:10px"><button class="btn sec" onclick="statsView=0;render()">← К списку</button></div><h2>Журнал</h2>
+  return `<h2>Журнал</h2>
   <div class="sub">Кто заходил, что делал и кто просит доступ. Раздел виден только администратору.</div>
 
   ${pend.length?`<div class="card" style="border-left:5px solid var(--coral)">
     <b style="font-size:13px">Ожидают подтверждения: ${pend.length}</b>
     <div class="hint" style="margin:4px 0 8px">До подтверждения человек не видит ни дел, ни каталога.</div>
-    <table class="t"><tr><th>Заявитель</th><th>Организация со слов</th><th style="width:150px">Заявка подана</th><th style="width:210px"></th></tr>
+    <table class="t"><tr><th>Заявитель</th><th style="width:190px">Почта</th><th>Организация со слов</th><th style="width:130px">Подана</th><th style="width:210px"></th></tr>
     ${pend.map(u=>`<tr>
       <td>${esc(u.full_name||"—")}</td>
+      <td>${esc(u.email||"—")}</td>
       <td>${esc(u.org_claim||"—")}</td>
       <td>${esc(fmtAt(u.created_at))}</td>
       <td><button class="btn small coral noprint" onclick="approveUser('${u.id}')">Открыть доступ</button>
@@ -1181,7 +1184,7 @@ function screenAudit(){
 
   <div class="card">
     <b style="font-size:13px">Пользователи (${(USERS||[]).length})</b>
-    <table class="t" style="margin-top:8px"><tr><th>Имя</th><th style="width:175px">Организация</th><th style="width:60px">Дел</th><th style="width:125px">Состояние</th><th style="width:300px"></th></tr>
+    <table class="t" style="margin-top:8px"><tr><th>Имя</th><th style="width:180px">Почта</th><th style="width:150px">Организация</th><th style="width:52px">Дел</th><th style="width:120px">Состояние</th><th style="width:280px"></th></tr>
     ${(USERS||[]).map(u=>{
       const state = u.is_admin ? `<span class="pill" style="background:var(--blue-l);color:var(--blue)">администратор</span>`
         : u.blocked ? `<span class="pill" style="background:#FBEAE5;color:var(--coral)">заблокирован</span>`
@@ -1201,12 +1204,129 @@ function screenAudit(){
       }
       return `<tr${u.blocked?' style="opacity:.6"':''}>
         <td>${esc(u.full_name||"—")}</td>
+        <td style="font-size:12px">${esc(u.email||"—")}</td>
         <td>${esc(u.org||"—")}${u.org_claim&&u.org_claim!==u.org?` <span class="hint">(со слов: ${esc(u.org_claim)})</span>`:""}</td>
         <td>${CASECNT[u.id]||0}</td>
         <td>${state}</td><td>${btns}</td></tr>`;
     }).join("")}</table>
     <div class="hint" style="margin-top:6px">Удалить можно только пользователя без расследований — иначе сначала «Передать дела». Блокировка мгновенная: заблокированный войдёт, но увидит только сообщение о приостановке. Дела и каталог ему не отдаются — это правило базы, а не интерфейса.</div>
   </div>`;
+}
+/* ===== МЕТОДИКА РАССЛЕДОВАНИЯ (подробно, из монографии) ===== */
+function svgFormula(){
+  return `<svg viewBox="0 0 700 150" style="width:100%;max-width:560px;display:block;margin:6px auto" font-family="Arial">
+    <rect x="20" y="45" width="150" height="60" rx="10" fill="#F8E7DF" stroke="#C4674A" stroke-width="2"/>
+    <text x="95" y="72" text-anchor="middle" font-size="15" font-weight="700" fill="#C4674A">ДТП</text>
+    <text x="95" y="92" text-anchor="middle" font-size="10" fill="#8A5A48">событие</text>
+    <text x="195" y="83" text-anchor="middle" font-size="26" fill="#5B6B7C">=</text>
+    <rect x="225" y="45" width="180" height="60" rx="10" fill="#E3EDF6" stroke="#4A79A8" stroke-width="2"/>
+    <text x="315" y="72" text-anchor="middle" font-size="15" font-weight="700" fill="#4A79A8">Ошибка</text>
+    <text x="315" y="92" text-anchor="middle" font-size="10" fill="#3E5F80">действие или бездействие</text>
+    <text x="425" y="83" text-anchor="middle" font-size="26" fill="#5B6B7C">×</text>
+    <rect x="455" y="45" width="225" height="60" rx="10" fill="#F7EFD6" stroke="#B8922A" stroke-width="2"/>
+    <text x="567" y="72" text-anchor="middle" font-size="15" font-weight="700" fill="#B8922A">Обстоятельства</text>
+    <text x="567" y="92" text-anchor="middle" font-size="10" fill="#8A6E20">условия, при которых ошибка опасна</text>
+    <text x="350" y="132" text-anchor="middle" font-size="11" fill="#5B6B7C" font-style="italic">умножение: если один множитель равен нулю — события нет</text>
+  </svg>`;
+}
+function svgChain(){
+  const node=(x,err,ev,circ,last)=>`
+    <g transform="translate(${x},0)">
+      <rect x="0" y="30" width="150" height="94" rx="9" fill="#fff" stroke="#4A79A8" stroke-width="1.5"/>
+      <rect x="0" y="30" width="150" height="20" rx="9" fill="#E3EDF6"/>
+      <text x="75" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="#4A79A8">${err}</text>
+      <text x="10" y="66" font-size="10" fill="#C4674A" font-weight="600">× ${circ}</text>
+      <line x1="10" y1="76" x2="140" y2="76" stroke="#E2E8EF"/>
+      <text x="75" y="98" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1E2A38">${ev}</text>
+      <text x="75" y="114" text-anchor="middle" font-size="8.5" fill="#5B6B7C">событие звена</text>
+    </g>
+    ${last?"":`<g transform="translate(${x+150},0)"><path d="M4 77 h34 M32 71 l8 6 -8 6" stroke="#B8922A" stroke-width="2" fill="none"/>
+      <text x="22" y="66" text-anchor="middle" font-size="8" fill="#B8922A">становится</text>
+      <text x="22" y="96" text-anchor="middle" font-size="8" fill="#B8922A">обстоят-вом</text></g>`}`;
+  return `<svg viewBox="0 0 700 150" style="width:100%;display:block;margin:6px auto" font-family="Arial">
+    ${node(8,"ошибка A","перегруз","условие A")}
+    ${node(200,"ошибка B","отказ тормозов","перегруз")}
+    ${node(392,"ошибка C","съезд, гибель","отказ тормозов",true)}
+    <text x="350" y="145" text-anchor="middle" font-size="10" fill="#5B6B7C" font-style="italic">Событие_n = Ошибка_n × Событие_(n−1) — цепь разматывается от финала к истокам</text>
+  </svg>`;
+}
+function svgStages(){
+  const st=(x,n,t,d)=>`<g transform="translate(${x},0)">
+    <circle cx="55" cy="34" r="20" fill="#E3EDF6" stroke="#4A79A8" stroke-width="1.5"/>
+    <text x="55" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="#4A79A8">${n}</text>
+    <text x="55" y="74" text-anchor="middle" font-size="11" font-weight="700" fill="#1E2A38">${t}</text>
+    <text x="55" y="90" text-anchor="middle" font-size="8.5" fill="#5B6B7C">${d}</text></g>`;
+  const arr=x=>`<path d="M${x} 34 h20 M${x+16} 29 l6 5 -6 5" stroke="#B8922A" stroke-width="1.8" fill="none"/>`;
+  return `<svg viewBox="0 0 620 105" style="width:100%;display:block;margin:6px auto" font-family="Arial">
+    ${st(0,"1","Восприятие","увидел")}${arr(110)}
+    ${st(140,"2","Анализ","понял")}${arr(250)}
+    ${st(280,"3","Решение","выбрал")}${arr(390)}
+    ${st(420,"4","Действие","сделал")}
+    <text x="310" y="104" text-anchor="middle" font-size="9.5" fill="#5B6B7C" font-style="italic">сбой на любом этапе — ошибка своего типа; плюс сознательное нарушение правил</text>
+  </svg>`;
+}
+function mCard(title,body){ return `<div class="card"><b style="font-size:15px;color:#1F3864">${title}</b><div style="margin-top:8px">${body}</div></div>`; }
+
+function screenMethod(){
+  const smp=DB.cases.find(c=>c.is_sample);
+  return `<h2>Методика расследования</h2>
+  <div class="sub">Теоретическая основа приложения: что такое «Формула безопасности», как она разворачивается в цепь и как по ней ведётся расследование. Материал опирается на монографию Д. Ю. Комарова.</div>
+
+  ${mCard("1. Формула: ДТП = Ошибка × Обстоятельства", `
+    <p>В основе метода — представление о том, что дорожно-транспортное происшествие есть <b>произведение</b> двух множителей: ошибки водителя и сопутствующих обстоятельств.</p>
+    ${svgFormula()}
+    <p style="margin-top:8px">Умножение выбрано не случайно. Оно отражает <b>синергию</b>: факторы не складываются, а усиливают друг друга. И главное свойство произведения — если один множитель равен нулю, равно нулю и всё произведение. Нет ошибки — обстоятельства сами по себе безопасны. Нет обстоятельств — та же ошибка проходит без следа.</p>
+    <div class="warn" style="margin-top:8px"><b>Определение ошибки.</b> Сбой в одном из четырёх этапов сенсомоторной реакции (восприятие — анализ — решение — действие) либо сознательное отступление от правил безопасного вождения, которое действием или бездействием создаёт потенциал опасности.</div>
+    ${svgStages()}
+    <p style="margin-top:8px"><b>Определение обстоятельства.</b> Внешнее условие, при котором ошибка реализуется в событие. При отсутствии этого условия та же ошибка остаётся безразличной.</p>`)}
+
+  ${mCard("2. Обстоятельства неоднородны", `
+    <p>Обстоятельства различаются по тому, насколько водитель и компания могут на них влиять — это разграничивает ответственность:</p>
+    <ul style="margin:6px 0 0 18px;line-height:1.6">
+      <li><b>Тип I — неподконтрольные:</b> внезапный отказ, скрытый дефект дороги, непредсказуемые действия других, резкая смена погоды. Зона ответственности — ничья.</li>
+      <li><b>Тип II — частично подконтрольные:</b> маршрут, время рейса, скорость в потоке, дистанция. Зона ответственности — во многом организации (кто назначил маршрут и график).</li>
+      <li><b>Тип III — практически подконтрольные:</b> выбор и состояние ТС, ремень, подготовка до выезда. Зона ответственности — водителя и компании.</li>
+    </ul>
+    <p style="margin-top:8px">Отдельно обстоятельства делятся по функции: <b>P-функция</b> влияет на <i>вероятность</i> события (видимость, покрытие, усталость), <b>S-функция</b> — на <i>тяжесть</i> исхода (ремень, конструкция ТС, отбойники). Это различие важно: непристёгнутый ремень не вызывает опрокидывание, но решает, переживёт ли его водитель.</p>`)}
+
+  ${mCard("3. Рекурсия: происшествие — это цепь", `
+    <p>Тяжёлое ДТП редко возникает мгновенно. Обычно это <b>цепь</b>: результат одного звена становится обстоятельством для следующего.</p>
+    ${svgChain()}
+    <p style="margin-top:8px">Формально: <b>Событие_n = Ошибка_n × Событие_(n−1)</b>. Расследование разматывает цепь от финала назад — и уходит от водителя к решениям, которые создали обстановку. Механизм связи: ошибка порождает <b>производное состояние</b> (перегруз, повышенная скорость, неисправность), которое сохраняется во времени и работает обстоятельством дальше.</p>
+    <p style="margin-top:8px">На каждом звене была <b>точка разрыва</b> — возможность не пойти дальше. Расследование ищет, почему ни одна не сработала. Чем длиннее цепь, тем тяжелее финал — это объясняет и пирамиду Хайнриха.</p>`)}
+
+  ${mCard("4. Барьеры — то, что должно было остановить", `
+    <p>По каждой ошибке устанавливается барьер, который должен был не дать ей реализоваться, и его состояние:</p>
+    <ul style="margin:6px 0 0 18px;line-height:1.6">
+      <li><b>Эффективный</b> — сработал, цепь не пошла дальше.</li>
+      <li><b>Отказавший</b> — существовал, но не сработал.</li>
+      <li><b>Отсутствующий</b> — не был установлен.</li>
+      <li><b>Неадекватный</b> — сработал, но был недостаточен.</li>
+    </ul>
+    <p style="margin-top:8px">Барьер operationализирует «точку разрыва»: где организация могла поставить заслон и почему его не оказалось. Отсюда прямой выход на системную причину.</p>`)}
+
+  ${mCard("5. Шесть этапов расследования", `
+    <p>Приложение проводит вас по этой последовательности (шаги 1–7 повторяют её):</p>
+    <ol style="margin:6px 0 0 18px;line-height:1.7">
+      <li><b>Сбор фактов.</b> Следы, состояние ТС, опрос, телематика, погода, дорога.</li>
+      <li><b>Хронология.</b> Восстановление последовательности действий и событий — на глубину, достаточную, чтобы увидеть все звенья (иногда за дни до ДТП).</li>
+      <li><b>Построение цепи по Формуле.</b> Выделяется финал, затем звенья назад; в каждом — ошибка, обстоятельства, событие.</li>
+      <li><b>Сбои барьеров.</b> Какой барьер должен был сработать и в каком он состоянии.</li>
+      <li><b>Контекст ошибки.</b> Что привело к ошибке — факторы (квалификация, усталость, отвлечение, мотивация) и, если нужно, цепь операторов вверх по организации.</li>
+      <li><b>Корневые причины и мероприятия.</b> Системные причины и действия, которые их закрывают.</li>
+    </ol>`)}
+
+  ${mCard("6. Что это меняет", `
+    <p>Традиционное расследование ищет «кто виноват» и останавливается на водителе. Метод Формулы ищет <b>оба множителя</b> и всю цепь — потому что обстоятельствами управляет организация, и именно там находятся мероприятия. Ответ «виноват водитель» в этой логике — не финал, а середина пути.</p>
+    <div class="warn" style="margin-top:8px"><b>Непредотвратимое ДТП.</b> Если ошибки водителя не было, а событие произошло из-за неподконтрольных обстоятельств (≈10% случаев) — это законный итог «непредотвратимо», а не незавершённое расследование.</div>`)}
+
+  ${smp?`<div class="card" style="border-left:5px solid var(--gold)">
+    <b style="font-size:15px">Учебный образец: «Съезд в овраг»</b>
+    <p style="margin-top:6px">Реальный разбор из практики, оформленный по методике от начала до конца: цепь из четырёх звеньев — от механика службы выпуска и оператора экскаватора до действий водителя в аварийной ситуации. Пройдите по шагам и посмотрите, как заполнены хронология, звенья, барьеры и мероприятия. Править нельзя — только смотреть.</p>
+    <button class="btn coral noprint" style="margin-top:8px" onclick="openSample()">Открыть учебный образец</button>
+  </div>`:`<div class="card"><div class="hint">Учебный образец пока не назначен администратором.</div></div>`}
+
+  ${COPYRIGHT_NOTE}`;
 }
 /* ===== ТОПБАР + НАВИГАЦИЯ ===== */
 const stepsDef=[["0","Регистрация"],["1","Хронология"],["2","Звенья цепи"],["3","Разбор ошибок"],
@@ -1217,20 +1337,28 @@ function topbar(){
   el.innerHTML=`<img class="logo-img" onclick="window.open('https://takbezopasnee.ru','_blank')" title="takbezopasnee.ru" src="${LOGO_LIGHT_SRC}" alt="Так безопаснее"><div class="brand">Формула безопасности<small>Экспертный центр «Так безопаснее» · takbezopasnee.ru</small></div>
     ${inCase?`<div class="caseName">${esc(S.name)}</div>`:""}
     ${(S&&S.closed)?`<span class="pill" style="background:var(--green-l);color:var(--green);margin-right:8px">🔒 закрыто</span>`:""}<div id="causeCounter" class="${inCase&&causes().filter(c=>!c.dup).length?"":"zero"}">${inCase?"Причин: "+causes().filter(c=>!c.dup).length:"Мои расследования"}</div>
+    <span id="cloudState" style="font-size:11px;color:rgba(255,255,255,.8);margin-left:12px;white-space:nowrap"></span>
     ${(inCase&&!LOCKED())?`
       <button class="undoBtn" onclick="doUndo()" title="Отменить последнее действие (Ctrl+Z)" ${UNDO.length?"":"disabled"}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg>Отменить</button>
       <button class="undoBtn" onclick="doRedo()" title="Вернуть отменённое (Ctrl+Y)" ${REDO.length?"":"disabled"}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h4"/></svg>Вернуть</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button><button onclick="closeCase()">К списку</button>`:""}
-    <span id="cloudState" style="font-size:11px;color:rgba(255,255,255,.75);margin-left:10px"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h4"/></svg>Вернуть</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button>`:""}
     ${(typeof CLOUD!=="undefined"&&CLOUD)
       ? `<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
       : `<span style="font-size:11px;color:rgba(255,255,255,.55);margin-left:10px">локальный режим</span>`}`;
 }
+function backBar(){ // единая кнопка возврата в одном месте
+  return `<div class="back" onclick="goHome()">← Мои расследования</div>`;
+}
+function goHome(){ S=null; statsView=0; render(); }
 function nav(){
   const el=document.getElementById("nav");
-  if(!S){el.innerHTML="";return;}
-  el.innerHTML=`<div class="back" onclick="closeCase()">← Мои расследования</div>`+
+  if(!S){
+    // на списке дел кнопки возврата нет; на служебных экранах — есть
+    el.innerHTML = (statsView&&statsView!==0) ? backBar() : "";
+    return;
+  }
+  el.innerHTML=backBar()+
     stepsDef.map((s,i)=>{
       let b="";
       if(i===3&&S.reviews.length)b=`<span class="badge">${S.reviews.length}</span>`;
@@ -1305,8 +1433,8 @@ function screenList(){
     </div>`;
   return impBlock+`<div style="display:flex;align-items:baseline;gap:14px"><h2>Мои расследования</h2>
     <span style="flex:1"></span>
-    <button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button><button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button>${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<button class="btn sec noprint" onclick="statsView=2;render()">📋 Журнал${pendingUsers().length?` <span class="pill" style="background:var(--coral);color:#fff">${pendingUsers().length}</span>`:""}</button>`:""}</div>`+tools+`
-  <div class="sub">Каждое ДТП — отдельное расследование; можно вести долго и возвращаться. Данные сохраняются в этом браузере. Вход по учётной записи появится в следующей версии.</div>
+    <button class="btn coral noprint" onclick="statsView=5;render()">📚 Методика расследования</button><button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button><button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button>${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<button class="btn sec noprint" onclick="statsView=2;render()">📋 Журнал${pendingUsers().length?` <span class="pill" style="background:var(--coral);color:#fff">${pendingUsers().length}</span>`:""}</button>`:""}</div>`+tools+`
+  <div class="sub">Каждое ДТП — отдельное расследование, его можно вести долго и возвращаться. Данные хранятся в облаке и доступны всем специалистам вашей организации. Новичкам: начните с кнопки <b>«Методика расследования»</b> — там теория и учебный образец.</div>
   <div class="caseGrid">
     <div class="caseCard newCase" onclick="newCase()">＋ Новое расследование</div>
     ${act.map(card).join("")}
@@ -1405,7 +1533,8 @@ function stepScale(){
   const tmin=allV.length?Math.min(...allV):0, tmax=allV.length?Math.max(...allV):1;
   const span=Math.max(tmax-tmin,1);
   const pos=v=> v<0?4: 4+((v-tmin)/span)*92;
-  const laneHTML=LANES.map(l=>{
+  const activeLanes=LANES.filter(l=>rows.some(r=>r.lane===l));
+  const laneHTML=(activeLanes.length?activeLanes:LANES).map(l=>{
     const laneRows=rows.filter(r=>r.lane===l);
     // вертикальная раскладка: группируем по позиции начала, совпадающие идут ниже
     const usedLevels=[]; // массив занятых [left, level]
@@ -1460,11 +1589,31 @@ function stepScale(){
       </div>
       <button class="btn small sec" onclick="S._noCap=!S._noCap;render()">${S._noCap?"показать подписи":"скрыть подписи"}</button></div>
     <div style="overflow-x:auto"><div class="step-scale" style="min-width:${Math.round(760*zoom)}px">${laneHTML}</div></div>
-    <div class="hint">Точка — событие, отрезок — период (от начала до конца). Совпадающие по времени раскладываются по вертикали. Коралловым — факт, отмеченный «в цепь». Дорожка «Операторы» — золотом.</div>`;
+    <div class="hint">Показаны только заполненные дорожки. Точка — событие, отрезок — период. Совпадающие по времени раскладываются по вертикали. Коралловым — факт «в цепь», дорожка «Операторы» — золотом.</div>`;
 }
 function laneCoverage(){
   const used=new Set(S.chrono.map(r=>r.lane).filter(Boolean));
   return `<div class="hint" style="margin-bottom:8px">${LANES.map(l=>`<span class="chip" style="cursor:default;${used.has(l)?"":"opacity:.42"}">${l} · ${LANE_NAMES[l]}${used.has(l)?"":" — пусто"}</span>`).join("")}</div>`;
+}
+function srcSelect(r){
+  if(LOCKED()) return roView(r.src);
+  const mats=(S.info&&S.info.materials||[]).map(m=>m.name).filter(Boolean);
+  const opts=[...new Set(mats)];
+  const cur=r.src||"";
+  const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;
+    e.onchange=()=>{
+      if(e.value==="__own"){ const v=prompt("Свой источник:",""); r.src=(v||"").trim(); }
+      else r.src=e.value;
+      save(); render();
+    };},0);
+  const inList=opts.includes(cur);
+  return `<select id="${id}" style="width:100%">
+    <option value=""${cur?"":" selected"}>— источник —</option>
+    ${opts.map(o=>`<option value="${esc(o)}"${o===cur?" selected":""}>${esc(o)}</option>`).join("")}
+    ${(cur&&!inList)?`<option value="${esc(cur)}" selected>${esc(cur)} (свой)</option>`:""}
+    <option value="__own">+ другой источник…</option>
+  </select>`;
 }
 function setFact(i){
   const r=S.chrono[i];
@@ -1481,7 +1630,7 @@ function screen1(){
     <td style="width:88px">${inp(r,"end","конец / до…")}</td>
     <td style="width:64px" class="${r.lane?("lane-"+r.lane):""}">${sel(r,"lane",LANES,()=>render())}</td>
     <td>${inpStop(r,"text","факт без оценки")}</td>
-    <td style="width:100px">${inp(r,"src","источник")}</td>
+    <td style="width:170px">${srcSelect(r)}</td>
     <td style="width:34px;text-align:center">${chk(r,"isFact","",()=>setFact(i))}<div style="font-size:9px;color:var(--mut)">факт</div></td>
     <td style="width:34px;text-align:center">${r.isFact?chk(r,"inchain","",()=>render()):`<span title="в цепь можно взять только факт" style="opacity:.35;font-size:15px">☐</span>`}<div style="font-size:9px;color:${r.isFact?"var(--mut)":"#C4B0A8"}">в цепь</div></td>
     <td style="width:30px"><div class="rowbtns"><button onclick="moveRow(S.chrono,${i},-1)">▲</button><button onclick="moveRow(S.chrono,${i},1)">▼</button><button onclick="S.chrono.splice(${i},1);save();render()" style="color:#A33">✕</button></div></td>
@@ -2483,7 +2632,7 @@ function render(){
     m.innerHTML=screenLogin(); return;
   }
   topbar(); nav();
-  if(!S){ m.innerHTML = statsView===4?screenGuide() : (statsView===3?screenRegistry() : (statsView===2?screenAudit() : (statsView===1?screenStats():screenList()))); return; }
+  if(!S){ m.innerHTML = statsView===5?screenMethod() : (statsView===4?screenGuide() : (statsView===3?screenRegistry() : (statsView===2?screenAudit() : (statsView===1?screenStats():screenList())))); return; }
   m.innerHTML=guideStrip()+[screen0,screen1,screen2,screen3,screen4,screen5,screen7,screen8][cur]()+stepNav();
 }
 async function boot(){
@@ -2940,9 +3089,7 @@ function screenStats(){
   const actDone=acts.filter(a=>a.status==="выполнено").length;
   const typePairs=countBy(ac.filter(c=>c.type),"type");
   const stagePairs=statStages(), modePairs=statModes(), pairs=statPairs();
-  return `<div style="display:flex;align-items:baseline;gap:14px"><h2>Статистика по расследованиям</h2>
-    <span style="flex:1"></span>
-    <button class="btn sec noprint" onclick="statsView=0;render()">← К списку</button></div>
+  return `<h2>Статистика по расследованиям</h2>
   <div class="sub">Накопительная картина по ${DB.cases.length} расследованиям — четыре реестра по элементам формулы плюс сводные графики. Эти же данные подсказывают в новых делах («была в N дел.» в каталоге ошибок).</div>
 
   <div class="card"><div class="col-h" style="margin-bottom:6px">Сводка</div>
@@ -3073,7 +3220,7 @@ function csvRegistry(){
     ...rows.map(r=>[r.num,isoToRu(r.date),r.time,r.kind,r.area,r.spot,r.tsType,r.ts,r.unit,r.driver,r.name,r.causes,r.acts,r.done,r.status])]);
 }
 function screenRegistry(){
-  return `<div class="noprint" style="margin-bottom:10px"><button class="btn sec" onclick="statsView=0;render()">← К списку</button></div>
+  return `
   <h2>Реестр происшествий</h2>
   <div class="sub">Все расследования таблицей. Поиск идёт по номеру, дате, виду ДТП, месту, ТС, подразделению, водителю и статусу; сортировка — щелчком по заголовку.</div>
   <div class="card">
@@ -3097,7 +3244,7 @@ function guideBlock(n,title,body){
 function screenGuide(){
   const ex=(t)=>`<div style="margin-top:8px;padding:9px 11px;background:var(--blue-l);border-radius:8px;font-size:13px"><b style="color:var(--blue)">Пример.</b> ${t}</div>`;
   const warn=(t)=>`<div class="warn" style="margin-top:8px">${t}</div>`;
-  return `<div class="noprint" style="margin-bottom:10px"><button class="btn sec" onclick="statsView=0;render()">← К списку</button></div>
+  return `
   <h2>Как пользоваться</h2>
   <div class="sub">Короткое руководство: сначала — принцип, на котором всё построено, затем восемь шагов расследования с примерами.</div>
 
@@ -3165,10 +3312,9 @@ function screenGuide(){
     <p style="margin-top:6px"><b>Отмена.</b> Ошибочное действие отменяется кнопкой ↶ в шапке или сочетанием Ctrl+Z; вернуть — Ctrl+Y.</p>
   </div>
 
-  <div class="card" style="border-left:5px solid var(--gold)">
-    <b style="font-size:14px">Образцовое расследование</b>
-    <p style="margin-top:6px">Разбор с пометкой «образец» пройден от начала до конца. Посмотрите, как заполнены хронология, звенья, разбор и мероприятия. Править его нельзя, но можно открыть на любом шаге.</p>
-    <button class="btn coral noprint" style="margin-top:8px" onclick="openSample()">Открыть учебный образец</button>
+  <div class="card">
+    <b style="font-size:14px">Учебный образец</b>
+    <p style="margin-top:6px">Разбор реального ДТП, пройденный от начала до конца, находится в разделе <b>«Методика расследования»</b> (кнопка на главном экране) — вместе с теорией, к которой он служит иллюстрацией.</p>
   </div>
   ${COPYRIGHT_NOTE}`;
 }
