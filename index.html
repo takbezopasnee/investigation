@@ -391,7 +391,7 @@ const newCaseId=()=>{ // идентификатор дела — формат б
 };
 function relinkSeq(){let m=1;JSON.stringify(DB).replace(/"id(\d+)"/g,(_,n)=>{m=Math.max(m,+n+1);return _;});seq=m;}
 const blankCase=(name)=>({id:newCaseId(),name:name||"Новое расследование",created:Date.now(),updated:Date.now(),archived:false,
-  info:{num:"",dateISO:"",time:"",kind:"",area:"",spot:"",tsType:"",ts:"",driver:"",exp:"",age:"",victims:"",unit:"",desc:"",harm:"",commission:[],materials:[]},
+  info:{num:"",dateISO:"",time:"",kind:"",area:"",spot:"",tsType:"",ts:"",driver:"",exp:"",age:"",victims:"",unit:"",desc:"",harm:"",commission:[],materials:MATERIALS_DEF.map(n=>({id:uid(),name:n,has:"",note:""}))},
   chrono:[],links:[],reviews:[],circs:[],acts:[],causeMeta:{},concl:{candidates:"",notes:""}});
 function migrateCase(c){
   for(const L of (c.links||[])){
@@ -1520,7 +1520,7 @@ function setZoom(d){
   save(); render();
 }
 function timeVal(t){ const m=(t||"").match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/); return m?(+m[1]*60 + +m[2] + (m[3]?+m[3]/60:0)):-1; }
-function isPeriod(r){ return !!(r.end&&r.end.trim()) || /—|–|до\s*ДТП/i.test(r.time||""); }
+function isPeriod(r){ return !!(r.end&&r.end.trim()); } // период — только если явно задан конец
 function inChainAuto(rec){
   const t=(rec.text||"").trim().toLowerCase(); if(!t)return false;
   return S.links.some(L=>[L.event,L.error,L.circ].some(x=>(x||"").toLowerCase().includes(t.slice(0,18))));
@@ -1615,10 +1615,19 @@ function srcSelect(r){
     <option value="__own">+ другой источник…</option>
   </select>`;
 }
-function setFact(i){
+function toggleFact(i){
   const r=S.chrono[i];
-  if(!r.isFact&&r.inchain)r.inchain=false;
-  save();render();
+  if(!r.isFact){ // хотим поставить факт
+    if(!((r.src||"").trim())){
+      flash("Чтобы отметить «факт», укажите источник (материал расследования)");
+      render(); return;
+    }
+    r.isFact=true;
+  } else { // снимаем факт
+    r.isFact=false;
+    if(r.inchain) r.inchain=false;
+  }
+  save(); render();
 }
 function moveRow(arr,i,d){const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];save();render();}
 function sortChrono(){S.chrono.sort((a,b)=>{const x=timeVal(a.time),y=timeVal(b.time);if(x<0)return 1;if(y<0)return -1;return x-y;});save();render();}
@@ -1631,7 +1640,7 @@ function screen1(){
     <td style="width:64px" class="${r.lane?("lane-"+r.lane):""}">${sel(r,"lane",LANES,()=>render())}</td>
     <td>${inpStop(r,"text","факт без оценки")}</td>
     <td style="width:170px">${srcSelect(r)}</td>
-    <td style="width:34px;text-align:center">${chk(r,"isFact","",()=>setFact(i))}<div style="font-size:9px;color:var(--mut)">факт</div></td>
+    <td style="width:34px;text-align:center">${LOCKED()?(r.isFact?"✓":"—"):`<input type="checkbox" ${r.isFact?"checked":""} onclick="toggleFact(${i});return false" title="факт подтверждается источником">`}<div style="font-size:9px;color:var(--mut)">факт</div></td>
     <td style="width:34px;text-align:center">${r.isFact?chk(r,"inchain","",()=>render()):`<span title="в цепь можно взять только факт" style="opacity:.35;font-size:15px">☐</span>`}<div style="font-size:9px;color:${r.isFact?"var(--mut)":"#C4B0A8"}">в цепь</div></td>
     <td style="width:30px"><div class="rowbtns"><button onclick="moveRow(S.chrono,${i},-1)">▲</button><button onclick="moveRow(S.chrono,${i},1)">▼</button><button onclick="S.chrono.splice(${i},1);save();render()" style="color:#A33">✕</button></div></td>
   </tr>`).join("");
@@ -1652,7 +1661,7 @@ function errCode(idx){return "E"+String(idx+1).padStart(2,"0");}
 function errByCode(code){const i=parseInt((code||"").slice(1),10)-1;return ERR_LIST[i]||null;}
 function errSeenCount(code,text){ // в скольких делах встречалась (по коду, иначе по тексту)
   let n=0; const t=(text||"").toLowerCase();
-  for(const c of DB.cases){ if(S&&c.id===S.id)continue;
+  for(const c of DB.cases){ if(S&&c.id===S.id)continue; if(c.is_sample)continue;
     if((c.links||[]).some(L=> code? L.errCode===code : (L.error||"").toLowerCase()===t)) n++; }
   return n;
 }
@@ -1711,7 +1720,9 @@ function circRowLink(L,i,c,ci){
       ${linkOpts.map(o=>`<option value="${o.id}" ${c.linkRef===o.id?"selected":""}>${esc(o.label)}</option>`).join("")}
     </select>`:""}
     <button class="btn small danger noprint" onclick="S.links[${i}].circs.splice(${ci},1);save();render()">✕</button>
-  </div>`;
+  </div>${c.fromRec?`<div class="hint" style="display:flex;align-items:center;gap:6px;margin:-2px 0 6px">
+    <span>⛓ из факта: ${esc(factLabel(c.fromRec))}</span>
+    <button class="btn small sec noprint" onclick="S.links[${i}].circs[${ci}].fromRec='';save();render()" title="отвязать — факт вернётся в список">отвязать</button></div>`:""}`;
 }
 function makePrevLink(c){ // создать/найти звено под событие-обстоятельство
   const t=(c.text||"").trim();
@@ -1752,15 +1763,34 @@ function allFromChrono(){
   });
   save();render();
 }
-function usedAs(rec){ // где факт задействован: по id записи и по тексту
-  const r = (typeof rec==="string") ? {id:null,text:rec} : (rec||{});
-  const t=(r.text||"").trim().toLowerCase(); const id=r.id;
+function factLabel(id){
+  const r=(S.chrono||[]).find(x=>x.id===id);
+  return r?((r.time?r.time+" · ":"")+(r.text||"").slice(0,40)):"факт хронологии";
+}
+function linkTag(i,field){
+  if(LOCKED()) return "";
+  const L=S.links[i];
+  const id = field==="event"?L.fromChrono : (field==="error"?L.errRec:null);
+  if(!id) return "";
+  return `<div class="hint" style="display:flex;align-items:center;gap:6px;margin-top:3px">
+    <span>⛓ из факта: ${esc(factLabel(id))}</span>
+    <button class="btn small sec noprint" onclick="unlinkField(${i},'${field}')" title="отвязать — факт вернётся в список">отвязать</button></div>`;
+}
+function unlinkField(i,field){
+  const L=S.links[i];
+  if(field==="event") L.fromChrono="";
+  else if(field==="error") L.errRec="";
+  save(); render();
+}
+function usedAs(rec){ // где факт задействован — СТРОГО по связи (id записи), не по тексту
+  const r = (typeof rec==="string") ? {id:null} : (rec||{});
+  const id=r.id; if(!id) return [];
   const out=[];
   S.links.forEach((L,i)=>{
     const A=linkLetter(i);
-    if((id&&L.fromChrono===id)||(t&&(L.event||"").trim().toLowerCase()===t))out.push("событие зв. "+A);
-    if((id&&L.errRec===id)||(t&&(L.error||"").trim().toLowerCase()===t))out.push("ошибка зв. "+A);
-    if((L.circs||[]).some(c=>(id&&c.fromRec===id)||(t&&(c.text||"").trim().toLowerCase()===t)))out.push("обст. зв. "+A);
+    if(L.fromChrono===id) out.push("событие зв. "+A);
+    if(L.errRec===id)     out.push("ошибка зв. "+A);
+    if((L.circs||[]).some(c=>c.fromRec===id)) out.push("обст. зв. "+A);
   });
   return [...new Set(out)];
 }
@@ -1895,10 +1925,11 @@ function screen2(){
       <div class="fieldrow"><span>Событие-результат</span><div>${L.evLocked?"":srcRow(i,"event")}${L.evLocked?
         `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--gray-l)">${esc(L.event)}</div>
          <div class="hint">⛓ Звено создано из обстоятельства ${lockParentLabel(L)}; текст события правится там и здесь заблокирован.</div>`
-        :inpStop(L,"event","«начался занос», «отказали тормоза»")+pickPanel(i,"event")}</div></div>
+        :inpStop(L,"event","«начался занос», «отказали тормоза»")+linkTag(i,"event")+pickPanel(i,"event")}</div></div>
       ${L.pure?`<div class="hint">Чистое развитие: нового акта нет — выдумывать не нужно.</div>`:`
       <div class="fieldrow"><span>Ошибка — одна</span><div>${srcRow(i,"error")}
         ${inpStop(L,"error","акт оператора")}
+        ${linkTag(i,"error")}
         ${pickPanel(i,"error")}
         ${L._suggCirc?`<div class="hint">Каталог подсказывает: ${esc(L._suggCirc.join("; "))} <button class="btn small sec noprint" onclick="addSugg(${i})">добавить обстоятельствами</button></div>`:""}
         <div style="margin-top:6px;max-width:340px"><label>Чья</label>${sel(L,"who",ROLES)}</div>
@@ -2873,7 +2904,7 @@ function statErrors(){ // 1) ошибки по формуле: группиро�
     m[key].n++; m[key].cases.add(cname);
     if(type)m[key].types.add(type);
   };
-  for(const c of DB.cases){
+  for(const c of statCases()){
     // тип из разбора подтянем к звену через reviewId
     const typeByReview={}; (c.reviews||[]).forEach(r=>{ if(r.type) typeByReview[r.id]=r.type+(r.subtype?" ("+r.subtype+")":""); });
     for(const L of (c.links||[])){
@@ -2895,7 +2926,7 @@ function statErrors(){ // 1) ошибки по формуле: группиро�
 }
 function statCandidates(){ // ошибки-кандидаты в каталог (без кода)
   const m={};
-  for(const c of DB.cases) for(const L of (c.links||[])){
+  for(const c of statCases()) for(const L of (c.links||[])){
     if(L.pure||!(L.error||"").trim()||L.errCode)continue;
     const k=L.error.trim().toLowerCase();
     m[k]=m[k]||{error:L.error.trim(),n:0,cases:new Set()};
@@ -2905,7 +2936,7 @@ function statCandidates(){ // ошибки-кандидаты в каталог 
 }
 function statCircs(){ // 2) обстоятельства
   const m={};
-  for(const c of DB.cases) for(const x of (c.circs||[])){
+  for(const c of statCases()) for(const x of (c.circs||[])){
     if(!(x.text||"").trim())continue;
     const k=x.text.trim().toLowerCase();
     m[k]=m[k]||{text:x.text.trim(),n:0,cases:new Set(),infl:new Set()};
@@ -2917,7 +2948,7 @@ function statCircs(){ // 2) обстоятельства
 }
 function allCauses(){ // 3) причины (по всем делам)
   const out=[];
-  for(const c of DB.cases){
+  for(const c of statCases()){
     const meta=c.causeMeta||{};
     const nActs=id=>((c.acts||[]).filter(a=>a.causeId===id&&!a.dup&&(a.text||"").trim()).length);
     for(const r of (c.reviews||[])) for(const x of (r.causes||[])){
@@ -2939,7 +2970,7 @@ function setActStatusGlobal(caseId,actId,val){
 }
 function statActions(){ // 4) мероприятия
   const out=[];
-  for(const c of DB.cases){
+  for(const c of statCases()){
     const causeText={};
     for(const r of (c.reviews||[])) for(const x of (r.causes||[])) causeText[x.id]=x.text;
     for(const x of (c.circs||[])) if(x.verdict) causeText[x.id]=x.verdict.text;
@@ -2951,16 +2982,16 @@ function statActions(){ // 4) мероприятия
   return out;
 }
 function statStages(){ // где ломается: этапы реакции по разборам
-  const m={}; for(const c of DB.cases) for(const r of (c.reviews||[])) if(r.stage) m[r.stage]=(m[r.stage]||0)+1;
+  const m={}; for(const c of statCases()) for(const r of (c.reviews||[])) if(r.stage) m[r.stage]=(m[r.stage]||0)+1;
   return ["восприятие","анализ","решение","действие"].filter(k=>m[k]).map(k=>[k,m[k]]);
 }
 function statModes(){ // режимы движения по звеньям (из каталога)
-  const m={}; for(const c of DB.cases) for(const L of (c.links||[])) if(L.catMode) m[L.catMode]=(m[L.catMode]||0)+1;
+  const m={}; for(const c of statCases()) for(const L of (c.links||[])) if(L.catMode) m[L.catMode]=(m[L.catMode]||0)+1;
   return MODES.filter(k=>m[k]).map(k=>[k,m[k]]);
 }
 function statPrevent(){ // предотвратимость дел
   let prev=0,noprev=0,open=0;
-  for(const c of DB.cases){
+  for(const c of statCases()){
     const meta=c.causeMeta||{};
     let n=0;
     for(const r of (c.reviews||[])) for(const x of (r.causes||[])) if(!(meta[x.id]&&meta[x.id].dup)) n++;
@@ -2975,7 +3006,7 @@ function statPrevent(){ // предотвратимость дел
 }
 function statPairs(){ // пары «ошибка × обстоятельство» из звеньев — зародыш реестра соответствий
   const m={};
-  for(const c of DB.cases) for(const L of (c.links||[])){
+  for(const c of statCases()) for(const L of (c.links||[])){
     if(L.pure||!(L.error||"").trim())continue;
     const ename=(L.errCode&&errByCode(L.errCode))?errByCode(L.errCode).e:L.error.trim();
     for(const cc of (L.circs||[])){
@@ -2987,26 +3018,26 @@ function statPairs(){ // пары «ошибка × обстоятельство
 }
 function statInfoBy(key){
   const m={};
-  for(const c of DB.cases){const v=(c.info&&c.info[key]||"").trim();if(v)m[v]=(m[v]||0)+1;}
+  for(const c of statCases()){const v=(c.info&&c.info[key]||"").trim();if(v)m[v]=(m[v]||0)+1;}
   return Object.entries(m).sort((a,b)=>b[1]-a[1]);
 }
 const MN=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
 function statByWeekday(){ // все 7 дней, кор. подписи
   const m={};let any=0;
-  for(const c of DB.cases){const w=weekdayOf(c.info&&c.info.dateISO);if(w){m[w]=(m[w]||0)+1;any++;}}
+  for(const c of statCases()){const w=weekdayOf(c.info&&c.info.dateISO);if(w){m[w]=(m[w]||0)+1;any++;}}
   if(!any)return [];
   const map={"понедельник":"пн","вторник":"вт","среда":"ср","четверг":"чт","пятница":"пт","суббота":"сб","воскресенье":"вс"};
   return ["понедельник","вторник","среда","четверг","пятница","суббота","воскресенье"].map(w=>[map[w],m[w]||0]);
 }
 function statByHour(){ // все 24 часа
   const m={};let any=0;
-  for(const c of DB.cases){const t=(c.info&&c.info.time||"").match(/^(\d{2}):/);if(t){m[+t[1]]=(m[+t[1]]||0)+1;any++;}}
+  for(const c of statCases()){const t=(c.info&&c.info.time||"").match(/^(\d{2}):/);if(t){m[+t[1]]=(m[+t[1]]||0)+1;any++;}}
   if(!any)return [];
   return Array.from({length:24},(_,h)=>[String(h),m[h]||0]);
 }
 function statByMonthAll(){ // янв–дек, независимо от года
   const m={};let any=0;
-  for(const c of DB.cases){const d=(c.info&&c.info.dateISO||"").match(/^\d{4}-(\d{2})/);if(d){m[+d[1]]=(m[+d[1]]||0)+1;any++;}}
+  for(const c of statCases()){const d=(c.info&&c.info.dateISO||"").match(/^\d{4}-(\d{2})/);if(d){m[+d[1]]=(m[+d[1]]||0)+1;any++;}}
   if(!any)return [];
   return MN.map((n,i)=>[n,m[i+1]||0]);
 }
@@ -3015,7 +3046,7 @@ function statLast12(){ // окно последних 12 месяцев
   for(let k=11;k>=0;k--){const d=new Date(now.getFullYear(),now.getMonth()-k,1);
     keys.push({key:d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"),lbl:MN[d.getMonth()]+" "+String(d.getFullYear()).slice(2)});}
   const m={};let any=0;
-  for(const c of DB.cases){const d=(c.info&&c.info.dateISO||"").match(/^(\d{4}-\d{2})/);if(d){m[d[1]]=(m[d[1]]||0)+1;any++;}}
+  for(const c of statCases()){const d=(c.info&&c.info.dateISO||"").match(/^(\d{4}-\d{2})/);if(d){m[d[1]]=(m[d[1]]||0)+1;any++;}}
   if(!any)return [];
   return keys.map(k=>[k.lbl,m[k.key]||0]);
 }
@@ -3090,12 +3121,12 @@ function screenStats(){
   const typePairs=countBy(ac.filter(c=>c.type),"type");
   const stagePairs=statStages(), modePairs=statModes(), pairs=statPairs();
   return `<h2>Статистика по расследованиям</h2>
-  <div class="sub">Накопительная картина по ${DB.cases.length} расследованиям — четыре реестра по элементам формулы плюс сводные графики. Эти же данные подсказывают в новых делах («была в N дел.» в каталоге ошибок).</div>
+  <div class="sub">Накопительная картина по ${statCases().length} расследованиям — четыре реестра по элементам формулы плюс сводные графики. Эти же данные подсказывают в новых делах («была в N дел.» в каталоге ошибок).</div>
 
   <div class="card"><div class="col-h" style="margin-bottom:6px">Сводка</div>
-    <div class="hbar green"><div class="lbl">предотвратимые (причины найдены)</div><div class="track"><div class="fill" style="width:${DB.cases.length?Math.round(pv.prev/DB.cases.length*100):0}%"></div></div><div class="val">${pv.prev}</div></div>
-    <div class="hbar"><div class="lbl">непредотвратимые (все ветви — стоп)</div><div class="track"><div class="fill" style="width:${DB.cases.length?Math.round(pv.noprev/DB.cases.length*100):0}%"></div></div><div class="val">${pv.noprev}</div></div>
-    <div class="hbar gold"><div class="lbl">разбор не завершён</div><div class="track"><div class="fill" style="width:${DB.cases.length?Math.round(pv.open/DB.cases.length*100):0}%"></div></div><div class="val">${pv.open}</div></div>
+    <div class="hbar green"><div class="lbl">предотвратимые (причины найдены)</div><div class="track"><div class="fill" style="width:${statCases().length?Math.round(pv.prev/statCases().length*100):0}%"></div></div><div class="val">${pv.prev}</div></div>
+    <div class="hbar"><div class="lbl">непредотвратимые (все ветви — стоп)</div><div class="track"><div class="fill" style="width:${statCases().length?Math.round(pv.noprev/statCases().length*100):0}%"></div></div><div class="val">${pv.noprev}</div></div>
+    <div class="hbar gold"><div class="lbl">разбор не завершён</div><div class="track"><div class="fill" style="width:${statCases().length?Math.round(pv.open/statCases().length*100):0}%"></div></div><div class="val">${pv.open}</div></div>
   </div>
 
   ${(statInfoBy("kind").length||statInfoBy("area").length||statInfoBy("spot").length||statInfoBy("tsType").length)?`<div class="card"><div class="col-h" style="margin-bottom:6px">Профиль происшествий</div>
@@ -3164,6 +3195,7 @@ function screenStats(){
     <div class="hint">Статус меняется прямо здесь (сохраняется в деле). Кнопка → открывает расследование на шаге мероприятий.</div>`
     :`<div class="empty">Мероприятий пока нет.</div>`)}`;
 }
+function statCases(){ return DB.cases.filter(c=>!c.is_sample); } // образцы в статистику не идут
 /* ===== РЕЕСТР ПРОИСШЕСТВИЙ ===== */
 let regQuery="", regSort={col:"date",dir:-1};
 function regRows(){
