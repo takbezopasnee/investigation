@@ -1625,9 +1625,11 @@ function stepScale(){
         const vb=timeVal(r.end); let right2=vb>=0?Math.min(pos(vb),96):96;
         if(right2<left) right2=left+3;
         const w=Math.max(right2-left,3);
-        // длинная фоновая полоса (шире ~65% шкалы) не заливается сплошняком,
-        // а рисуется как бледная подложка со штриховкой — чтобы не перекрывать события
-        const isBackdrop = w>65;
+        // Блёкнет ТОЛЬКО фоновая полоса: начинается у самого левого края шкалы (left<3),
+        // тянется почти до конца (right2>90) И заметно длиннее всех остальных полос.
+        // Обычные периоды, где бы они ни стояли, остаются яркими.
+        const spansAll = (left<6 && right2>90 && w>82);
+        const isBackdrop = spansAll;
         const barCls = isBackdrop ? "step-bar backdrop" : "step-bar";
         inner+=`<div class="${barCls} ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" onmouseenter="scaleTip(event,${S.chrono.indexOf(r)});hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="scaleTipHide();hlRow(${S.chrono.indexOf(r)},0)"></div>`;
         const cap=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
@@ -2039,7 +2041,14 @@ function screen2(){
   return `<h2>Шаг 2 · Звенья цепи</h2>
   <div class="sub"><span class="f">Событие = Ошибка × Обстоятельства</span> · одна ошибка в звене; обстоятельства — отдельными строками с типом. Ошибку берите из каталога (код сохранится для статистики); своей нет — запишите, станет кандидатом в каталог.</div>
   ${chronoPickBlock()}
-  ${S.links.length?`<div class="noprint" style="margin-bottom:10px"><button class="btn sec" onclick="S._scheme=!S._scheme;render()">${S._scheme?"скрыть схему":"🗺 Схема цепи"}</button></div>${S._scheme?schemeSVG():""}`:""}
+  ${S.links.length?`<div class="card" style="padding:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <b style="font-size:13px">🗺 Схема цепи</b>
+        <span class="hint" style="margin:0">обновляется автоматически</span><span style="flex:1"></span>
+        <button class="btn small sec noprint" onclick="S._schemeHide=!S._schemeHide;render()">${S._schemeHide?"показать":"свернуть"}</button>
+      </div>
+      ${S._schemeHide?"":`<div style="overflow-x:auto">${schemeSVG()}</div>`}
+    </div>`:""}
   ${S.links.length?cards:`<div class="empty">Звеньев нет. Возьмите из хронологии события, без которых ДТП не состоялось бы, и идите от финала назад.</div>`}
   ${LOCKED()?"":`<button class="btn noprint" onclick="S.links.push({id:uid(),event:'',error:'',errCode:'',who:'',circs:[],pure:false});save();render()">+ Звено</button>`}`;
 }
@@ -2095,10 +2104,22 @@ function schemeSVG(){
   const cols={}; links.forEach(L=>{const dd=depth[L.id];(cols[dd]=cols[dd]||[]).push(L.id);});
   const dds=Object.keys(cols).map(Number).sort((a,b)=>a-b);
   const colW={}; dds.forEach(dd=>{colW[dd]=Math.max(...cols[dd].map(id=>nodeW(byId[id].L)));});
+  // упорядочиваем узлы внутри каждой колонки по средней высоте их родителей,
+  // чтобы стрелки шли сверху вниз без лишних пересечений (барицентрический метод)
   const pos={}; let xAcc=20, maxBottom=0;
+  const yMid={};
   dds.forEach(dd=>{
+    if(dd>0){
+      cols[dd].sort((a,b)=>{
+        const pa=(byId[a].L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef).map(c=>yMid[c.linkRef]).filter(v=>v!==undefined);
+        const pb=(byId[b].L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef).map(c=>yMid[c.linkRef]).filter(v=>v!==undefined);
+        const ma=pa.length?pa.reduce((x,y)=>x+y,0)/pa.length:999;
+        const mb=pb.length?pb.reduce((x,y)=>x+y,0)/pb.length:999;
+        return ma-mb;
+      });
+    }
     let yAcc=30;
-    cols[dd].forEach(id=>{pos[id]={x:xAcc,y:yAcc};yAcc+=nodeH(byId[id].L)+GY;});
+    cols[dd].forEach(id=>{pos[id]={x:xAcc,y:yAcc}; yMid[id]=yAcc+nodeH(byId[id].L)/2; yAcc+=nodeH(byId[id].L)+GY;});
     maxBottom=Math.max(maxBottom,yAcc);
     xAcc+=colW[dd]+GX;
   });
@@ -2688,6 +2709,11 @@ function screen8(){
   const list=cs.map((c,i)=>`<li><b>${i+1}.</b> ${esc(c.text||"(без формулировки)")} <span class="klist">· ${esc((c.obj&&c.obj.cat)||"категория не выбрана")} · ${LEVEL(c.role)}${c.needStats?" · <b style='color:var(--amber)'>копим статистику</b>":""}</span></li>`).join("");
   return `<h2>Шаг 7 · Выводы</h2>
   <div class="sub">Собирается автоматически. Для печати — кнопка «Печать отчёта» в шапке.</div>
+  <div class="card">
+    <label>Краткое описание происшествия</label>
+    ${inp(S.info,"desc","что произошло — 2–3 фразы для вводной части акта",true)}
+    <div class="hint" style="margin-top:4px">Это то же поле, что на шаге 0 «Регистрация»: правки здесь и там синхронны.</div>
+  </div>
   <div class="card"><div class="grid2">
     <div><label>Происшествие</label><div style="font-weight:700;font-size:16px">${status}</div></div>
     <div><label>Системных причин</label><div style="font-weight:700;font-size:16px">${n}</div></div></div>
