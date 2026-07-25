@@ -93,9 +93,11 @@ table.t td{border:1px solid var(--line);padding:5px 7px;vertical-align:top}
 .step-lane{display:flex;align-items:center;height:34px;border-bottom:1px dashed var(--line)}
 .step-lane:last-child{border-bottom:none}
 .step-lane .lname{flex:0 0 120px;font-size:12px;color:var(--mut);font-weight:600}
-.step-track{position:relative;flex:1;height:100%;min-width:520px;padding-right:6px}
+.step-track{position:relative;flex:1;height:100%;min-width:520px}
+.reqBadge{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;background:var(--coral);color:#fff;border-radius:9px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.scaleTip{position:fixed;z-index:9999;display:none;max-width:220px;background:#1E2A38;color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none}
 .step-dot{position:absolute;top:50%;transform:transl(-50%,-50%);width:13px;height:13px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 1px var(--blue)}
-.step-bar{position:absolute;top:50%;transform:translateY(-50%);height:10px;border-radius:5px;background:var(--blue-l);border:1px solid var(--blue)}
+.step-bar{position:absolute;height:10px;border-radius:5px;background:var(--blue-l);border:1px solid var(--blue);box-sizing:border-box}
 .step-dot.inchain{background:var(--coral);box-shadow:0 0 0 1px var(--coral)}
 .step-dot.laneО,.step-bar.laneО{background:var(--gold-l);border-color:var(--gold)}
 .step-dot.laneП,.step-bar.laneП{background:#EFEAF6;border-color:#8A6FA8}
@@ -470,7 +472,10 @@ function save(){
     if(ok)flash("Сохранено"); else if(!memOnly){memOnly=true;flash("Хранилище недоступно — данные в этой вкладке");}
   },600);
 }
-function flash(t){const f=document.getElementById("saveflash");f.textContent=t;f.classList.add("show");setTimeout(()=>f.classList.remove("show"),1400);}
+let flashTimer=null;
+function flash(t,ms){const f=document.getElementById("saveflash");if(!f)return;f.textContent=t;f.classList.add("show");
+  clearTimeout(flashTimer);
+  flashTimer=setTimeout(()=>f.classList.remove("show"), ms||1400);}
 
 /* ===== UI ХЕЛПЕРЫ ===== */
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1337,7 +1342,7 @@ function topbar(){
   el.innerHTML=`<img class="logo-img" onclick="window.open('https://takbezopasnee.ru','_blank')" title="takbezopasnee.ru" src="${LOGO_LIGHT_SRC}" alt="Так безопаснее"><div class="brand">Формула безопасности<small>Экспертный центр «Так безопаснее» · takbezopasnee.ru</small></div>
     ${inCase?`<div class="caseName">${esc(S.name)}</div>`:""}
     ${(S&&S.closed)?`<span class="pill" style="background:var(--green-l);color:var(--green);margin-right:8px">🔒 закрыто</span>`:""}<div id="causeCounter" class="${inCase&&causes().filter(c=>!c.dup).length?"":"zero"}">${inCase?"Причин: "+causes().filter(c=>!c.dup).length:"Мои расследования"}</div>
-    <span id="cloudState" style="font-size:11px;color:rgba(255,255,255,.8);margin-left:12px;white-space:nowrap"></span>
+    <span id="cloudState" style="font-size:11px;color:rgba(255,255,255,.85);margin-left:12px;white-space:nowrap;display:inline-block;width:135px;overflow:hidden;text-overflow:ellipsis;flex:0 0 135px"></span>
     ${(inCase&&!LOCKED())?`
       <button class="undoBtn" onclick="doUndo()" title="Отменить последнее действие (Ctrl+Z)" ${UNDO.length?"":"disabled"}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></svg>Отменить</button>
@@ -1433,7 +1438,7 @@ function screenList(){
     </div>`;
   return impBlock+`<div style="display:flex;align-items:baseline;gap:14px"><h2>Мои расследования</h2>
     <span style="flex:1"></span>
-    <button class="btn coral noprint" onclick="statsView=5;render()">📚 Методика расследования</button><button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button><button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button>${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<button class="btn sec noprint" onclick="statsView=2;render()">📋 Журнал${pendingUsers().length?` <span class="pill" style="background:var(--coral);color:#fff">${pendingUsers().length}</span>`:""}</button>`:""}</div>`+tools+`
+    <button class="btn coral noprint" onclick="statsView=5;render()">📚 Методика расследования</button><button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button><button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button>${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<button class="btn sec noprint" style="position:relative" onclick="statsView=2;render()">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}</div>`+tools+`
   <div class="sub">Каждое ДТП — отдельное расследование, его можно вести долго и возвращаться. Данные хранятся в облаке и доступны всем специалистам вашей организации. Новичкам: начните с кнопки <b>«Методика расследования»</b> — там теория и учебный образец.</div>
   <div class="caseGrid">
     <div class="caseCard newCase" onclick="newCase()">＋ Новое расследование</div>
@@ -1557,16 +1562,17 @@ function stepScale(){
       const top=8+lvl*17;
       const chain=isInChain(r)?"inchain":"";
       if(isPeriod(r)){
-        const vb=timeVal(r.end); const right2=vb>=0?pos(vb):100;
+        const vb=timeVal(r.end); let right2=vb>=0?Math.min(pos(vb),96):96;
+        if(right2<left) right2=left+3;
         const w=Math.max(right2-left,3);
-        inner+=`<div class="step-bar ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" title="${esc(r.time)}–${esc(r.end||"ДТП")} · ${esc(r.text)}" onmouseenter="hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="hlRow(${S.chrono.indexOf(r)},0)"></div>`;
+        inner+=`<div class="step-bar ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" onmouseenter="scaleTip(event,${S.chrono.indexOf(r)});hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="scaleTipHide();hlRow(${S.chrono.indexOf(r)},0)"></div>`;
         const cap=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
         const lblP=`${esc((r.time||"").slice(0,5))}–${esc((r.end||"ДТП").slice(0,5))}${cap}`;
         inner+= (right2+lblW>99)
           ? `<div class="step-time" style="left:${left}%;top:${top}px;transform:translateX(calc(-100% - 5px))">${lblP}</div>`
           : `<div class="step-time" style="left:${right2}%;top:${top}px;margin-left:5px">${lblP}</div>`;
       } else {
-        inner+=`<div class="step-dot ${chain} ${H}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;top:${top}px" title="${esc(r.time)} · ${esc(r.text)}" onmouseenter="hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="hlRow(${S.chrono.indexOf(r)},0)"></div>`;
+        inner+=`<div class="step-dot ${chain} ${H}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;top:${top}px" onmouseenter="scaleTip(event,${S.chrono.indexOf(r)});hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="scaleTipHide();hlRow(${S.chrono.indexOf(r)},0)"></div>`;
         const capT=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
         const lblT=esc((r.time||"").slice(0,5))+capT;
         inner+= (left+lblW>99)
@@ -1580,12 +1586,12 @@ function stepScale(){
   }).join("");
   const zoom=S._zoom||1;
   return `<div style="display:flex;justify-content:flex-end;gap:6px;align-items:center;margin-bottom:2px" class="noprint">
-      <span class="hint" style="margin:0">Масштаб</span>
       <div class="zoomBtns">
+        ${zoom!==1?`<button class="btn small sec" onclick="setZoom(0)" title="вернуть 100%">сброс</button>`:""}
+        <span class="hint" style="margin:0">Масштаб</span>
         <button class="btn small sec" onclick="setZoom(-1)" title="уменьшить">−</button>
         <span style="font-size:11px;color:var(--mut);min-width:34px;text-align:center">${Math.round(zoom*100)}%</span>
         <button class="btn small sec" onclick="setZoom(1)" title="увеличить">+</button>
-        ${zoom!==1?`<button class="btn small sec" onclick="setZoom(0)">сброс</button>`:""}
       </div>
       <button class="btn small sec" onclick="S._noCap=!S._noCap;render()">${S._noCap?"показать подписи":"скрыть подписи"}</button></div>
     <div style="overflow-x:auto"><div class="step-scale" style="min-width:${Math.round(760*zoom)}px">${laneHTML}</div></div>
@@ -1597,7 +1603,7 @@ function laneCoverage(){
 }
 function srcSelect(r){
   if(LOCKED()) return roView(r.src);
-  const mats=(S.info&&S.info.materials||[]).map(m=>m.name).filter(Boolean);
+  const mats=(S.info&&S.info.materials||[]).filter(m=>m.name&&(m.has||"").trim()&&m.has!=="нет").map(m=>m.name);
   const opts=[...new Set(mats)];
   const cur=r.src||"";
   const id=uid();
@@ -1619,7 +1625,7 @@ function toggleFact(i){
   const r=S.chrono[i];
   if(!r.isFact){ // хотим поставить факт
     if(!((r.src||"").trim())){
-      flash("Чтобы отметить «факт», укажите источник (материал расследования)");
+      flash("Чтобы отметить запись фактом, сначала укажите источник в столбце «Источник» — материал, который это подтверждает (телематика, видео, опросный лист и т. п.).", 5200);
       render(); return;
     }
     r.isFact=true;
@@ -1631,6 +1637,21 @@ function toggleFact(i){
 }
 function moveRow(arr,i,d){const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];save();render();}
 function sortChrono(){S.chrono.sort((a,b)=>{const x=timeVal(a.time),y=timeVal(b.time);if(x<0)return 1;if(y<0)return -1;return x-y;});save();render();}
+function scaleTip(ev,i){
+  const r=S.chrono[i]; if(!r)return;
+  let tip=document.getElementById("scaleTip");
+  if(!tip){ tip=document.createElement("div"); tip.id="scaleTip"; tip.className="scaleTip"; document.body.appendChild(tip); }
+  const when = r.end ? (esc(r.time||"")+" – "+esc(r.end)) : esc(r.time||"—");
+  const lane = LANE_NAMES[r.lane]||r.lane||"";
+  tip.innerHTML=`<div style="font-weight:700;margin-bottom:2px">${esc(r.text||"—")}</div>
+    <div style="font-size:11px;opacity:.85">${when}${lane?" · "+esc(lane):""}${r.src?" · "+esc(r.src):""}</div>
+    <div style="font-size:10.5px;margin-top:2px;opacity:.8">${r.isFact?"✓ факт":"допущение"}${r.inchain?" · в цепи":""}</div>`;
+  tip.style.display="block";
+  const x=ev.clientX, y=ev.clientY;
+  tip.style.left=Math.min(x+12, window.innerWidth-230)+"px";
+  tip.style.top=(y+14)+"px";
+}
+function scaleTipHide(){ const t=document.getElementById("scaleTip"); if(t)t.style.display="none"; }
 function hlRow(i,on){const tr=document.getElementById("crow"+i);if(tr)tr.classList.toggle("hl",!!on);}
 function hlDot(i,on){document.querySelectorAll('.step-dot[data-ci="'+i+'"],.step-bar[data-ci="'+i+'"]').forEach(el=>{el.style.outline=on?"2px solid var(--ink)":"";el.style.outlineOffset=on?"1px":"";});}
 function screen1(){
@@ -2637,12 +2658,14 @@ const STEP_HELP=[
   "У мероприятий укажите исполнителя, срок и статус. Статусы видны в общей статистике и правятся даже в закрытом деле.",
   "Проверьте вывод и закройте расследование: приложение убедится, что причины и мероприятия заполнены, и отправит дело в архив."
 ];
+function openGuide(){ S=null; statsView=4; render(); }
+function openMethodFromCase(){ S=null; statsView=5; render(); }
 function guideStrip(){
   const i=cur;
   return `<div class="guideStrip noprint">
     <div class="gi">${i}</div>
     <div class="gx">${esc(STEP_HELP[i]||"")}
-      <a onclick="statsView=4;render()">Полная инструкция</a> · <a onclick="openSample()">учебный образец</a></div>
+      <a style="cursor:pointer;text-decoration:underline" onclick="openGuide()">Полная инструкция</a> · <a style="cursor:pointer;text-decoration:underline" onclick="openSample()">учебный образец</a></div>
   </div>`;
 }
 function stepNav(){
