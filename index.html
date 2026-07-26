@@ -2039,10 +2039,10 @@ function screen2(){
   ${S.links.length?`<div class="card" style="padding:10px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <b style="font-size:13px">🗺 Схема цепи</b>
-        <span class="hint" style="margin:0">звенья идут по порядку списка: первое (А) слева. Ставьте финал первым · обновляется автоматически</span><span style="flex:1"></span>
+        <span class="hint" style="margin:0">обновляется автоматически при изменении звеньев</span><span style="flex:1"></span>
         <button class="btn small sec noprint" onclick="S._schemeHide=!S._schemeHide;render()">${S._schemeHide?"показать":"свернуть"}</button>
       </div>
-      ${S._schemeHide?"":`${schemeDebug()}<div style="overflow-x:auto">${schemeSVG()}</div>`}
+      ${S._schemeHide?"":`<div style="overflow-x:auto">${schemeSVG()}</div>`}
     </div>`:""}
   ${S.links.length?cards:`<div class="empty">Звеньев нет. Возьмите из хронологии события, без которых ДТП не состоялось бы, и идите от финала назад.</div>`}
   ${LOCKED()?"":`<button class="btn noprint" onclick="S.links.push({id:uid(),event:'',error:'',errCode:'',who:'',circs:[],pure:false});save();render()">+ Звено</button>`}`;
@@ -2065,22 +2065,6 @@ function makeReviewFromLink(i){
   S.reviews.push(r);L.reviewId=r.id;save();goto(3);
 }
 /* --- схема цепи SVG: вход-блоки (ОШИБКА / СОБЫТИЕ·X / ОБСТОЯТЕЛЬСТВА) → событие --- */
-function schemeDebug(){
-  const links=S.links||[];
-  let h='<div style="background:#FFF7E6;border:1px solid #E0B84A;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;font-family:monospace">';
-  h+='<b>ОТЛАДКА СХЕМЫ (временно):</b><br>';
-  links.forEach((L,i)=>{
-    const letter=String.fromCharCode(65+i);
-    const prevs=(L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef).map(c=>{
-      const t=(S.links.find(x=>x.id===c.linkRef));
-      const ti=S.links.indexOf(t);
-      return "→"+(ti>=0?String.fromCharCode(65+ti):"?");
-    });
-    h+=`${i+1}) буква <b>${letter}</b> · событие: "${esc((L.event||"—").slice(0,25))}" · связи-prev: [${prevs.join(", ")||"нет"}]<br>`;
-  });
-  h+='</div>';
-  return h;
-}
 function schemeSVG(){
   const links=S.links; if(!links.length)return "";
   const byId={}; links.forEach((L,i)=>byId[L.id]={L,i});
@@ -2102,35 +2086,20 @@ function schemeSVG(){
   const blocksOf={}; links.forEach(L=>blocksOf[L.id]=nodeBlocks(L));
   const nodeH=L=>{const n=blocksOf[L.id].length;return n*BH+(n-1)*BGAP;};
   const nodeW=L=> isSource[L.id]? IN_W : IN_W+20+EV_W;
-  // РАСКЛАДКА ПО ПОЗИЦИИ В СПИСКЕ: колонка = номер звена (A слева = финал, если финал
-  // стоит первым). Буквы совпадают с раскладкой, схема согласована с шагом и актом.
-  // Вертикаль: если несколько звеньев — причины одного потомка, разносим их по строкам,
-  // чтобы стрелки не накладывались (ветвление сверху вниз).
-  const colX={}; let xAcc=20;
-  links.forEach((L,i)=>{ colX[i]=xAcc; xAcc += nodeW(L) + GX; });
-  // строка (ряд) звена: финалы/несвязанные — ряд 0; каждая причина одного потомка
-  // получает свой ряд, чтобы не сливаться по вертикали
-  const row={}; const rowUsedByParent={};
+  // ПРОСТАЯ РАСКЛАДКА: все звенья в один ряд слева направо по порядку списка.
+  const pos={}; let xAcc=20, maxBottom=0;
   links.forEach((L,i)=>{
-    // сколько причин у этого звена уже размещено — раздвигаем их по рядам
-    const prevs=(L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef&&byId[c.linkRef]).map(c=>c.linkRef);
-    prevs.forEach((refId,k)=>{ if(row[refId]===undefined) row[refId]=k; });
-    if(row[L.id]===undefined) row[L.id]=0;
-  });
-  const ROWH=Math.max(...links.map(L=>nodeH(L)))+GY;
-  const pos={}; let maxBottom=0;
-  links.forEach((L,i)=>{
-    const y=30 + (row[L.id]||0)*ROWH;
-    pos[L.id]={x:colX[i], y};
-    const bottom=y+nodeH(L)+20;
+    pos[L.id]={x:xAcc, y:30};
+    const bottom=30+nodeH(L)+20;
     if(bottom>maxBottom) maxBottom=bottom;
+    xAcc += nodeW(L) + GX;
   });
   const svgW=xAcc+10, svgH=maxBottom+20;
   // координаты вход-блоков (для прицела стрелок): inPos[nodeId][refId]={x,y}
   const inPos={};
   links.forEach(L=>{
     const p=pos[L.id]; inPos[L.id]={};
-    blocksOf[L.id].forEach((b,bi)=>{ b._y=p.y+bi*(BH+BGAP); if(b.kind==="prevIn") inPos[L.id][b.ref]={xl:p.x,xr:p.x+IN_W,y:b._y+BH/2}; });
+    blocksOf[L.id].forEach((b,bi)=>{ b._y=p.y+bi*(BH+BGAP); if(b.kind==="prevIn") inPos[L.id][b.ref]={x:p.x,y:b._y+BH/2}; });
   });
   let out="";
   // внешние стрелки: от каждого блока источника к его блоку «СОБЫТИЕ · Y» в потомке
@@ -2139,18 +2108,11 @@ function schemeSVG(){
     const p=pos[Y.id];
     (kids[Y.id]||[]).forEach(childId=>{
       const tgt=inPos[childId][Y.id]; if(!tgt)return;
-      const srcLeft=p.x, srcRight=p.x+IN_W, srcCx=(srcLeft+srcRight)/2;
-      // потомок левее или правее источника? выбираем ближние края
-      const childCx=(tgt.xl+tgt.xr)/2;
-      const srcOnRight = srcCx > childCx;
-      const sx = srcOnRight ? srcLeft : srcRight;      // выход из ближней к потомку стороны
-      const tx = srcOnRight ? tgt.xr : tgt.xl;          // вход в ближнюю к источнику сторону
-      const dir = srcOnRight ? -1 : 1;
       blocksOf[Y.id].forEach(b=>{
-        const ay=b._y+BH/2;
+        const ay=b._y+BH/2, ax=p.x+IN_W; // правый край источника
         const mk=b.kind==="err"?"arrc":(b.kind==="prevIn"?"arr":"arrg");
         const col=b.kind==="err"?"#C4674A":(b.kind==="prevIn"?"#4A79A8":"#8A96A3");
-        out+=`<path d="M${sx},${ay} C${sx+dir*GX/2},${ay} ${tx-dir*GX/2},${tgt.y} ${tx},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
+        out+=`<path d="M${ax},${ay} C${ax+GX/2},${ay} ${tgt.x-GX/2},${tgt.y} ${tgt.x},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
       });
     });
   });
