@@ -2042,7 +2042,7 @@ function screen2(){
         <span class="hint" style="margin:0">звенья идут по порядку списка: первое (А) слева. Ставьте финал первым · обновляется автоматически</span><span style="flex:1"></span>
         <button class="btn small sec noprint" onclick="S._schemeHide=!S._schemeHide;render()">${S._schemeHide?"показать":"свернуть"}</button>
       </div>
-      ${S._schemeHide?"":`<div style="overflow-x:auto">${schemeSVG()}</div>`}
+      ${S._schemeHide?"":`${schemeDebug()}<div style="overflow-x:auto">${schemeSVG()}</div>`}
     </div>`:""}
   ${S.links.length?cards:`<div class="empty">Звеньев нет. Возьмите из хронологии события, без которых ДТП не состоялось бы, и идите от финала назад.</div>`}
   ${LOCKED()?"":`<button class="btn noprint" onclick="S.links.push({id:uid(),event:'',error:'',errCode:'',who:'',circs:[],pure:false});save();render()">+ Звено</button>`}`;
@@ -2065,6 +2065,22 @@ function makeReviewFromLink(i){
   S.reviews.push(r);L.reviewId=r.id;save();goto(3);
 }
 /* --- схема цепи SVG: вход-блоки (ОШИБКА / СОБЫТИЕ·X / ОБСТОЯТЕЛЬСТВА) → событие --- */
+function schemeDebug(){
+  const links=S.links||[];
+  let h='<div style="background:#FFF7E6;border:1px solid #E0B84A;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;font-family:monospace">';
+  h+='<b>ОТЛАДКА СХЕМЫ (временно):</b><br>';
+  links.forEach((L,i)=>{
+    const letter=String.fromCharCode(65+i);
+    const prevs=(L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef).map(c=>{
+      const t=(S.links.find(x=>x.id===c.linkRef));
+      const ti=S.links.indexOf(t);
+      return "→"+(ti>=0?String.fromCharCode(65+ti):"?");
+    });
+    h+=`${i+1}) буква <b>${letter}</b> · событие: "${esc((L.event||"—").slice(0,25))}" · связи-prev: [${prevs.join(", ")||"нет"}]<br>`;
+  });
+  h+='</div>';
+  return h;
+}
 function schemeSVG(){
   const links=S.links; if(!links.length)return "";
   const byId={}; links.forEach((L,i)=>byId[L.id]={L,i});
