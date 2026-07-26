@@ -1625,12 +1625,7 @@ function stepScale(){
         const vb=timeVal(r.end); let right2=vb>=0?Math.min(pos(vb),96):96;
         if(right2<left) right2=left+3;
         const w=Math.max(right2-left,3);
-        // Блёкнет ТОЛЬКО фоновая запись: её РЕАЛЬНАЯ длительность больше 55% всего
-        // охвата хронологии (span в минутах). Это не зависит от сжатия оси, поэтому
-        // короткие и средние интервалы, где бы они ни стояли, всегда остаются яркими.
-        const realDur = (timeVal(r.end)>=0 && va>=0) ? (timeVal(r.end)-va) : 0;
-        const isBackdrop = realDur > span*0.55;
-        const barCls = isBackdrop ? "step-bar backdrop" : "step-bar";
+        const barCls = "step-bar"; // все интервалы одинаково яркие
         inner+=`<div class="${barCls} ${H} ${chain?"inchain":""}" data-ci="${S.chrono.indexOf(r)}" style="left:${left}%;width:${w}%;top:${top+2}px" onmouseenter="scaleTip(event,${S.chrono.indexOf(r)});hlRow(${S.chrono.indexOf(r)},1)" onmouseleave="scaleTipHide();hlRow(${S.chrono.indexOf(r)},0)"></div>`;
         const cap=S._noCap?"":" · "+esc((r.text||"").slice(0,14))+((r.text||"").length>14?"…":"");
         const lblP=`${esc((r.time||"").slice(0,5))}–${esc((r.end||"ДТП").slice(0,5))}${cap}`;
@@ -2039,12 +2034,12 @@ function screen2(){
     </div>`;
   }).join("");
   return `<h2>Шаг 2 · Звенья цепи</h2>
-  <div class="sub"><span class="f">Событие = Ошибка × Обстоятельства</span> · одна ошибка в звене; обстоятельства — отдельными строками с типом. Ошибку берите из каталога (код сохранится для статистики); своей нет — запишите, станет кандидатом в каталог.</div>
+  <div class="sub"><span class="f">Событие = Ошибка × Обстоятельства</span> · первым ставьте <b>финальное</b> звено (оно получит литеру А), затем причины вглубь. Одна ошибка в звене; обстоятельства — отдельными строками с типом. Ошибку берите из каталога (код сохранится для статистики); своей нет — запишите, станет кандидатом в каталог.</div>
   ${chronoPickBlock()}
   ${S.links.length?`<div class="card" style="padding:10px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <b style="font-size:13px">🗺 Схема цепи</b>
-        <span class="hint" style="margin:0">обновляется автоматически</span><span style="flex:1"></span>
+        <span class="hint" style="margin:0">финал (А) слева, причины уходят вправо в прошлое · обновляется автоматически</span><span style="flex:1"></span>
         <button class="btn small sec noprint" onclick="S._schemeHide=!S._schemeHide;render()">${S._schemeHide?"показать":"свернуть"}</button>
       </div>
       ${S._schemeHide?"":`<div style="overflow-x:auto">${schemeSVG()}</div>`}
@@ -2091,21 +2086,54 @@ function schemeSVG(){
   const blocksOf={}; links.forEach(L=>blocksOf[L.id]=nodeBlocks(L));
   const nodeH=L=>{const n=blocksOf[L.id].length;return n*BH+(n-1)*BGAP;};
   const nodeW=L=> isSource[L.id]? IN_W : IN_W+20+EV_W;
-  // РАСКЛАДКА ПО ПОРЯДКУ ЗВЕНЬЕВ: колонка = номер звена (A слева, далее вправо).
-  // Цепь читается как A → B → C; связи «событие предыдущего звена» лишь рисуют стрелки.
-  const pos={}; let xAcc=20, maxBottom=0;
-  links.forEach((L,i)=>{
-    pos[L.id]={x:xAcc, y:30};
-    const bottom=30+nodeH(L)+20;
-    if(bottom>maxBottom) maxBottom=bottom;
-    xAcc += nodeW(L) + GX;
+  // РАСКЛАДКА ОТ ФИНАЛА ВЛЕВО. Финал — звено, которое НЕ является источником ни для кого
+  // (на его событие никто не ссылается). Оно в колонке 0 (слева). Его причина-источник
+  // уходит в колонку правее. Несколько причин одного потомка встают вертикально.
+  // level[id] = расстояние от финала (0 = финал).
+  const level={};
+  function setLevel(id, lv, seen){
+    seen=seen||new Set(); if(seen.has(id))return; seen.add(id);
+    level[id]=Math.max(level[id]||0, lv);
+    // источники этого звена (те, чьё событие стало обстоятельством здесь) — на уровень правее
+    (byId[id].L.circs||[]).forEach(c=>{
+      if(c.kind==="prev"&&c.linkRef&&byId[c.linkRef]) setLevel(c.linkRef, lv+1, seen);
+    });
+  }
+  // финалы: звенья, не являющиеся источником ни для кого
+  const finals=links.filter(L=>!isSource[L.id]).map(L=>L.id);
+  (finals.length?finals:[links[0].id]).forEach(id=>setLevel(id,0));
+  // звенья без вычисленного уровня (изолированные) — ставим по порядку после максимума
+  let maxLv=Math.max(0,...Object.values(level));
+  links.forEach(L=>{ if(level[L.id]===undefined){ maxLv++; level[L.id]=maxLv; } });
+
+  // группируем по уровням (колонкам)
+  const byLevel={};
+  links.forEach(L=>{ (byLevel[level[L.id]]=byLevel[level[L.id]]||[]).push(L.id); });
+  const levels=Object.keys(byLevel).map(Number).sort((a,b)=>a-b);
+  // ширина колонки уровня = макс. ширина узла в ней
+  const colX={}; let xAcc=20;
+  levels.forEach(lv=>{
+    colX[lv]=xAcc;
+    const wmax=Math.max(...byLevel[lv].map(id=>nodeW(byId[id].L)));
+    xAcc += wmax + GX;
+  });
+  // вертикальная раскладка внутри колонки: сортируем узлы так, чтобы у потомков совпадали
+  // средние высоты их источников (меньше пересечений); стек сверху вниз
+  const pos={}; let maxBottom=0;
+  levels.forEach(lv=>{
+    let yAcc=30;
+    byLevel[lv].forEach(id=>{
+      pos[id]={x:colX[lv], y:yAcc};
+      yAcc += nodeH(byId[id].L) + GY;
+    });
+    if(yAcc>maxBottom) maxBottom=yAcc;
   });
   const svgW=xAcc+10, svgH=maxBottom+20;
   // координаты вход-блоков (для прицела стрелок): inPos[nodeId][refId]={x,y}
   const inPos={};
   links.forEach(L=>{
     const p=pos[L.id]; inPos[L.id]={};
-    blocksOf[L.id].forEach((b,bi)=>{ b._y=p.y+bi*(BH+BGAP); if(b.kind==="prevIn") inPos[L.id][b.ref]={x:p.x,y:b._y+BH/2}; });
+    blocksOf[L.id].forEach((b,bi)=>{ b._y=p.y+bi*(BH+BGAP); if(b.kind==="prevIn") inPos[L.id][b.ref]={x:p.x+IN_W,y:b._y+BH/2}; });
   });
   let out="";
   // внешние стрелки: от каждого блока источника к его блоку «СОБЫТИЕ · Y» в потомке
@@ -2115,10 +2143,11 @@ function schemeSVG(){
     (kids[Y.id]||[]).forEach(childId=>{
       const tgt=inPos[childId][Y.id]; if(!tgt)return;
       blocksOf[Y.id].forEach(b=>{
-        const ay=b._y+BH/2, ax=p.x+IN_W;
+        const ay=b._y+BH/2, ax=p.x; // левый край источника (источник стоит ПРАВЕЕ потомка)
         const mk=b.kind==="err"?"arrc":(b.kind==="prevIn"?"arr":"arrg");
         const col=b.kind==="err"?"#C4674A":(b.kind==="prevIn"?"#4A79A8":"#8A96A3");
-        out+=`<path d="M${ax},${ay} C${ax+GX/2},${ay} ${tgt.x-GX/2},${tgt.y} ${tgt.x},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
+        // кривая справа налево: от левого края источника к правому краю блока-события потомка
+        out+=`<path d="M${ax},${ay} C${ax-GX/2},${ay} ${tgt.x+GX/2},${tgt.y} ${tgt.x},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
       });
     });
   });
