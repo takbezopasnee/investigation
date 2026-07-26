@@ -2072,6 +2072,24 @@ function schemeSVG(){
   links.forEach(L=>(L.circs||[]).forEach(c=>{
     if(c.kind==="prev"&&c.linkRef&&byId[c.linkRef]){isSource[c.linkRef]=true;(kids[c.linkRef]=kids[c.linkRef]||[]).push(L.id);}
   }));
+  // УРОВЕНЬ ОТ ФИНАЛА (а не от истока): финал = 0; причина = уровень своего
+  // следствия + 1. Благодаря этому ВСЕ причины одного следствия получают
+  // одинаковый уровень и встают в одну колонку друг под другом.
+  const outTo={};                       // звено → в какие следствия оно ведёт
+  links.forEach(L=>(L.circs||[]).forEach(c=>{
+    if(c.kind==="prev"&&c.linkRef&&byId[c.linkRef]) (outTo[c.linkRef]=outTo[c.linkRef]||[]).push(L.id);
+  }));
+  const level={};
+  function lv(id,seen){
+    if(level[id]!==undefined)return level[id];
+    seen=seen||new Set(); if(seen.has(id))return 0; seen.add(id);
+    const outs=outTo[id]||[];
+    level[id]=outs.length?1+Math.max(...outs.map(x=>lv(x,seen))):0;
+    return level[id];
+  }
+  links.forEach(L=>lv(L.id));
+  const maxLv=Math.max(...links.map(L=>level[L.id]));
+  const depth={}; links.forEach(L=>{depth[L.id]=maxLv-level[L.id];});  // финал остаётся справа
   const IN_W=175,EV_W=175,GX=95,GY=26,BH=48,BGAP=10;
   const trim=(t,n)=> (t||"").length>n?(t.slice(0,n-1)+"…"):(t||"");
   function nodeBlocks(L){
@@ -2086,13 +2104,26 @@ function schemeSVG(){
   const blocksOf={}; links.forEach(L=>blocksOf[L.id]=nodeBlocks(L));
   const nodeH=L=>{const n=blocksOf[L.id].length;return n*BH+(n-1)*BGAP;};
   const nodeW=L=> isSource[L.id]? IN_W : IN_W+20+EV_W;
-  // ПРОСТАЯ РАСКЛАДКА: все звенья в один ряд слева направо по порядку списка.
+  const cols={}; links.forEach(L=>{const dd=depth[L.id];(cols[dd]=cols[dd]||[]).push(L.id);});
+  const dds=Object.keys(cols).map(Number).sort((a,b)=>a-b);
+  // ПОРЯДОК ВНУТРИ КОЛОНКИ: идём справа налево. Причины одного следствия
+  // становятся соседями, а группы причин следуют порядку своих следствий —
+  // так стрелки не перехлёстываются. Внутри группы порядок как в списке.
+  const idx={}; links.forEach((L,i)=>{idx[L.id]=i;});
+  const rank={};
+  for(let k=dds.length-1;k>=0;k--){
+    const dd=dds[k];
+    const key=id=>Math.min(...(outTo[id]||[]).map(x=>rank[x]!==undefined?rank[x]:1e9),1e9);
+    cols[dd].sort((a,b)=> (key(a)-key(b)) || (idx[a]-idx[b]) );
+    cols[dd].forEach((id,r)=>{rank[id]=r;});
+  }
+  const colW={}; dds.forEach(dd=>{colW[dd]=Math.max(...cols[dd].map(id=>nodeW(byId[id].L)));});
   const pos={}; let xAcc=20, maxBottom=0;
-  links.forEach((L,i)=>{
-    pos[L.id]={x:xAcc, y:30};
-    const bottom=30+nodeH(L)+20;
-    if(bottom>maxBottom) maxBottom=bottom;
-    xAcc += nodeW(L) + GX;
+  dds.forEach(dd=>{
+    let yAcc=30;
+    cols[dd].forEach(id=>{pos[id]={x:xAcc,y:yAcc};yAcc+=nodeH(byId[id].L)+GY;});
+    maxBottom=Math.max(maxBottom,yAcc);
+    xAcc+=colW[dd]+GX;
   });
   const svgW=xAcc+10, svgH=maxBottom+20;
   // координаты вход-блоков (для прицела стрелок): inPos[nodeId][refId]={x,y}
@@ -2109,7 +2140,7 @@ function schemeSVG(){
     (kids[Y.id]||[]).forEach(childId=>{
       const tgt=inPos[childId][Y.id]; if(!tgt)return;
       blocksOf[Y.id].forEach(b=>{
-        const ay=b._y+BH/2, ax=p.x+IN_W; // правый край источника
+        const ay=b._y+BH/2, ax=p.x+IN_W;
         const mk=b.kind==="err"?"arrc":(b.kind==="prevIn"?"arr":"arrg");
         const col=b.kind==="err"?"#C4674A":(b.kind==="prevIn"?"#4A79A8":"#8A96A3");
         out+=`<path d="M${ax},${ay} C${ax+GX/2},${ay} ${tgt.x-GX/2},${tgt.y} ${tgt.x},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
@@ -2155,7 +2186,7 @@ function schemeSVG(){
       });
     }
   });
-  return `<div class="card" style="overflow-x:auto"><svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">
+  return `<div style="overflow-x:auto"><svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4A79A8"/></marker>
       <marker id="arrc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#C4674A"/></marker>
