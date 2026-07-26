@@ -2039,7 +2039,7 @@ function screen2(){
   ${S.links.length?`<div class="card" style="padding:10px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <b style="font-size:13px">🗺 Схема цепи</b>
-        <span class="hint" style="margin:0">финал (А) слева, причины уходят вправо в прошлое · обновляется автоматически</span><span style="flex:1"></span>
+        <span class="hint" style="margin:0">звенья идут по порядку списка: первое (А) слева. Ставьте финал первым · обновляется автоматически</span><span style="flex:1"></span>
         <button class="btn small sec noprint" onclick="S._schemeHide=!S._schemeHide;render()">${S._schemeHide?"показать":"свернуть"}</button>
       </div>
       ${S._schemeHide?"":`<div style="overflow-x:auto">${schemeSVG()}</div>`}
@@ -2086,54 +2086,35 @@ function schemeSVG(){
   const blocksOf={}; links.forEach(L=>blocksOf[L.id]=nodeBlocks(L));
   const nodeH=L=>{const n=blocksOf[L.id].length;return n*BH+(n-1)*BGAP;};
   const nodeW=L=> isSource[L.id]? IN_W : IN_W+20+EV_W;
-  // РАСКЛАДКА ОТ ФИНАЛА ВЛЕВО. Финал — звено, которое НЕ является источником ни для кого
-  // (на его событие никто не ссылается). Оно в колонке 0 (слева). Его причина-источник
-  // уходит в колонку правее. Несколько причин одного потомка встают вертикально.
-  // level[id] = расстояние от финала (0 = финал).
-  const level={};
-  function setLevel(id, lv, seen){
-    seen=seen||new Set(); if(seen.has(id))return; seen.add(id);
-    level[id]=Math.max(level[id]||0, lv);
-    // источники этого звена (те, чьё событие стало обстоятельством здесь) — на уровень правее
-    (byId[id].L.circs||[]).forEach(c=>{
-      if(c.kind==="prev"&&c.linkRef&&byId[c.linkRef]) setLevel(c.linkRef, lv+1, seen);
-    });
-  }
-  // финалы: звенья, не являющиеся источником ни для кого
-  const finals=links.filter(L=>!isSource[L.id]).map(L=>L.id);
-  (finals.length?finals:[links[0].id]).forEach(id=>setLevel(id,0));
-  // звенья без вычисленного уровня (изолированные) — ставим по порядку после максимума
-  let maxLv=Math.max(0,...Object.values(level));
-  links.forEach(L=>{ if(level[L.id]===undefined){ maxLv++; level[L.id]=maxLv; } });
-
-  // группируем по уровням (колонкам)
-  const byLevel={};
-  links.forEach(L=>{ (byLevel[level[L.id]]=byLevel[level[L.id]]||[]).push(L.id); });
-  const levels=Object.keys(byLevel).map(Number).sort((a,b)=>a-b);
-  // ширина колонки уровня = макс. ширина узла в ней
+  // РАСКЛАДКА ПО ПОЗИЦИИ В СПИСКЕ: колонка = номер звена (A слева = финал, если финал
+  // стоит первым). Буквы совпадают с раскладкой, схема согласована с шагом и актом.
+  // Вертикаль: если несколько звеньев — причины одного потомка, разносим их по строкам,
+  // чтобы стрелки не накладывались (ветвление сверху вниз).
   const colX={}; let xAcc=20;
-  levels.forEach(lv=>{
-    colX[lv]=xAcc;
-    const wmax=Math.max(...byLevel[lv].map(id=>nodeW(byId[id].L)));
-    xAcc += wmax + GX;
+  links.forEach((L,i)=>{ colX[i]=xAcc; xAcc += nodeW(L) + GX; });
+  // строка (ряд) звена: финалы/несвязанные — ряд 0; каждая причина одного потомка
+  // получает свой ряд, чтобы не сливаться по вертикали
+  const row={}; const rowUsedByParent={};
+  links.forEach((L,i)=>{
+    // сколько причин у этого звена уже размещено — раздвигаем их по рядам
+    const prevs=(L.circs||[]).filter(c=>c.kind==="prev"&&c.linkRef&&byId[c.linkRef]).map(c=>c.linkRef);
+    prevs.forEach((refId,k)=>{ if(row[refId]===undefined) row[refId]=k; });
+    if(row[L.id]===undefined) row[L.id]=0;
   });
-  // вертикальная раскладка внутри колонки: сортируем узлы так, чтобы у потомков совпадали
-  // средние высоты их источников (меньше пересечений); стек сверху вниз
+  const ROWH=Math.max(...links.map(L=>nodeH(L)))+GY;
   const pos={}; let maxBottom=0;
-  levels.forEach(lv=>{
-    let yAcc=30;
-    byLevel[lv].forEach(id=>{
-      pos[id]={x:colX[lv], y:yAcc};
-      yAcc += nodeH(byId[id].L) + GY;
-    });
-    if(yAcc>maxBottom) maxBottom=yAcc;
+  links.forEach((L,i)=>{
+    const y=30 + (row[L.id]||0)*ROWH;
+    pos[L.id]={x:colX[i], y};
+    const bottom=y+nodeH(L)+20;
+    if(bottom>maxBottom) maxBottom=bottom;
   });
   const svgW=xAcc+10, svgH=maxBottom+20;
   // координаты вход-блоков (для прицела стрелок): inPos[nodeId][refId]={x,y}
   const inPos={};
   links.forEach(L=>{
     const p=pos[L.id]; inPos[L.id]={};
-    blocksOf[L.id].forEach((b,bi)=>{ b._y=p.y+bi*(BH+BGAP); if(b.kind==="prevIn") inPos[L.id][b.ref]={x:p.x+IN_W,y:b._y+BH/2}; });
+    blocksOf[L.id].forEach((b,bi)=>{ b._y=p.y+bi*(BH+BGAP); if(b.kind==="prevIn") inPos[L.id][b.ref]={xl:p.x,xr:p.x+IN_W,y:b._y+BH/2}; });
   });
   let out="";
   // внешние стрелки: от каждого блока источника к его блоку «СОБЫТИЕ · Y» в потомке
@@ -2142,12 +2123,18 @@ function schemeSVG(){
     const p=pos[Y.id];
     (kids[Y.id]||[]).forEach(childId=>{
       const tgt=inPos[childId][Y.id]; if(!tgt)return;
+      const srcLeft=p.x, srcRight=p.x+IN_W, srcCx=(srcLeft+srcRight)/2;
+      // потомок левее или правее источника? выбираем ближние края
+      const childCx=(tgt.xl+tgt.xr)/2;
+      const srcOnRight = srcCx > childCx;
+      const sx = srcOnRight ? srcLeft : srcRight;      // выход из ближней к потомку стороны
+      const tx = srcOnRight ? tgt.xr : tgt.xl;          // вход в ближнюю к источнику сторону
+      const dir = srcOnRight ? -1 : 1;
       blocksOf[Y.id].forEach(b=>{
-        const ay=b._y+BH/2, ax=p.x; // левый край источника (источник стоит ПРАВЕЕ потомка)
+        const ay=b._y+BH/2;
         const mk=b.kind==="err"?"arrc":(b.kind==="prevIn"?"arr":"arrg");
         const col=b.kind==="err"?"#C4674A":(b.kind==="prevIn"?"#4A79A8":"#8A96A3");
-        // кривая справа налево: от левого края источника к правому краю блока-события потомка
-        out+=`<path d="M${ax},${ay} C${ax-GX/2},${ay} ${tgt.x+GX/2},${tgt.y} ${tgt.x},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
+        out+=`<path d="M${sx},${ay} C${sx+dir*GX/2},${ay} ${tx-dir*GX/2},${tgt.y} ${tx},${tgt.y}" fill="none" stroke="${col}" stroke-width="1.8" marker-end="url(#${mk})"/>`;
       });
     });
   });
