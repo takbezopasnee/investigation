@@ -962,6 +962,10 @@ async function startCloud(){
     logAction("вход",null,null);
     try{ localFound=await checkLocalCases(); }catch(e){ localFound=[]; }
     render();
+    // счётчик непрочитанных сообщений + периодическое обновление
+    refreshUnread().then(()=>render());
+    if(unreadTimer) clearInterval(unreadTimer);
+    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ refreshUnread().then(()=>{ if(statsView!==6) render(); }); } }, 30000);
   }catch(e){
     if(/JWT|PGRST303|expired/i.test(e.message||"")){
       saveSession(null);
@@ -1242,6 +1246,239 @@ function screenAudit(){
     <div class="hint" style="margin-top:6px">Удалить можно только пользователя без расследований — иначе сначала «Передать дела». Блокировка мгновенная: заблокированный войдёт, но увидит только сообщение о приостановке. Дела и каталог ему не отдаются — это правило базы, а не интерфейса.</div>
   </div>`;
 }
+
+/* ===== ПЕРЕПИСКА (вопросы и обсуждения) ===== */
+// Состояние чата
+let CHAT_MSGS=null;        // загруженные сообщения текущей открытой ветки
+let CHAT_TAB="admin";      // вкладка на экране «Вопросы»: 'admin' | 'org'
+let CHAT_BUSY=false;
+let CHAT_UNREAD=0;         // счётчик непрочитанных
+let chatPollTimer=null;    // авто-обновление, пока чат открыт
+let unreadTimer=null;      // периодическое обновление счётчика непрочитанных
+let CASE_MSGS=null;        // сообщения открытого дела (обсуждение)
+let caseChatBusy=false;
+
+// --- счётчик непрочитанных (простой) ---
+async function refreshUnread(){
+  if(!CLOUD) return;
+  try{ const n=await rpc("unread_count",{}); CHAT_UNREAD=(typeof n==="number")?n:parseInt(n,10)||0; }
+  catch(e){ /* тихо: счётчик не критичен */ }
+}
+async function markChatSeen(){
+  if(!CLOUD) return;
+  try{ await rpc("mark_chat_seen",{}); CHAT_UNREAD=0; }catch(e){}
+}
+
+// --- загрузка сообщений ветки «Вопросы» ---
+async function loadChat(){
+  if(!CLOUD){ CHAT_MSGS=[]; return; }
+  chatBusySet(true);
+  // администратору нужны имена авторов — подгрузим профили, если их ещё нет
+  if(PROFILE&&PROFILE.is_admin&&(USERS===null)){
+    try{ const ru=await api("/rest/v1/profiles?select=id,full_name,org,is_admin&order=full_name.asc"); if(ru.ok) USERS=await ru.json(); }catch(e){}
+  }
+  let q;
+  if(CHAT_TAB==="org"){
+    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,body&scope=eq.org&order=at.asc&limit=500";
+  } else { // admin — личная ветка: специалист видит свою (owner=я), админ выбирает ветку отдельно
+    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,body&scope=eq.admin&order=at.asc&limit=500";
+  }
+  try{
+    const r=await api(q);
+    CHAT_MSGS = r.ok ? await r.json() : [];
+  }catch(e){ CHAT_MSGS=[]; }
+  chatBusySet(false);
+  await markChatSeen();
+  render();
+  startChatPoll("chat");
+}
+function chatBusySet(v){ CHAT_BUSY=v; }
+
+// тихое авто-обновление ленты, пока открыт чат (эффект «живого» мессенджера)
+function startChatPoll(kind){ // kind: 'chat' | 'case'
+  stopChatPoll();
+  chatPollTimer=setInterval(async ()=>{
+    if(!CLOUD){ stopChatPoll(); return; }
+    // не мешаем, если пользователь набирает текст
+    const active=document.activeElement;
+    if(active&&(active.id==="chatInput"||active.id==="caseChatInput")&&active.value.trim()) return;
+    try{
+      if(kind==="case"){
+        if(statsView===6||S===null){ /* всё равно тихо обновим ниже */ }
+        if(!S) return;
+        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
+        if(r.ok){ const fresh=await r.json(); if(chatChanged(CASE_MSGS,fresh)){ CASE_MSGS=fresh; render(); scrollChat("caseChatList"); } }
+      } else {
+        if(statsView!==6) { stopChatPoll(); return; }
+        const q = CHAT_TAB==="org" ? "scope=eq.org" : "scope=eq.admin";
+        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,body&"+q+"&order=at.asc&limit=500");
+        if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); render(); scrollChat("chatList"); } }
+      }
+    }catch(e){}
+  }, 10000);
+}
+function stopChatPoll(){ if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer=null; } }
+function chatChanged(a,b){ if(!a) return true; if(a.length!==b.length) return true; return a.length&&b.length&&a[a.length-1].id!==b[b.length-1].id; }
+function scrollChat(id){ setTimeout(()=>{ const l=document.getElementById(id); if(l) l.scrollTop=l.scrollHeight; },30); }
+
+// имя автора по id (из USERS у админа, иначе — «специалист»)
+function authorName(id){
+  if(PROFILE&&id===PROFILE.id) return "Вы"+(PROFILE.is_admin?" (администратор)":"");
+  const u=(USERS||[]).find(x=>x.id===id);
+  if(u) return (u.full_name||"специалист")+(u.is_admin?" (администратор)":"");
+  return "специалист";
+}
+
+// --- отправка сообщения ---
+async function sendChat(scope, extra){
+  const boxId = scope==="case" ? "caseChatInput" : "chatInput";
+  const box=document.getElementById(boxId);
+  if(!box) return;
+  const body=(box.value||"").trim();
+  if(!body){ box.focus(); return; }
+  if(!CLOUD){ alert("Переписка доступна только при работе с облаком."); return; }
+  const rec=Object.assign({ scope, body, author:PROFILE.id }, extra||{});
+  try{
+    const r=await api("/rest/v1/messages",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify(rec)});
+    if(!r.ok){ alert("Не удалось отправить: "+(await r.text()).slice(0,200)); return; }
+    const saved=await r.json();
+    box.value="";
+    if(scope==="case"){ if(!CASE_MSGS)CASE_MSGS=[]; CASE_MSGS.push(saved[0]); }
+    else { if(!CHAT_MSGS)CHAT_MSGS=[]; CHAT_MSGS.push(saved[0]); }
+    render();
+    // прокрутить ленту вниз
+    setTimeout(()=>{ const l=document.getElementById(scope==="case"?"caseChatList":"chatList"); if(l)l.scrollTop=l.scrollHeight; },30);
+    logAction("сообщение", extra&&extra.case_id?extra.case_id:null, scope);
+  }catch(e){ alert("Ошибка отправки: "+(e.message||e)); }
+}
+
+// --- удаление своего сообщения ---
+async function delChatMsg(id, scope){
+  if(!confirm("Удалить сообщение?")) return;
+  try{
+    const r=await api("/rest/v1/messages?id=eq."+id,{method:"DELETE",headers:{"Prefer":"return=minimal"}});
+    if(!r.ok){ alert("Не удалось удалить."); return; }
+    if(scope==="case"){ CASE_MSGS=(CASE_MSGS||[]).filter(m=>m.id!==id); }
+    else { CHAT_MSGS=(CHAT_MSGS||[]).filter(m=>m.id!==id); }
+    render();
+  }catch(e){ alert("Ошибка: "+(e.message||e)); }
+}
+
+// --- пузырёк сообщения ---
+function chatBubble(m, scope){
+  const mine = PROFILE && m.author===PROFILE.id;
+  const side = mine ? "flex-end" : "flex-start";
+  const bg   = mine ? "var(--blue)" : "#EDF1F5";
+  const col  = mine ? "#fff" : "var(--ink)";
+  const rad  = mine ? "12px 12px 3px 12px" : "12px 12px 12px 3px";
+  const d=new Date(m.at);
+  const time=d.toLocaleDateString("ru")+" "+d.toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"});
+  const canDel = mine || (PROFILE&&PROFILE.is_admin);
+  const nameLine = mine ? authorName(m.author) : authorName(m.author);
+  return `<div style="align-self:${side};max-width:80%;margin-bottom:10px">
+    <div style="background:${bg};color:${col};padding:9px 13px;border-radius:${rad};font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word">${esc(m.body)}</div>
+    <div style="font-size:10px;color:var(--mut);margin-top:3px;${mine?"text-align:right":""}">${esc(nameLine)} · ${time}${canDel?` · <span style="cursor:pointer;color:var(--coral)" onclick="delChatMsg(${m.id},'${scope}')">удалить</span>`:""}</div>
+  </div>`;
+}
+
+// --- лента + поле ввода ---
+function chatLog(msgs, scope, listId, inputId, sendCall){
+  const items = (msgs&&msgs.length)
+    ? msgs.map(m=>chatBubble(m,scope)).join("")
+    : `<div class="empty" style="margin:auto;color:var(--mut);font-size:13px">Пока нет сообщений. Напишите первым.</div>`;
+  return `<div id="${listId}" style="display:flex;flex-direction:column;min-height:240px;max-height:52vh;overflow-y:auto;padding:4px 2px">${items}</div>
+    <div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--line);padding-top:12px;margin-top:10px" class="noprint">
+      <textarea id="${inputId}" rows="2" placeholder="Написать сообщение…" style="flex:1;resize:vertical;min-height:40px" onkeydown="if(event.ctrlKey&&event.key==='Enter'){${sendCall};return false;}"></textarea>
+      <button class="btn coral" onclick="${sendCall}">Отправить</button>
+    </div>
+    <div class="hint" style="margin-top:5px">Ctrl+Enter — отправить. Обновить ленту: <span style="cursor:pointer;color:var(--blue)" onclick="${scope==='case'?'loadCaseChat()':'loadChat()'}">↻ обновить</span></div>`;
+}
+
+// --- экран «Вопросы» ---
+function screenChat(){
+  const isAdmin = PROFILE&&PROFILE.is_admin;
+  const tab=(t,label,active)=>`<button class="btn ${active?'':'sec'} noprint" onclick="CHAT_TAB='${t}';CHAT_MSGS=null;loadChat()" style="border-radius:8px">${label}</button>`;
+  // ленивая загрузка
+  if(CHAT_MSGS===null && !CHAT_BUSY){ loadChat(); }
+  const head=`<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px">
+      <h2 style="margin:0">Вопросы</h2>
+      <span style="flex:1"></span>
+      <button class="btn sec noprint" onclick="statsView=0;CHAT_MSGS=null;render()">← к расследованиям</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      ${tab("admin", isAdmin?"Личные вопросы":"Администратору", CHAT_TAB==="admin")}
+      ${tab("org","Моя организация", CHAT_TAB==="org")}
+    </div>`;
+
+  if(CHAT_BUSY||CHAT_MSGS===null) return `<div class="card">${head}<div class="empty">Загрузка…</div></div>`;
+
+  // Вкладка «Администратору» / «Личные вопросы»
+  if(CHAT_TAB==="admin"){
+    if(isAdmin){
+      // администратор: группируем личные ветки по owner
+      const byOwner={};
+      (CHAT_MSGS||[]).forEach(m=>{ const k=m.owner||"—"; (byOwner[k]=byOwner[k]||[]).push(m); });
+      const owners=Object.keys(byOwner);
+      if(!owners.length) return `<div class="card">${head}<div class="empty" style="color:var(--mut)">Личных вопросов пока нет.</div></div>`;
+      let sel=window.__chatOwner||owners[0];
+      if(!byOwner[sel]) sel=owners[0];
+      window.__chatOwner=sel;
+      const list=owners.map(o=>{
+        const nm=authorName(o); const last=byOwner[o][byOwner[o].length-1];
+        return `<div onclick="window.__chatOwner='${o}';render()" style="padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:${o===sel?'var(--blue-l)':'transparent'};border:1px solid var(--line)">
+          <b style="font-size:13px">${esc(nm)}</b>
+          <div class="hint" style="margin:0">${esc((last.body||"").slice(0,42))}${(last.body||"").length>42?"…":""}</div></div>`;
+      }).join("");
+      const log=chatLog(byOwner[sel], "admin", "chatList", "chatInput",
+        `sendChat('admin',{owner:'${sel}'})`);
+      return `<div class="card">${head}
+        <div style="display:grid;grid-template-columns:210px 1fr;gap:14px">
+          <div style="border-right:1px solid var(--line);padding-right:12px;max-height:60vh;overflow-y:auto"><div class="hint" style="margin:0 0 6px">Кто спрашивал:</div>${list}</div>
+          <div>${log}</div>
+        </div></div>`;
+    } else {
+      // специалист: своя личная ветка с админом (owner = я)
+      const mine=(CHAT_MSGS||[]).filter(m=>m.owner===PROFILE.id);
+      const log=chatLog(mine, "admin", "chatList", "chatInput", `sendChat('admin',{owner:'${PROFILE.id}'})`);
+      return `<div class="card">${head}
+        <div class="sub" style="margin-top:-4px">Личная переписка с администратором Экспертного центра. Здесь можно задать вопрос по методике или работе приложения.</div>
+        ${log}</div>`;
+    }
+  }
+
+  // Вкладка «Моя организация»
+  const org = PROFILE ? (PROFILE.org||"") : "";
+  const log=chatLog(CHAT_MSGS, "org", "chatList", "chatInput", `sendChat('org',{thread_org:${JSON.stringify(org)}})`);
+  return `<div class="card">${head}
+    <div class="sub" style="margin-top:-4px">Общий чат вашей организации${org?` «${esc(org)}»`:""}. Виден всем специалистам организации и администратору.</div>
+    ${log}</div>`;
+}
+
+// --- обсуждение внутри дела ---
+async function loadCaseChat(){
+  if(!CLOUD||!S){ CASE_MSGS=[]; return; }
+  caseChatBusy=true;
+  try{
+    const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
+    CASE_MSGS = r.ok ? await r.json() : [];
+  }catch(e){ CASE_MSGS=[]; }
+  caseChatBusy=false; render();
+  startChatPoll("case");
+}
+function caseChatBlock(){
+  if(!CLOUD) return "";
+  if(!S) return "";
+  if(CASE_MSGS===null && !caseChatBusy){ loadCaseChat(); }
+  const org = (S.org)|| (PROFILE&&PROFILE.org) || "";
+  const inner = (caseChatBusy||CASE_MSGS===null)
+    ? `<div class="empty">Загрузка обсуждения…</div>`
+    : chatLog(CASE_MSGS, "case", "caseChatList", "caseChatInput",
+        `sendChat('case',{case_id:'${S.id}',thread_org:${JSON.stringify(org)}})`);
+  return `<div class="card" style="margin-top:16px">
+    <h3 style="margin:0 0 4px">💬 Обсуждение расследования</h3>
+    <div class="hint" style="margin:0 0 10px">Видно специалистам вашей организации и администратору. Удобно, чтобы обсудить спорные моменты по этому делу.</div>
+    ${inner}</div>`;
+}
 /* ===== МЕТОДИКА РАССЛЕДОВАНИЯ (подробно, из монографии) ===== */
 function svgFormula(){
   return `<svg viewBox="0 0 700 150" style="width:100%;max-width:560px;display:block;margin:6px auto" font-family="Arial">
@@ -1464,7 +1701,7 @@ function screenList(){
     </div>`;
   return impBlock+`<div style="display:flex;align-items:baseline;gap:14px"><h2>Мои расследования</h2>
     <span style="flex:1"></span>
-    <button class="btn coral noprint" onclick="statsView=5;render()">📚 Методика расследования</button><button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button><button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button>${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<button class="btn sec noprint" style="position:relative" onclick="statsView=2;render()">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}</div>`+tools+`
+    <button class="btn coral noprint" onclick="statsView=5;render()">📚 Методика расследования</button><button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button>${(typeof CLOUD!=="undefined"&&CLOUD)?`<button class="btn sec noprint" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;render()">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>`:""}<button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button>${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<button class="btn sec noprint" style="position:relative" onclick="statsView=2;render()">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}</div>`+tools+`
   <div class="sub">Каждое ДТП — отдельное расследование, его можно вести долго и возвращаться. Данные хранятся в облаке и доступны всем специалистам вашей организации. Новичкам: начните с кнопки <b>«Методика расследования»</b> — там теория и учебный образец.</div>
   <div class="caseGrid">
     <div class="caseCard newCase" onclick="newCase()">＋ Новое расследование</div>
@@ -2786,6 +3023,8 @@ function stepNav(){
 }
 function render(){
   initUndoKeys(); undoCapture();
+  // при уходе с чата/дела гасим авто-обновление; loadChat/loadCaseChat перезапустят его
+  if(typeof stopChatPoll==="function" && statsView!==6 && !S) stopChatPoll();
   const m=document.getElementById("main");
   if(!CLOUD&&!localMode){ // не вошли и не выбрали локальный режим
     document.getElementById("topbar").innerHTML="";
@@ -2797,11 +3036,11 @@ function render(){
   const appFooter=`<footer class="appFooter">${COPYRIGHT_NOTE}</footer>`;
   if(!S){
     const selfHasNote = (statsView===5)||(statsView===4); // screenMethod / screenGuide
-    const body = statsView===5?screenMethod() : (statsView===4?screenGuide() : (statsView===3?screenRegistry() : (statsView===2?screenAudit() : (statsView===1?screenStats():screenList()))));
+    const body = statsView===6?screenChat() : (statsView===5?screenMethod() : (statsView===4?screenGuide() : (statsView===3?screenRegistry() : (statsView===2?screenAudit() : (statsView===1?screenStats():screenList())))));
     m.innerHTML = body + (selfHasNote?"":appFooter);
     return;
   }
-  m.innerHTML=guideStrip()+[screen0,screen1,screen2,screen3,screen4,screen5,screen7,screen8][cur]()+stepNav()+appFooter;
+  m.innerHTML=guideStrip()+[screen0,screen1,screen2,screen3,screen4,screen5,screen7,screen8][cur]()+stepNav()+caseChatBlock()+appFooter;
 }
 async function boot(){
   DB={cases:[]};
