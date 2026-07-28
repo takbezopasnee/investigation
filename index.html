@@ -159,6 +159,9 @@ tr.regRow:hover td{background:var(--blue-l)}
 .undoBtn:hover:not(:disabled){background:rgba(255,255,255,.26)}
 .undoBtn:disabled{opacity:.38;cursor:default}
 .undoBtn svg{width:14px;height:14px;display:block}
+.hdrNav{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.28)!important;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;margin-left:6px;white-space:nowrap}
+.hdrNav:hover{background:rgba(255,255,255,.26)!important}
+.hdrNav .reqBadge{position:absolute;top:-6px;right:-6px}
 .guideStrip{display:flex;gap:9px;align-items:flex-start;background:var(--blue-l);border:1px solid #CADDF0;border-radius:10px;padding:9px 12px;margin-bottom:12px}
 .guideStrip .gi{flex:none;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
 .guideStrip .gx{font-size:12.5px;line-height:1.5;color:#2E4A63}
@@ -193,7 +196,9 @@ tr.cs-stat td{background:var(--gold-l)!important}
   tr{page-break-inside:avoid}
   h1,h2{page-break-after:avoid}
   img{max-width:100%}
+  #printStamp{display:block!important}
 }
+#printStamp{display:none;position:fixed;bottom:4mm;left:0;right:0;text-align:center;font-size:7pt;color:#A5AEB8;font-family:Arial,sans-serif}
 .appFooter{max-width:1000px;margin:34px auto 10px;padding:0 2px}
 .appFooter .hint{color:var(--mut)}
 @media print{.appFooter{display:none}}
@@ -210,107 +215,12 @@ tr.cs-stat td{background:var(--gold-l)!important}
 /* ================= КАТАЛОГ ОШИБОК ВОДИТЕЛЯ (из монографии, 3.2.2 + 3.4.3) =================
    Группировка — по РЕЖИМАМ ДВИЖЕНИЯ (порядок автора); этап сенсомоторной реакции — метка строки. */
 const MODES=["Начало движения","Разгон","Равномерное движение","Манёвры","Торможение","Остановка в потоке","Малые скорости и задний ход","Динамические режимы"];
-const ERR_LIST=[
- // Начало движения
- {m:"Начало движения", e:"Формальный осмотр зеркал и мёртвой зоны без концентрации", st:"восприятие", sub:"невосприятие",
-  circ:["скоростное ТС на обгоне в слепой зоне в момент начала движения"], ev:"боковое столкновение при начале движения"},
- {m:"Начало движения", e:"Несинхронное действие педалями при трогании", st:"действие", sub:"координация",
-  circ:["трогание на подъёме","скользкое покрытие"], ev:"откат / пробуксовка / остановка двигателя в опасном месте"},
- // Разгон
- {m:"Разгон", e:"Резкий разгон при старте", st:"действие", sub:"усилие",
-  circ:["скользкое покрытие","асимметричная нагрузка на ведущую ось"], ev:"пробуксовка с потерей курсовой устойчивости"},
- // Равномерное движение
- {m:"Равномерное движение", e:"Скорость не соответствует пространству спереди", st:"анализ", sub:"количественная оценка",
-  circ:["туман, осадки, скользкая дорога","ограниченная видимость (поворот, гребень, плотный поток)"], ev:"выход дистанции остановки за пределы видимости"},
- {m:"Равномерное движение", e:"Залипание взгляда на одной точке", st:"восприятие", sub:"несвоевременное восприятие",
-  circ:["внезапное препятствие или изменение скорости лидера в ненаблюдаемой зоне"], ev:"несвоевременное восприятие изменения обстановки"},
- {m:"Равномерное движение", e:"Самоуверенность на знакомом месте без личной проверки", st:"анализ", sub:"качественная оценка",
-  circ:["новое препятствие или участник, не встречавшиеся в прежних поездках"], ev:"позднее распознавание изменившейся обстановки"},
- {m:"Равномерное движение", e:"Отсутствие прогноза развития ситуации", st:"анализ", sub:"прогнозирование",
-  circ:["закрытые зоны (припаркованные ТС, автобус, поворот, гребень)","нерегулируемые выезды"], ev:"появление объекта из закрытой зоны без подготовительного снижения скорости"},
- {m:"Равномерное движение", e:"Приоритет ложной задачи над безопасностью (успеть, не опоздать)", st:"решение", sub:"приоритизация",
-  circ:["дефицит времени","плотный трафик","ограничение видимости"], ev:"пропуск признаков опасности из-за сбитой цели"},
- {m:"Равномерное движение", e:"Игнорирование собственного состояния при продолжении движения", st:"восприятие", sub:"утрата восприятия",
-  circ:["ночной перегон, монотонная трасса","физиологический минимум 02:00–05:00"], ev:"полная потеря контроля обстановки (микросон)"},
- // Манёвры
- {m:"Манёвры", e:"Не осмотрена мёртвая зона при перестроении", st:"восприятие", sub:"невосприятие",
-  circ:["мотоцикл, велосипед, узкое ТС или самокат в слепой зоне зеркал"], ev:"боковое столкновение с участником в непросмотренной зоне"},
- {m:"Манёвры", e:"Не ищем мотоциклы и велосипеды, скрытые стойками кузова", st:"восприятие", sub:"искажённое восприятие",
-  circ:["мотоциклист/велосипедист в зоне А-стойки, за встречным ТС или фурой"], ev:"наезд на скрытого стойкой участника"},
- {m:"Манёвры", e:"Резание угла на повороте налево", st:"решение", sub:"выбор варианта",
-  circ:["встречное ТС, поворачивающее налево навстречу","пешеход на ближнем углу"], ev:"столкновение на пересечении траекторий"},
- {m:"Манёвры", e:"Перестроение без запаса по времени на высокой скорости", st:"решение", sub:"своевременность",
-  circ:["догоняющая машина в полосе перестроения","мотоциклист в межрядье"], ev:"боковое столкновение при перестроении"},
- {m:"Манёвры", e:"Отсутствие запаса по ускорению", st:"решение", sub:"запасной вариант",
-  circ:["препятствие спереди, требующее ухода вперёд по скорости (завершение обгона, объезд)"], ev:"невозможность выйти ускорением, переход к торможению как единственному варианту"},
- {m:"Манёвры", e:"Сигнал поворота подан одновременно с началом руления", st:"действие", sub:"сигнализация",
-  circ:["мотоциклист/велосипедист в соседнем ряду","ТС на обгоне сзади"], ev:"боковое столкновение при манёвре"},
- // Торможение
- {m:"Торможение", e:"Торможение на дуге поворота", st:"действие", sub:"усилие",
-  circ:["низкое сцепление (мокрый асфальт, лёд, гравий, листья, разлив топлива)"], ev:"снос / занос на дуге"},
- {m:"Торможение", e:"Только штатное торможение на затяжном спуске (без горного тормоза)", st:"действие", sub:"усилие",
-  circ:["затяжной спуск","перегруз ТС","отсутствие резервной тормозной системы"], ev:"перегрев / выработка ресурса тормозов, отказ"},
- // Остановка в потоке
- {m:"Остановка в потоке", e:"Старт сразу за впередистоящим без оценки его движения", st:"действие", sub:"момент начала",
-  circ:["малая дистанция","тенденция потока к повторным остановкам"], ev:"наезд на впередистоящее ТС"},
- // Малые скорости и задний ход
- {m:"Малые скорости и задний ход", e:"Перепутывание педалей (газ вместо тормоза)", st:"действие", sub:"направление",
-  circ:["стеснённое пространство","стресс","нестандартная компоновка педалей"], ev:"неконтролируемое ускорение"},
- // Динамические режимы
- {m:"Динамические режимы", e:"Поворот руля в неправильную сторону при заносе", st:"действие", sub:"направление",
-  circ:["занос на скользком покрытии"], ev:"углубление заноса, разворот"},
- {m:"Динамические режимы", e:"Отключение систем стабилизации без объективной причины", st:"решение", sub:"выбор варианта",
-  circ:["скользкое покрытие","манёвр с поперечной нагрузкой","разгон с асимметричным сцеплением"], ev:"потеря курсовой устойчивости"},
- {m:"Динамические режимы", e:"Недовершённое действие (не довёл руль / недотормозил)", st:"действие", sub:"завершённость",
-  circ:["короткая дистанция","ограниченный радиус"], ev:"неполный уход от препятствия"}
-];
-/* Операторы, кроме водителя: каталог пополняется практикой. */
-const OP_CATALOG = {
-  "контролёр технического состояния":[{e:"Осмотр при выпуске проведён формально (подпись без проверки)", circ:["давление графика выпуска; нет работающего чек-листа"], ev:"выпуск неисправного ТС на линию"}],
-  "оператор погрузки":[{e:"Загрузка ТС сверх нормы", circ:["нет весового контроля на выезде"], ev:"перегруз ТС"}],
-  "диспетчер":[{e:"Назначен маршрут без учёта массы и профиля", circ:["затяжной спуск на маршруте, альтернатива существовала"], ev:"движение перегруженного ТС по опасному профилю"}],
-  "специалист по БДД":[{e:"Модуль обучения не включён в программу подготовки", circ:["нет требования в корпоративном стандарте"], ev:"допуск водителя без нужного навыка"}]
-};
-
-/* ================= СДК-МАСТЕР: дерево вопросов + условия ошибок (© Комаров) ================= */
-const SDK_TREE = {
-  q:"Было ли действие намеренным (то, что планировалось сделать)?",
-  no:{
-    q:"Ошибка была на основе памяти или внимания?",
-    attention:{type:"промах", cls:"ошибки на основе навыков",
-      cond:["отвлечение от задачи","сильная старая привычка","задержка в выполнении действия"]},
-    memory:{type:"упущение", cls:"ошибки на основе навыков",
-      cond:["изменение характера задачи","изменение среды задачи","забывчивость"]}
-  },
-  yes:{
-    q:"Действие считалось правильным (по правилам или добросовестной практике)?",
-    yes:{
-      q:"Были ли определённые правила для принятия решения? Знал ли оператор их содержание?",
-      rule:{
-        q:"Правило было применено правильно?",
-        good_bad:{type:"заблуждение", sub:"плохое правило", cls:"ошибки на основе правил",
-          cond:["неверное/неэффективное/нецелесообразное правило","отсутствие проверок","с правилом связан высокий риск"]},
-        wrong_apply:{type:"заблуждение", sub:"неправильное применение хорошего правила", cls:"ошибки на основе правил",
-          cond:["правило больше не подходит для обстоятельств","первый опыт использования правила","информационная перегрузка"]}
-      },
-      knowledge:{type:"заблуждение", sub:"на основе знаний", cls:"ошибки на основе знаний",
-        cond:["предвзятость, самоуверенность, эвристика доступности","дефицит времени, давление","отсутствие описания процессов, плохая подготовка"]}
-    },
-    no:{
-      q:"При каких условиях совершено нарушение?",
-      routine:{type:"нарушение", sub:"рутинное", cls:"дисциплинарное воздействие",
-        cond:["«все так делают»","неработающие/необязательные правила","плохое отношение к соблюдению","отсутствие контроля или мотивации"]},
-      situational:{type:"нарушение", sub:"ситуационное", cls:"дисциплинарное воздействие",
-        cond:["невозможно выполнить работу, не нарушив правила","цейтнот","высокая рабочая нагрузка, нехватка ресурсов"]},
-      exceptional:{type:"нарушение", sub:"исключительное", cls:"дисциплинарное воздействие",
-        cond:["неожиданная ситуация","отсутствие подходящих правил","решение проблем в стрессовой ситуации, ЧС"]},
-      optimizing:{type:"нарушение", sub:"оптимизационное", cls:"дисциплинарное воздействие",
-        cond:["отступление в интересах выгоды","нажим со стороны руководства или коллег","личная выгода"]},
-      sabotage:{type:"нарушение", sub:"саботаж", cls:"дисциплинарное воздействие / расследование умысла",
-        cond:["сознательный умысел причинить вред"]}
-    }
-  }
-};
+/* Методика (каталог ошибок, дерево вопросов, операторы) хранится в базе
+   и загружается с сервера только одобренным пользователям (см. metodika_v_bazu.sql).
+   Здесь — пустые заготовки: заполняются функциями applyCatalog / applySDK / applyOperators. */
+const ERR_LIST=[];        // заполняется с сервера (catalog_errors)
+const OP_CATALOG = {};    // заполняется с сервера (catalog_operators)
+let SDK_TREE = {};        // заполняется с сервера (catalog_sdk); let — чтобы можно было заменить целиком
 if(typeof module!=="undefined") module.exports={MODES,ERR_LIST,OP_CATALOG,SDK_TREE};
 /* ---- фирменные константы ---- */
 const LOGO_LIGHT_SRC="data:image/png;base64,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";
@@ -322,6 +232,23 @@ const COPYRIGHT_NOTE=`<div class="hint" style="margin-top:14px;padding-top:10px;
   Все права защищены. Копирование, воспроизведение, переработка методики и приложения, а также
   использование их в составе других продуктов без письменного разрешения правообладателя не допускаются.
   Доступ предоставляется персонально и не подлежит передаче третьим лицам.</div>`;
+
+/* ---- пользовательское соглашение (короткое) ---- */
+const TERMS_VERSION="2026-07-28";
+const TERMS_HTML=`
+  <h3 style="margin-top:0">Условия использования</h3>
+  <div class="hint" style="margin-bottom:12px">Версия от 28.07.2026 · Экспертный центр «Так безопаснее»</div>
+  <p style="font-size:14px;line-height:1.6">Приложение «Формула безопасности» и методика расследования ДТП
+  (ДТП = Ошибка × Обстоятельства) являются интеллектуальной собственностью
+  Дмитрия Комарова и Экспертного центра «Так безопаснее». Регистрируясь, вы принимаете следующие условия:</p>
+  <ol style="font-size:14px;line-height:1.65;padding-left:20px">
+    <li><b>Персональный доступ.</b> Доступ предоставляется лично вам. Передавать логин, пароль или предоставленные материалы третьим лицам запрещено.</li>
+    <li><b>Запрет копирования.</b> Копирование, воспроизведение, публикация и переработка методики и приложения — полностью или частично — без письменного разрешения правообладателя не допускаются.</li>
+    <li><b>Использование по назначению.</b> Материалы используются только для расследования ДТП в рамках вашей организации, не для создания конкурирующих продуктов или обучения третьих лиц.</li>
+    <li><b>Данные.</b> Внесённые вами данные расследований хранятся в защищённом облаке и доступны специалистам вашей организации и администратору методики.</li>
+    <li><b>Ответственность.</b> Нарушение условий влечёт прекращение доступа и ответственность, предусмотренную законодательством об авторском праве.</li>
+  </ol>
+  <p class="hint" style="margin-top:10px">Знак © и полный текст доступны в приложении. По вопросам — takbezopasnee.ru.</p>`;
 /* ===== СПРАВОЧНИКИ ===== */
 const LANES=["В","А","Д","С","О","П"];
 const LANE_NAMES={В:"Водитель",А:"Автомобиль",Д:"Дорога",С:"Среда",О:"Операторы",П:"Прочее (контекст)"};
@@ -563,7 +490,8 @@ let PROFILE=null;     // {id, full_name, org, is_admin}
 let CLOUD=false;      // работаем ли с облаком
 let REFS=null;        // справочники из базы
 let CATALOG=null;     // каталог ошибок из базы
-
+let SDK_DATA=null;    // дерево вопросов СДК из базы
+let OPCAT=null;       // каталог операторов из базы
 function sessionFromHash(){ // возврат по ссылке из письма: #access_token=…
   try{
     const h=(location.hash||"").replace(/^#/,"");
@@ -753,6 +681,38 @@ function applyCatalog(){
   })));
 }
 
+// дерево вопросов СДК (одна активная запись, поле tree = готовый JSON)
+async function fetchSDK(){
+  const r=await api("/rest/v1/catalog_sdk?select=tree&active=eq.true&limit=1");
+  if(!r.ok) return null;
+  const a=await r.json();
+  return (a&&a[0]&&a[0].tree) ? a[0].tree : null;
+}
+function applySDK(){
+  if(SDK_DATA && typeof SDK_DATA==="object" && SDK_DATA.q){ SDK_TREE = SDK_DATA; }
+}
+
+// каталог типовых ошибок операторов
+async function fetchOperators(){
+  const r=await api("/rest/v1/catalog_operators?select=role,text,circumstances,event&active=eq.true&order=role");
+  if(!r.ok) return null;
+  return await r.json();
+}
+function applyOperators(){
+  if(!OPCAT || !OPCAT.length) return;
+  const out={};
+  OPCAT.forEach(r=>{
+    (out[r.role]=out[r.role]||[]).push({
+      e:r.text,
+      circ:(r.circumstances||"").split(";").map(x=>x.trim()).filter(Boolean),
+      ev:r.event||""
+    });
+  });
+  // заменяем содержимое OP_CATALOG, не пересоздавая ссылку
+  Object.keys(OP_CATALOG).forEach(k=>delete OP_CATALOG[k]);
+  Object.keys(out).forEach(k=>{ OP_CATALOG[k]=out[k]; });
+}
+
 /* --- дела --- */
 function caseRow(c){ // вынесенные колонки для статистики и поиска
   const st=caseStats(c);
@@ -874,6 +834,12 @@ function screenSignup(msg,ok){
       <label>Рабочая почта</label><input type="email" id="suEmail" autocomplete="username">
       <div style="height:8px"></div>
       <label>Пароль (не короче 6 знаков)</label><input type="password" id="suPass" autocomplete="new-password">
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink)">
+        <input type="checkbox" id="suAgree" style="width:auto;margin-top:2px;flex:0 0 auto">
+        <label for="suAgree" style="font-weight:400;color:var(--ink);cursor:pointer;margin:0">
+          Я ознакомлен(а) и согласен(на) с <a href="#" onclick="showTerms();return false;">условиями использования</a>: методика и приложение защищены авторским правом, доступ предоставляется персонально и не подлежит передаче третьим лицам.
+        </label>
+      </div>
       <div style="margin-top:14px;display:flex;gap:8px">
         <button class="btn" onclick="doSignup()">Зарегистрироваться</button>
         <button class="btn sec" onclick="loginTab='in';render()">У меня уже есть доступ</button>
@@ -886,6 +852,8 @@ async function doSignup(){
   const name=g("suName"), org=g("suOrg"), email=g("suEmail"), pass=g("suPass");
   if(!name||!org||!email||!pass){ renderSignup("Заполните все поля"); return; }
   if(pass.length<6){ renderSignup("Пароль короче шести знаков"); return; }
+  const agree=document.getElementById("suAgree");
+  if(!agree||!agree.checked){ renderSignup("Чтобы зарегистрироваться, подтвердите согласие с условиями использования"); return; }
   try{
     await signUp(email,pass,name,org);
     renderSignup("","Заявка отправлена. Подтвердите адрес по письму, затем дождитесь, пока администратор откроет доступ.");
@@ -950,8 +918,9 @@ async function startCloud(){
     return;
   }
   try{
-    const [refs,cat]=await Promise.all([fetchRefs(),fetchCatalog()]);
-    REFS=refs; CATALOG=cat; applyRefs(); applyCatalog();
+    const [refs,cat,sdk,ops]=await Promise.all([fetchRefs(),fetchCatalog(),fetchSDK(),fetchOperators()]);
+    REFS=refs; CATALOG=cat; SDK_DATA=sdk; OPCAT=ops;
+    applyRefs(); applyCatalog(); applySDK(); applyOperators();
   }catch(e){}
   if(PROFILE&&((PROFILE.blocked&&!PROFILE.is_admin)||(!PROFILE.approved&&!PROFILE.is_admin))){
     CLOUD=false; render(); showPending(); return;
@@ -960,6 +929,7 @@ async function startCloud(){
     const cases=await cloudLoadCases();
     DB={cases}; CLOUD=true; S=null; cur=0; statsView=0;
     logAction("вход",null,null);
+    ensureTermsRecorded();
     try{ localFound=await checkLocalCases(); }catch(e){ localFound=[]; }
     render();
     // счётчик непрочитанных сообщений + периодическое обновление
@@ -1479,6 +1449,33 @@ function caseChatBlock(){
     <div class="hint" style="margin:0 0 10px">Видно специалистам вашей организации и администратору. Удобно, чтобы обсудить спорные моменты по этому делу.</div>
     ${inner}</div>`;
 }
+
+/* ===== ПОКАЗ ПОЛЬЗОВАТЕЛЬСКОГО СОГЛАШЕНИЯ ===== */
+function showTerms(){
+  let w=document.getElementById("termsModal");
+  if(w){ w.remove(); return; }
+  w=document.createElement("div");
+  w.id="termsModal";
+  w.className="modalWrap";
+  w.onclick=function(e){ if(e.target===w) closeTerms(); };
+  w.innerHTML=`<div class="modalBox" style="max-width:560px;max-height:82vh;overflow-y:auto">
+    ${TERMS_HTML}
+    <div style="margin-top:14px;text-align:right"><button class="btn" onclick="closeTerms()">Закрыть</button></div>
+  </div>`;
+  document.body.appendChild(w);
+}
+function closeTerms(){ const w=document.getElementById("termsModal"); if(w) w.remove(); }
+
+// проставить дату согласия в профиль при первом входе (если ещё не стоит)
+async function ensureTermsRecorded(){
+  if(!CLOUD||!PROFILE) return;
+  if(PROFILE.terms_accepted_at) return; // уже зафиксировано
+  try{
+    const body={ terms_accepted_at:new Date().toISOString(), terms_version:TERMS_VERSION };
+    const r=await api("/rest/v1/profiles?id=eq."+PROFILE.id,{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify(body)});
+    if(r.ok){ PROFILE.terms_accepted_at=body.terms_accepted_at; PROFILE.terms_version=body.terms_version; }
+  }catch(e){ /* тихо: не критично для работы */ }
+}
 /* ===== МЕТОДИКА РАССЛЕДОВАНИЯ (подробно, из монографии) ===== */
 function svgFormula(){
   return `<svg viewBox="0 0 700 150" style="width:100%;max-width:560px;display:block;margin:6px auto" font-family="Arial">
@@ -1612,7 +1609,7 @@ function topbar(){
       <button class="undoBtn" onclick="doRedo()" title="Вернуть отменённое (Ctrl+Y)" ${REDO.length?"":"disabled"}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h4"/></svg>Вернуть</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button>`:""}
     ${(typeof CLOUD!=="undefined"&&CLOUD)
-      ? `<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
+      ? `<button class="hdrNav" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;S=null;render()" title="Вопросы и обсуждения">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>${(PROFILE&&PROFILE.is_admin)?`<button class="hdrNav" style="position:relative" onclick="statsView=2;S=null;render()" title="Журнал и пользователи">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
       : `<span style="font-size:11px;color:rgba(255,255,255,.55);margin-left:10px">локальный режим</span>`}`;
 }
 function backBar(){ // единая кнопка возврата в одном месте
@@ -1701,7 +1698,7 @@ function screenList(){
     </div>`;
   return impBlock+`<div style="display:flex;align-items:baseline;gap:14px"><h2>Мои расследования</h2>
     <span style="flex:1"></span>
-    <button class="btn coral noprint" onclick="statsView=5;render()">📚 Методика расследования</button><button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button>${(typeof CLOUD!=="undefined"&&CLOUD)?`<button class="btn sec noprint" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;render()">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>`:""}<button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button>${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<button class="btn sec noprint" style="position:relative" onclick="statsView=2;render()">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}</div>`+tools+`
+    <button class="btn coral noprint" onclick="statsView=5;render()">📚 Методика расследования</button><button class="btn sec noprint" onclick="statsView=4;render()">📖 Инструкция</button><button class="btn sec noprint" onclick="statsView=3;render()">📒 Реестр</button><button class="btn sec noprint" onclick="statsView=1;render()">📊 Статистика</button></div>`+tools+`
   <div class="sub">Каждое ДТП — отдельное расследование, его можно вести долго и возвращаться. Данные хранятся в облаке и доступны всем специалистам вашей организации. Новичкам: начните с кнопки <b>«Методика расследования»</b> — там теория и учебный образец.</div>
   <div class="caseGrid">
     <div class="caseCard newCase" onclick="newCase()">＋ Новое расследование</div>
@@ -2438,6 +2435,9 @@ function schemeSVG(){
 
 /* ===== СДК-МАСТЕР ===== */
 function sdkRender(r){
+  if(!SDK_TREE || !SDK_TREE.q){
+    return `<div class="warn" style="margin:8px 0">Методика СДК-мастера загружается с сервера и доступна одобренным пользователям. Если вы вошли и видите это сообщение — обновите страницу или проверьте связь с облаком.</div>`;
+  }
   const s=r.sdk||(r.sdk={});
   // путь по дереву согласно s.path (массив ключей)
   s.path=s.path||[];
@@ -3099,6 +3099,14 @@ function circsText(L){
     return esc(c.text);
   }).join("; ");
 }
+function reportStamp(){
+  // персональная метка: кто сформировал документ, организация, дата и время
+  const who = (typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.full_name) ? PROFILE.full_name : "пользователь не определён";
+  const org = (typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.org) ? PROFILE.org : "организация не указана";
+  const now = new Date();
+  const dt = now.toLocaleDateString("ru")+" "+now.toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"});
+  return "Документ сформирован: "+who+" · "+org+" · "+dt;
+}
 function buildReport(schemeImg){
   const cs=causes().filter(c=>!c.dup);
   const dist={водитель:0,операторы:0,руководство:0}; cs.forEach(c=>dist[LEVEL(c.role)]++);
@@ -3228,6 +3236,7 @@ function buildReport(schemeImg){
   h+=`<p style="font-family:Arial;font-size:10.5pt;margin:12px 0 0">С актом ознакомлен (водитель ${esc(S.info.driver||"№ ____")}): ________________________________</p>`;
   h+=`</div>`;
 h+=`<div style="margin-top:16pt;font-size:8pt;color:#5B6B7C;text-align:center">Расследование выполнено по методике «Формула безопасности» · Экспертный центр «Так безопаснее» · takbezopasnee.ru</div>`;
+h+=`<div style="margin-top:4pt;font-size:7.5pt;color:#8A96A3;text-align:center">${esc(reportStamp())}</div>`;
   return h;
 }
 async function printReport(){
@@ -3236,7 +3245,12 @@ async function printReport(){
   const m=document.getElementById("main");
   const keep=m.innerHTML;
   m.innerHTML=buildReport(img);
+  // фиксированный печатный футер с персональной меткой на каждой странице
+  let ps=document.getElementById("printStamp");
+  if(!ps){ ps=document.createElement("div"); ps.id="printStamp"; document.body.appendChild(ps); }
+  ps.textContent=reportStamp();
   window.print();
+  if(ps) ps.remove();
   m.innerHTML=keep; render();
 }
 async function downloadDoc(){
@@ -3257,7 +3271,8 @@ async function downloadDoc(){
   </style>`;
   const wordFooter=`<div style="mso-element:footer" id="f1"><p class="MsoFooter">
     Акт расследования ДТП · «Формула безопасности» · Экспертный центр «Так безопаснее» · стр.
-    <span style="mso-field-code:PAGE"></span> из <span style="mso-field-code:NUMPAGES"></span></p></div>`;
+    <span style="mso-field-code:PAGE"></span> из <span style="mso-field-code:NUMPAGES"></span></p>
+    <p class="MsoFooter" style="font-size:7pt;color:#A5AEB8">${esc(reportStamp())}</p></div>`;
   flash("Готовим документ…");
   const img=await schemePNG();
   const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Акт расследования ДТП</title>${wordCSS}</head><body>${buildReport(img)}${wordFooter}</body></html>`;
