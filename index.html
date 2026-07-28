@@ -940,10 +940,10 @@ async function startCloud(){
     ensureTermsRecorded();
     try{ localFound=await checkLocalCases(); }catch(e){ localFound=[]; }
     render();
-    // счётчик непрочитанных сообщений + периодическое обновление
-    refreshUnread().then(()=>render());
+    // счётчики: непрочитанные сообщения + ожидающие заявки; и периодическое обновление
+    Promise.all([refreshUnread(), refreshPending()]).then(()=>render());
     if(unreadTimer) clearInterval(unreadTimer);
-    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ refreshUnread().then(()=>{ if(statsView!==6) render(); }); } }, 30000);
+    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ Promise.all([refreshUnread(), refreshPending()]).then(()=>{ if(statsView!==6) render(); }); } }, 30000);
   }catch(e){
     if(/JWT|PGRST303|expired/i.test(e.message||"")){
       saveSession(null);
@@ -1059,6 +1059,7 @@ async function setUserField(id,field,value){
     const r=await api("/rest/v1/profiles?id=eq."+id,{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify(body)});
     if(!r.ok){ alert("Не удалось изменить: "+(await r.text()).slice(0,200)); return; }
     const u=(USERS||[]).find(x=>x.id===id); if(u) u[field]=value;
+    if(field==="approved"||field==="blocked") refreshPending();
     render();
   }catch(e){ alert("Ошибка: "+(e.message||e)); }
 }
@@ -1069,6 +1070,9 @@ function approveUser(id){
   setUserField(id,"org",org.trim()||"не указано").then(()=>setUserField(id,"approved",true));
 }
 function pendingUsers(){ return (USERS||[]).filter(u=>!u.approved&&!u.is_admin&&!u.blocked); }
+// число для значка над кнопкой «Журнал»: если список пользователей загружен — точное из него,
+// иначе — из фонового счётчика (чтобы значок был виден и до захода в журнал)
+function pendingBadgeCount(){ return (USERS!==null) ? pendingUsers().length : PENDING_COUNT; }
 async function rejectUser(id){
   const u=(USERS||[]).find(x=>x.id===id); if(!u)return;
   if(!confirm("Отклонить заявку «"+(u.full_name||u.org_claim||"пользователя")+"»?\n\nЧеловек не получит доступа. Если у него нет дел, заявку можно будет удалить в разделе «Пользователи»."))return;
@@ -1241,6 +1245,16 @@ async function refreshUnread(){
   if(!CLOUD) return;
   try{ const n=await rpc("unread_count",{}); CHAT_UNREAD=(typeof n==="number")?n:parseInt(n,10)||0; }
   catch(e){ /* тихо: счётчик не критичен */ }
+}
+// независимый счётчик ожидающих заявок на доступ (для значка над кнопкой «Журнал»)
+let PENDING_COUNT=0;
+async function refreshPending(){
+  if(!CLOUD||!PROFILE||!PROFILE.is_admin) return;
+  try{
+    // лёгкий запрос: только неодобренные, незаблокированные, не-админы
+    const r=await api("/rest/v1/profiles?select=id&approved=eq.false&blocked=eq.false&is_admin=eq.false");
+    if(r.ok){ const a=await r.json(); PENDING_COUNT=Array.isArray(a)?a.length:0; }
+  }catch(e){ /* тихо */ }
 }
 async function markChatSeen(){
   if(!CLOUD) return;
@@ -1746,7 +1760,7 @@ function topbar(){
       <button class="undoBtn" onclick="doRedo()" title="Вернуть отменённое (Ctrl+Y)" ${REDO.length?"":"disabled"}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h4"/></svg>Вернуть</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button>`:""}
     ${(typeof CLOUD!=="undefined"&&CLOUD)
-      ? `<button class="hdrNav" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;S=null;render()" title="Вопросы и обсуждения">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>${(PROFILE&&PROFILE.is_admin)?`<button class="hdrNav" style="position:relative" onclick="statsView=2;USERS=null;S=null;render()" title="Журнал и пользователи">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
+      ? `<button class="hdrNav" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;S=null;render()" title="Вопросы и обсуждения">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>${(PROFILE&&PROFILE.is_admin)?`<button class="hdrNav" style="position:relative" onclick="statsView=2;USERS=null;S=null;render()" title="Журнал и пользователи">📋 Журнал${pendingBadgeCount()?`<span class="reqBadge">${pendingBadgeCount()}</span>`:""}</button>`:""}<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
       : `<span style="font-size:11px;color:rgba(255,255,255,.55);margin-left:10px">локальный режим</span>`}`;
 }
 function backBar(){ // единая кнопка возврата в одном месте
