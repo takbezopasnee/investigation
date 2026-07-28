@@ -1143,7 +1143,7 @@ function auditSummary(){
   });
   return Object.values(m).sort((a,b)=>b.last.localeCompare(a.last));
 }
-function fmtAt(s){ const d=new Date(s); return d.toLocaleDateString("ru")+" "+d.toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"}); }
+function fmtAt(s){ if(!s) return "—"; const d=new Date(s); if(isNaN(d.getTime())) return "—"; return d.toLocaleDateString("ru")+" "+d.toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"}); }
 function screenAudit(){
   if(!PROFILE||!PROFILE.is_admin) return `<div class="empty">Раздел доступен только администратору.</div>`;
   if(USERS===null&&!auditBusy){ loadAudit(); return `<div class="empty">Загрузка журнала…</div>`; }
@@ -1274,18 +1274,29 @@ function startChatPoll(kind){ // kind: 'chat' | 'case'
     if(active&&(active.id==="chatInput"||active.id==="caseChatInput")&&active.value.trim()) return;
     try{
       if(kind==="case"){
-        if(statsView===6||S===null){ /* всё равно тихо обновим ниже */ }
-        if(!S) return;
+        if(!S){ return; }
         const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
-        if(r.ok){ const fresh=await r.json(); if(chatChanged(CASE_MSGS,fresh)){ CASE_MSGS=fresh; render(); scrollChat("caseChatList"); } }
+        if(r.ok){ const fresh=await r.json(); if(chatChanged(CASE_MSGS,fresh)){ CASE_MSGS=fresh; refreshChatList("caseChatList"); } }
       } else {
         if(statsView!==6) { stopChatPoll(); return; }
         const q = CHAT_TAB==="org" ? "scope=eq.org" : "scope=eq.admin";
         const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,body&"+q+"&order=at.asc&limit=500");
-        if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); render(); scrollChat("chatList"); } }
+        if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); refreshChatList("chatList"); } }
       }
     }catch(e){}
   }, 10000);
+}
+// обновляем ТОЛЬКО ленту сообщений (не весь экран) — чтобы не пересоздавать хедер
+// и не терять клики по кнопкам во время авто-обновления
+function refreshChatList(listId){
+  const list=document.getElementById(listId);
+  if(!list){ return; } // ленты нет на экране — просто пропускаем
+  const msgs = listId==="caseChatList" ? CASE_MSGS : CHAT_MSGS;
+  const scope = listId==="caseChatList" ? "case" : (CHAT_TAB==="org"?"org":"admin");
+  list.innerHTML = (msgs&&msgs.length)
+    ? msgs.map(m=>chatBubble(m,scope)).join("")
+    : `<div class="empty" style="margin:auto;color:var(--mut);font-size:13px">Пока нет сообщений. Напишите первым.</div>`;
+  list.scrollTop=list.scrollHeight;
 }
 function stopChatPoll(){ if(chatPollTimer){ clearInterval(chatPollTimer); chatPollTimer=null; } }
 function chatChanged(a,b){ if(!a) return true; if(a.length!==b.length) return true; return a.length&&b.length&&a[a.length-1].id!==b[b.length-1].id; }
@@ -1609,7 +1620,7 @@ function topbar(){
       <button class="undoBtn" onclick="doRedo()" title="Вернуть отменённое (Ctrl+Y)" ${REDO.length?"":"disabled"}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h4"/></svg>Вернуть</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button>`:""}
     ${(typeof CLOUD!=="undefined"&&CLOUD)
-      ? `<button class="hdrNav" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;S=null;render()" title="Вопросы и обсуждения">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>${(PROFILE&&PROFILE.is_admin)?`<button class="hdrNav" style="position:relative" onclick="statsView=2;S=null;render()" title="Журнал и пользователи">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
+      ? `<button class="hdrNav" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;S=null;render()" title="Вопросы и обсуждения">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>${(PROFILE&&PROFILE.is_admin)?`<button class="hdrNav" style="position:relative" onclick="statsView=2;USERS=null;S=null;render()" title="Журнал и пользователи">📋 Журнал${pendingUsers().length?`<span class="reqBadge">${pendingUsers().length}</span>`:""}</button>`:""}<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
       : `<span style="font-size:11px;color:rgba(255,255,255,.55);margin-left:10px">локальный режим</span>`}`;
 }
 function backBar(){ // единая кнопка возврата в одном месте
