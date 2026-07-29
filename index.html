@@ -1363,6 +1363,21 @@ async function sendChat(scope, extra){
   }catch(e){ alert("Ошибка отправки: "+(e.message||e)); }
 }
 
+// обёртки: берут организацию/дело из состояния, чтобы не прокидывать
+// строки через onclick-атрибут (иначе кавычки в названии ломают кнопку)
+function sendOrgChat(){
+  const org = (PROFILE && PROFILE.org) ? PROFILE.org : "";
+  sendChat('org', {thread_org: org});
+}
+function sendAdminChat(ownerId){
+  sendChat('admin', {owner: ownerId || (PROFILE && PROFILE.id)});
+}
+function sendCaseChat(){
+  if(!S) return;
+  const org = (S.org) || (PROFILE && PROFILE.org) || "";
+  sendChat('case', {case_id: S.id, thread_org: org});
+}
+
 // --- удаление своего сообщения ---
 async function delChatMsg(id, scope){
   if(!confirm("Удалить сообщение?")) return;
@@ -1441,7 +1456,7 @@ function screenChat(){
           <div class="hint" style="margin:0">${esc((last.body||"").slice(0,42))}${(last.body||"").length>42?"…":""}</div></div>`;
       }).join("");
       const log=chatLog(byOwner[sel], "admin", "chatList", "chatInput",
-        `sendChat('admin',{owner:'${sel}'})`);
+        `sendAdminChat('${sel}')`);
       return `<div class="card">${head}
         <div style="display:grid;grid-template-columns:210px 1fr;gap:14px">
           <div style="border-right:1px solid var(--line);padding-right:12px;max-height:60vh;overflow-y:auto"><div class="hint" style="margin:0 0 6px">Кто спрашивал:</div>${list}</div>
@@ -1450,7 +1465,7 @@ function screenChat(){
     } else {
       // специалист: своя личная ветка с админом (owner = я)
       const mine=(CHAT_MSGS||[]).filter(m=>m.owner===PROFILE.id);
-      const log=chatLog(mine, "admin", "chatList", "chatInput", `sendChat('admin',{owner:'${PROFILE.id}'})`);
+      const log=chatLog(mine, "admin", "chatList", "chatInput", `sendAdminChat()`);
       return `<div class="card">${head}
         <div class="sub" style="margin-top:-4px">Личная переписка с администратором Экспертного центра. Здесь можно задать вопрос по методике или работе приложения.</div>
         ${log}</div>`;
@@ -1459,7 +1474,7 @@ function screenChat(){
 
   // Вкладка «Моя организация»
   const org = PROFILE ? (PROFILE.org||"") : "";
-  const log=chatLog(CHAT_MSGS, "org", "chatList", "chatInput", `sendChat('org',{thread_org:${JSON.stringify(org)}})`);
+  const log=chatLog(CHAT_MSGS, "org", "chatList", "chatInput", `sendOrgChat()`);
   return `<div class="card">${head}
     <div class="sub" style="margin-top:-4px">Общий чат вашей организации${org?` «${esc(org)}»`:""}. Виден всем специалистам организации и администратору.</div>
     ${log}</div>`;
@@ -1484,7 +1499,7 @@ function caseChatBlock(){
   const inner = (caseChatBusy||CASE_MSGS===null)
     ? `<div class="empty">Загрузка обсуждения…</div>`
     : chatLog(CASE_MSGS, "case", "caseChatList", "caseChatInput",
-        `sendChat('case',{case_id:'${S.id}',thread_org:${JSON.stringify(org)}})`);
+        `sendCaseChat()`);
   return `<div class="card" style="margin-top:16px">
     <h3 style="margin:0 0 4px">💬 Обсуждение расследования</h3>
     <div class="hint" style="margin:0 0 10px">Видно специалистам вашей организации и администратору. Удобно, чтобы обсудить спорные моменты по этому делу.</div>
