@@ -1046,7 +1046,7 @@ async function loadAudit(){
   try{
     const since=new Date(Date.now()-auditDays*864e5).toISOString();
     const [ru,rl]=await Promise.all([
-      api("/rest/v1/profiles?select=id,full_name,email,org,org_claim,approved,blocked,is_admin,created_at,note&order=created_at.desc"),
+      api("/rest/v1/profiles?select=id,full_name,email,org,org_claim,approved,blocked,is_admin,email_confirmed,created_at,note&order=created_at.desc"),
       api("/rest/v1/audit_log?select=at,user_id,org,action,case_id,details,actor_name&at=gte."+since+"&order=at.desc&limit=400")
     ]);
     USERS = ru.ok ? await ru.json() : [];
@@ -1070,7 +1070,7 @@ function approveUser(id){
   if(org===null) return;
   setUserField(id,"org",org.trim()||"не указано").then(()=>setUserField(id,"approved",true));
 }
-function pendingUsers(){ return (USERS||[]).filter(u=>!u.approved&&!u.is_admin&&!u.blocked); }
+function pendingUsers(){ return (USERS||[]).filter(u=>!u.approved&&!u.is_admin&&!u.blocked&&u.email_confirmed!==false); }
 // число для значка над кнопкой «Журнал»: если список пользователей загружен — точное из него,
 // иначе — из фонового счётчика (чтобы значок был виден и до захода в журнал)
 function pendingBadgeCount(){ return (USERS!==null) ? pendingUsers().length : PENDING_COUNT; }
@@ -1212,6 +1212,7 @@ function screenAudit(){
       const state = u.is_admin ? `<span class="pill" style="background:var(--blue-l);color:var(--blue)">администратор</span>`
         : u.blocked ? `<span class="pill" style="background:#FBEAE5;color:var(--coral)">заблокирован</span>`
         : u.approved ? `<span class="pill" style="background:var(--green-l);color:var(--green)">доступ открыт</span>`
+        : (u.email_confirmed===false) ? `<span class="pill" style="background:#EDEFF2;color:var(--mut)">почта не подтверждена</span>`
         : `<span class="pill" style="background:var(--gold-l);color:var(--amber)">ждёт подтверждения</span>`;
       let btns="";
       if(!u.is_admin){
@@ -1259,7 +1260,7 @@ async function refreshPending(){
   if(!CLOUD||!PROFILE||!PROFILE.is_admin) return;
   try{
     // лёгкий запрос: только неодобренные, незаблокированные, не-админы
-    const r=await api("/rest/v1/profiles?select=id&approved=eq.false&blocked=eq.false&is_admin=eq.false");
+    const r=await api("/rest/v1/profiles?select=id&approved=eq.false&blocked=eq.false&is_admin=eq.false&email_confirmed=eq.true");
     if(r.ok){ const a=await r.json(); PENDING_COUNT=Array.isArray(a)?a.length:0; }
   }catch(e){ /* тихо */ }
 }
