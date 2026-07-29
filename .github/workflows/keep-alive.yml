@@ -2,51 +2,76 @@
 #  «Формула безопасности» — будильник для базы Supabase
 #
 #  Не даёт базе бесплатного тарифа заснуть от простоя.
-#  Раз в 3 дня делает один лёгкий запрос к базе — этого
-#  достаточно, чтобы счётчик 7 дней неактивности не дошёл до нуля.
+#  Раз в 3 дня делает лёгкий запрос к базе — счётчик 7 дней
+#  неактивности сбрасывается.
 #
-#  Куда положить: в репозиторий с приложением, по пути
-#    .github/workflows/keep-alive.yml
-#  (папки .github и workflows создать, если их нет)
+#  Если пинг НЕ удался (база недоступна/уснула) — присылает
+#  письмо администратору. Пока всё хорошо — писем нет.
 #
-#  Перед использованием впишите два значения ниже:
-#    SUPABASE_URL  — адрес вашего проекта Supabase
-#    SUPABASE_ANON — публичный anon-ключ (тот же, что в index.html)
+#  Куда положить: .github/workflows/keep-alive.yml
+#
+#  ВАЖНО: для писем о сбое нужно один раз добавить секрет
+#  RESEND_API_KEY в настройках репозитория (см. инструкцию).
 # ============================================================
 
 name: Keep Supabase Alive
 
 on:
   schedule:
-    # минута час день месяц день-недели (по UTC)
-    # '0 9 */3 * *' = в 09:00 UTC каждые 3 дня
-    - cron: '0 9 */3 * *'
-  # позволяет запустить вручную кнопкой в разделе Actions (для проверки)
-  workflow_dispatch:
+    - cron: '0 9 */3 * *'   # каждые 3 дня в 09:00 UTC
+  workflow_dispatch:         # ручной запуск кнопкой (для проверки)
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
       - name: Пинг базы Supabase
+        id: ping
         run: |
-          # Значения вашего проекта (публичный anon-ключ, как в index.html):
           SUPABASE_URL="https://mwlogdphkclydurugmky.supabase.co"
           SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13bG9nZHBoa2NseWR1cnVnbWt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2MjEyOTAsImV4cCI6MjEwMDE5NzI5MH0.lXyj8cxGkc9uGwZiYRa6DfeB9nLBiChTGE3B_fNZoO0"
 
           echo "Пингуем базу, чтобы не заснула..."
-          # лёгкий запрос к публичной таблице справочника (ref_items).
-          # limit=1 — берём одну строку, минимальная нагрузка.
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             "$SUPABASE_URL/rest/v1/ref_items?select=list&limit=1" \
             -H "apikey: $SUPABASE_ANON" \
             -H "Authorization: Bearer $SUPABASE_ANON")
 
           echo "Ответ базы: HTTP $HTTP_CODE"
-          # 200 или 206 — база жива и ответила. Иначе — сигнал проблемы.
+          echo "code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+
           if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "206" ]; then
             echo "✅ База активна, счётчик простоя сброшен."
+            echo "ok=true" >> "$GITHUB_OUTPUT"
           else
-            echo "⚠️ Неожиданный ответ ($HTTP_CODE) — проверьте URL и ключ."
+            echo "⚠️ Пинг не удался (HTTP $HTTP_CODE)."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # шаг выполняется ТОЛЬКО если пинг не удался
+      - name: Письмо о сбое
+        if: steps.ping.outputs.ok == 'false'
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          if [ -z "$RESEND_API_KEY" ]; then
+            echo "Секрет RESEND_API_KEY не задан — письмо не отправлено."
             exit 1
           fi
+          CODE="${{ steps.ping.outputs.code }}"
+          curl -s -X POST "https://api.resend.com/emails" \
+            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "from": "Формула безопасности <noreply@takbezopasnee.ru>",
+              "to": "dmitry.komarov.62@gmail.com",
+              "subject": "База не отвечает - проверьте Supabase",
+              "html": "<div style=\"font-family:Arial,sans-serif;color:#1E2A38;font-size:15px;line-height:1.6\"><h2 style=\"color:#C4674A;margin:0 0 12px\">База не отвечает</h2><p>Автоматический будильник не смог достучаться до базы (ответ HTTP '"$CODE"'). Возможно, проект Supabase поставлен на паузу или недоступен.</p><p>Зайдите в панель Supabase и при необходимости нажмите <b>Restore project</b>.</p><p style=\"margin:18px 0\"><a href=\"https://supabase.com/dashboard\" style=\"display:inline-block;background:#4A79A8;color:#fff;text-decoration:none;padding:11px 26px;border-radius:8px;font-weight:600;font-size:15px\">Открыть Supabase</a></p><hr style=\"border:none;border-top:1px solid #E2E8EF;margin:16px 0\"><p style=\"font-size:12px;color:#8A98A6\">Будильник базы</p></div>"
+            }'
+          echo ""
+          echo "Письмо о сбое отправлено."
+
+      # если пинг не удался — помечаем весь запуск красным крестиком
+      - name: Отметить сбой
+        if: steps.ping.outputs.ok == 'false'
+        run: exit 1
