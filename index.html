@@ -1287,6 +1287,7 @@ let CHAT_UNREAD=0;         // счётчик непрочитанных
 let chatPollTimer=null;    // авто-обновление, пока чат открыт
 let unreadTimer=null;      // периодическое обновление счётчика непрочитанных
 let CASE_MSGS=null;        // сообщения открытого дела (обсуждение)
+let REPLY_TO=null;         // id сообщения, на которое отвечаем (или null)
 let caseChatBusy=false;
 
 // --- счётчик непрочитанных (простой) ---
@@ -1320,9 +1321,9 @@ async function loadChat(){
   }
   let q;
   if(CHAT_TAB==="org"){
-    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,body&scope=eq.org&order=at.asc&limit=500";
+    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,body&scope=eq.org&order=at.asc&limit=500";
   } else { // admin — личная ветка: специалист видит свою (owner=я), админ выбирает ветку отдельно
-    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,body&scope=eq.admin&order=at.asc&limit=500";
+    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,body&scope=eq.admin&order=at.asc&limit=500";
   }
   try{
     const r=await api(q);
@@ -1346,12 +1347,12 @@ function startChatPoll(kind){ // kind: 'chat' | 'case'
     try{
       if(kind==="case"){
         if(!S){ return; }
-        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
+        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
         if(r.ok){ const fresh=await r.json(); if(chatChanged(CASE_MSGS,fresh)){ CASE_MSGS=fresh; refreshChatList("caseChatList"); } }
       } else {
         if(statsView!==6) { stopChatPoll(); return; }
         const q = CHAT_TAB==="org" ? "scope=eq.org" : "scope=eq.admin";
-        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,body&"+q+"&order=at.asc&limit=500");
+        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,body&"+q+"&order=at.asc&limit=500");
         if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); refreshChatList("chatList"); } }
       }
     }catch(e){}
@@ -1400,11 +1401,12 @@ async function sendChat(scope, extra){
   if(!body){ box.focus(); return; }
   if(!CLOUD){ alert("Переписка доступна только при работе с облаком."); return; }
   const rec=Object.assign({ scope, body, author:PROFILE.id }, extra||{});
+  if(REPLY_TO!=null) rec.reply_to=REPLY_TO;
   try{
     const r=await api("/rest/v1/messages",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify(rec)});
     if(!r.ok){ alert("Не удалось отправить: "+(await r.text()).slice(0,200)); return; }
     const saved=await r.json();
-    box.value="";
+    box.value=""; REPLY_TO=null;
     if(scope==="case"){ if(!CASE_MSGS)CASE_MSGS=[]; CASE_MSGS.push(saved[0]); }
     else { if(!CHAT_MSGS)CHAT_MSGS=[]; CHAT_MSGS.push(saved[0]); }
     render();
@@ -1442,6 +1444,9 @@ async function delChatMsg(id, scope){
 }
 
 // --- пузырёк сообщения ---
+function findMsg(id){ if(id==null) return null; for(const L of [CHAT_MSGS, CASE_MSGS]){ if(Array.isArray(L)){ const f=L.find(x=>x.id===id); if(f) return f; } } return null; }
+function setReply(id){ REPLY_TO=id; render(); const b=document.getElementById(S?"caseChatInput":"chatInput"); if(b) b.focus(); }
+function cancelReply(){ REPLY_TO=null; render(); }
 function chatBubble(m, scope){
   const mine = PROFILE && m.author===PROFILE.id;
   const side = mine ? "flex-end" : "flex-start";
@@ -1451,10 +1456,12 @@ function chatBubble(m, scope){
   const d=new Date(m.at);
   const time=d.toLocaleDateString("ru")+" "+d.toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"});
   const canDel = mine || (PROFILE&&PROFILE.is_admin);
-  const nameLine = mine ? authorName(m.author) : authorName(m.author);
+  const nameLine = authorName(m.author);
+  const q = (m.reply_to!=null) ? findMsg(m.reply_to) : null;
+  const quote = q ? `<div style="border-left:3px solid ${mine?"rgba(255,255,255,.6)":"var(--blue)"};background:${mine?"rgba(255,255,255,.15)":"rgba(74,121,168,.09)"};border-radius:4px;padding:3px 8px;margin-bottom:5px;font-size:12px"><b>${esc(authorName(q.author))}</b>: ${esc((q.body||"").slice(0,70))}${(q.body||"").length>70?"…":""}</div>` : "";
   return `<div style="align-self:${side};max-width:80%;margin-bottom:10px">
-    <div style="background:${bg};color:${col};padding:9px 13px;border-radius:${rad};font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word">${esc(m.body)}</div>
-    <div style="font-size:10px;color:var(--mut);margin-top:3px;${mine?"text-align:right":""}">${esc(nameLine)} · ${time}${canDel?` · <span style="cursor:pointer;color:var(--coral)" onclick="delChatMsg(${m.id},'${scope}')">удалить</span>`:""}</div>
+    <div style="background:${bg};color:${col};padding:9px 13px;border-radius:${rad};font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word">${quote}${esc(m.body)}</div>
+    <div style="font-size:10px;color:var(--mut);margin-top:3px;${mine?"text-align:right":""}">${esc(nameLine)} · ${time} · <span style="cursor:pointer;color:var(--blue)" onclick="setReply(${m.id})">Ответить</span>${canDel?` · <span style="cursor:pointer;color:var(--coral)" onclick="delChatMsg(${m.id},'${scope}')">удалить</span>`:""}</div>
   </div>`;
 }
 
@@ -1463,7 +1470,10 @@ function chatLog(msgs, scope, listId, inputId, sendCall){
   const items = (msgs&&msgs.length)
     ? msgs.map(m=>chatBubble(m,scope)).join("")
     : `<div class="empty" style="margin:auto;color:var(--mut);font-size:13px">Пока нет сообщений. Напишите первым.</div>`;
+  const rq = (REPLY_TO!=null) ? findMsg(REPLY_TO) : null;
+  const replyBar = rq ? `<div class="noprint" style="display:flex;align-items:center;gap:8px;background:var(--blue-l);border-left:3px solid var(--blue);border-radius:6px;padding:6px 10px;margin-bottom:6px;font-size:12px"><div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ответ на <b>${esc(authorName(rq.author))}</b>: ${esc((rq.body||"").slice(0,60))}</div><span style="cursor:pointer;color:var(--coral);font-weight:700;font-size:15px" onclick="cancelReply()">×</span></div>` : "";
   return `<div style="max-width:640px;margin:0 auto"><div id="${listId}" style="display:flex;flex-direction:column;min-height:240px;max-height:52vh;overflow-y:auto;padding:4px 2px">${items}</div>
+    ${replyBar}
     <div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--line);padding-top:12px;margin-top:10px" class="noprint">
       <textarea id="${inputId}" rows="2" placeholder="Написать сообщение…" style="flex:1;resize:vertical;min-height:40px" onkeydown="if(event.ctrlKey&&event.key==='Enter'){${sendCall};return false;}"></textarea>
       <button class="btn coral" onclick="${sendCall}">Отправить</button>
@@ -1551,7 +1561,7 @@ async function loadCaseChat(){
   if(!CLOUD||!S){ CASE_MSGS=[]; return; }
   caseChatBusy=true;
   try{
-    const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
+    const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
     CASE_MSGS = r.ok ? await r.json() : [];
   }catch(e){ CASE_MSGS=[]; }
   markCaseSeen();
