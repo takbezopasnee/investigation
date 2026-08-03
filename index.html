@@ -982,9 +982,9 @@ async function startCloud(){
     try{ localFound=await checkLocalCases(); }catch(e){ localFound=[]; }
     render();
     // счётчики: непрочитанные сообщения + ожидающие заявки; и периодическое обновление
-    Promise.all([refreshUnread(), refreshPending()]).then(()=>render());
+    Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>render());
     if(unreadTimer) clearInterval(unreadTimer);
-    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ Promise.all([refreshUnread(), refreshPending()]).then(()=>{ if(statsView!==6) render(); }); } }, 30000);
+    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>{ if(statsView!==6) render(); }); } }, 30000);
   }catch(e){
     if(/JWT|PGRST303|expired/i.test(e.message||"")){
       saveSession(null);
@@ -1463,9 +1463,7 @@ function chatLog(msgs, scope, listId, inputId, sendCall){
   const items = (msgs&&msgs.length)
     ? msgs.map(m=>chatBubble(m,scope)).join("")
     : `<div class="empty" style="margin:auto;color:var(--mut);font-size:13px">Пока нет сообщений. Напишите первым.</div>`;
-  const fio = (PROFILE && !PROFILE.full_name) ? `<div class="warn" style="margin-bottom:10px;font-size:13px" class="noprint">Ваши сообщения подписываются как «специалист». Укажите фамилию и имя — они будут стоять в подписи:
-      <div style="display:flex;gap:8px;margin-top:6px" class="noprint"><input type="text" id="myFioInput" placeholder="Фамилия Имя" style="flex:1"><button class="btn small" onclick="saveMyName()">Сохранить</button></div></div>` : "";
-  return `<div style="max-width:640px;margin:0 auto">${fio}<div id="${listId}" style="display:flex;flex-direction:column;min-height:240px;max-height:52vh;overflow-y:auto;padding:4px 2px">${items}</div>
+  return `<div style="max-width:640px;margin:0 auto"><div id="${listId}" style="display:flex;flex-direction:column;min-height:240px;max-height:52vh;overflow-y:auto;padding:4px 2px">${items}</div>
     <div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid var(--line);padding-top:12px;margin-top:10px" class="noprint">
       <textarea id="${inputId}" rows="2" placeholder="Написать сообщение…" style="flex:1;resize:vertical;min-height:40px" onkeydown="if(event.ctrlKey&&event.key==='Enter'){${sendCall};return false;}"></textarea>
       <button class="btn coral" onclick="${sendCall}">Отправить</button>
