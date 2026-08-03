@@ -1513,10 +1513,13 @@ function screenChat(){
       if(!byOwner[sel]) sel=owners[0];
       window.__chatOwner=sel;
       const list=owners.map(o=>{
-        const nm=authorName(o); const last=byOwner[o][byOwner[o].length-1];
-        return `<div onclick="window.__chatOwner='${o}';render()" style="padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:${o===sel?'var(--blue-l)':'transparent'};border:1px solid var(--line)">
-          <b style="font-size:13px">${esc(nm)}</b>
-          <div class="hint" style="margin:0">${esc((last.body||"").slice(0,42))}${(last.body||"").length>42?"…":""}</div></div>`;
+        const nm=authorName(o); const msgs=byOwner[o]; const last=msgs[msgs.length-1];
+        let lastAdmin=-1; for(let i=0;i<msgs.length;i++){ if(msgs[i].author===PROFILE.id) lastAdmin=i; }
+        const waiting=msgs.slice(lastAdmin+1).filter(m=>m.author!==PROFILE.id).length;
+        return `<div onclick="window.__chatOwner='${o}';render()" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:${o===sel?'var(--blue-l)':'transparent'};border:1px solid var(--line)">
+          <div style="min-width:0"><b style="font-size:13px">${esc(nm)}</b>
+          <div class="hint" style="margin:0">${esc((last.body||"").slice(0,42))}${(last.body||"").length>42?"…":""}</div></div>
+          ${waiting?`<span style="background:var(--coral);color:#fff;font-weight:700;font-size:11px;border-radius:10px;padding:1px 7px;flex:none" title="сообщений без ответа">${waiting}</span>`:""}</div>`;
       }).join("");
       const log=chatLog(byOwner[sel], "admin", "chatList", "chatInput",
         `sendAdminChat('${sel}')`);
