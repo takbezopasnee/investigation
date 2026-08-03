@@ -688,6 +688,7 @@ async function fetchProfile(){
     try{ const ur=await api("/auth/v1/user"); if(ur.ok){ const u=await ur.json(); const nm=((u&&u.user_metadata&&u.user_metadata.full_name)||"").trim();
       if(nm){ const pr=await api("/rest/v1/profiles?id=eq."+SESSION.user.id,{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({full_name:nm})}); if(pr.ok) PROFILE.full_name=nm; } } }catch(e){}
   }
+  loadNames();
   return PROFILE;
 }
 
@@ -1070,6 +1071,7 @@ function readImportFile(file){
 
 /* ===== ЖУРНАЛ И ПОЛЬЗОВАТЕЛИ (только администратору) ===== */
 let AUDIT=null, USERS=null, auditDays=1, auditBusy=false;
+let NAMES={};   // {id:{full_name,is_admin}} — имена для подписи в чате, грузятся у всех
 let CASECNT={};
 async function rpc(name,args){
   const r=await api("/rest/v1/rpc/"+name,{method:"POST",body:JSON.stringify(args||{})});
@@ -1374,9 +1376,19 @@ function scrollChat(id){ setTimeout(()=>{ const l=document.getElementById(id); i
 // имя автора по id (из USERS у админа, иначе — «специалист»)
 function authorName(id){
   if(PROFILE&&id===PROFILE.id) return "Вы"+(PROFILE.is_admin?" (администратор)":"");
-  const u=(USERS||[]).find(x=>x.id===id);
+  const u=(USERS||[]).find(x=>x.id===id) || NAMES[id];
   if(u) return (u.full_name||"специалист")+(u.is_admin?" (администратор)":"");
   return "специалист";
+}
+async function loadNames(){
+  if(!SESSION||!SESSION.user) return;
+  try{
+    const r=await api("/rest/v1/rpc/chat_names",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+    if(!r.ok) return;
+    const rows=await r.json(); const m={};
+    (rows||[]).forEach(function(u){ m[u.id]={full_name:u.full_name,is_admin:u.is_admin}; });
+    NAMES=m; render();
+  }catch(e){}
 }
 
 // --- отправка сообщения ---
