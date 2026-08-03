@@ -1922,7 +1922,7 @@ function screenList(){
       <h3>${esc(c.name)}</h3>
       <div class="meta">${esc(dt)}${c.info.kind?" · "+esc(c.info.kind):""} · ${esc(c.info.ts||c.info.tsType||"ТС —")}<br>изменено ${d.toLocaleDateString("ru")} ${d.toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"})}</div>
       ${c.is_sample?`<span class="stat" style="background:var(--gold-l);color:var(--amber)">📖 образец</span> `:""}${c.closed?`<span class="stat" style="background:var(--green-l);color:var(--green)">🔒 закрыто</span> `:""}<span class="stat ${st.causes?"":"z"}" title="системных причин (дубли не считаются)">${st.causes} ${plural(st.causes,"причина","причины","причин")}</span>
-      ${st.acts?`<span class="stat" title="мероприятий: выполнено / всего" style="margin-left:6px">${st.done}/${st.acts} мер.</span>`:""}${CASE_UNREAD[c.id]?`<span class="stat" style="background:var(--blue-l);color:var(--blue);margin-left:6px" title="новые сообщения в обсуждении">💬 ${CASE_UNREAD[c.id]}</span>`:""}
+      ${st.acts?`<span class="stat" title="мероприятий: выполнено / всего" style="margin-left:6px">${st.done}/${st.acts} мер.</span>`:""}${CASE_UNREAD[c.id]?`<span style="background:var(--coral);color:#fff;font-weight:700;font-size:12px;border-radius:11px;padding:2px 9px;margin-left:8px;box-shadow:0 1px 5px rgba(196,103,74,.55)" title="новые сообщения в обсуждении">💬 ${CASE_UNREAD[c.id]}</span>`:""}
       <div style="margin-top:10px" class="noprint">
         <button class="btn small sec" onclick="archCase('${c.id}',event)">${c.closed?"извлечь из архива":(c.archived?"из архива":"в архив")}</button>
         <button class="btn small danger" onclick="delCase('${c.id}',event)">удалить</button>
