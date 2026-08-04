@@ -46,6 +46,12 @@ input[type=text],textarea,select{width:100%;border:1px solid var(--line);border-
 textarea{resize:vertical;min-height:36px}
 textarea.grow1{resize:none;min-height:0;overflow:hidden;white-space:pre-wrap;word-break:break-word;line-height:1.35}
 input::placeholder,textarea::placeholder{color:#B9C3CD;opacity:1;font-style:italic}
+.draghandle{cursor:grab;font-size:15px;line-height:1;user-select:none;padding:2px 4px;border-radius:4px;display:inline-block}
+.draghandle:hover{background:var(--gray-l);color:var(--ink)}
+.draghandle:active{cursor:grabbing}
+tr.drag-ghost{opacity:.4}
+tr.drag-over>td{box-shadow:inset 0 2px 0 var(--blue)}
+.factHead{font-size:15px;font-weight:700;color:var(--blue);letter-spacing:.01em;padding-bottom:6px;border-bottom:2px solid var(--blue-l);margin-bottom:10px;display:flex;align-items:baseline;gap:10px}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--blue);border-color:var(--blue)}
 .btn{border:none;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;font-weight:600;background:var(--ink);color:#fff}
 .btn:hover{opacity:.92}.btn.sec{background:var(--gray-l);color:var(--ink)}.btn.small{padding:5px 10px;font-size:13px}
@@ -2153,14 +2159,14 @@ function screenFacts(){
         ${LOCKED()?"":`<div style="margin-top:6px"><button class="btn small sec noprint" onclick="addExtraFact('${s.key}')">+ Факт</button></div>`}
       </div>`;
     return `<div class="card">
-      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px"><b style="font-size:13px">${esc(s.title)}</b>${counter}</div>
+      <div class="factHead"><span>${esc(s.title)}</span>${counter}</div>
       ${infoBlock}${dateCtx}${factorsTable}${extraBlock}</div>`;
   };
   return `<h2>Шаг 1 · Информация и факты</h2>
   <div class="sub">Сначала соберите доказательную базу и разберите обстоятельства по разделам — чтобы ничего не упустить. Влияние ставьте предварительно: окончательно роль факта определится на Хронологии и Звеньях.</div>
   <div class="card">
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">
-      <b style="font-size:13px">Материалы расследования</b><span style="flex:1"></span>
+    <div class="factHead">
+      <span>Материалы расследования</span><span style="flex:1"></span>
       ${LOCKED()?"":`<button class="btn small sec noprint" onclick="addMaterial()">+ Материал</button>`}
     </div>
     <table class="t"><tr><th style="width:460px">Материал</th><th style="width:110px">Наличие</th><th>Примечание</th><th style="width:34px"></th></tr>
@@ -2173,17 +2179,18 @@ function screenFacts(){
   </div>
   ${FACT_SECTIONS.map(section).join("")}
   <div class="card">
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
-      <b style="font-size:13px">Прочее</b><span class="hint" style="margin:0">факты, не попавшие в разделы выше</span>
+    <div class="factHead">
+      <span>Прочее</span><span class="hint" style="margin:0;font-weight:400">факты, не попавшие в разделы выше</span>
     </div>
-    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:110px">Время</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:58px"></th></tr>
-      ${S.facts._other.map((p,i)=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=factRowClass(p); return `<tr class="${rc}">
+    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:22px"></th><th style="width:110px">Время</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:34px"></th></tr>
+      ${S.facts._other.map((p,i)=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=factRowClass(p); return `<tr class="${rc}" ondragover="dragOver(event,'facts._other',${i})" ondrop="dragDrop(event,'facts._other',${i})">
+        <td style="text-align:center;color:var(--mut)">${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить" draggable="true" ondragstart="dragStart(event,'facts._other',${i})" ondragend="dragEnd(event)">⠿</span>`}</td>
         <td>${inpSec(p,"time","14:32:00")}</td>
         <td>${inp(p,"v","что установлено")}</td>
         <td>${factSrcSelect(p)}</td>
         <td style="text-align:center">${LOCKED()?(p.use?"✓":"—"):(hasSrc?`<input type="checkbox" ${p.use?"checked":""} onclick="factToggleUse('_other','${p.id}')" title="это установленный факт (есть источник)">`:`<span class="hint" style="margin:0" title="сначала укажите источник">—</span>`)}</td>
         <td>${hasSrc?`${sel(p,"inf",FACT_INFLUENCE,()=>render())} ${infBadge(p.inf)}${factMoveBtns("_other",p.id)}`:`<span class="hint" style="margin:0">укажите источник</span>`}</td>
-        <td>${LOCKED()?"":`<div class="rowbtns"><button onclick="moveRow(S.facts._other,${i},-1)" title="выше">▲</button><button onclick="moveRow(S.facts._other,${i},1)" title="ниже">▼</button><button onclick="delOtherFact('${p.id}')" title="удалить" style="color:#A33">✕</button></div>`}</td></tr>`; }).join("")}</table>` : `<div class="empty">Пусто. Кнопкой «+ Факт» добавьте произвольный факт с оценкой влияния.</div>`}
+        <td>${LOCKED()?"":`<button class="btn small danger noprint" onclick="delOtherFact('${p.id}')" title="удалить" style="color:#A33">✕</button>`}</td></tr>`; }).join("")}</table>` : `<div class="empty">Пусто. Кнопкой «+ Факт» добавьте произвольный факт с оценкой влияния.</div>`}
     ${LOCKED()?"":`<div style="margin-top:6px"><button class="btn small sec noprint" onclick="addOtherFact()">+ Факт</button></div>`}
   </div>
   <div class="hint">Порядок: укажите <b>источник</b> → отметьте <b>факт</b> → поставьте <b>влияние</b> → кнопками отправьте «→ в хронологию» (с источником) или «→ в анализ» (для «оказало/возможно»). Указанное здесь <b>время</b> перенесётся в хронологию вместе с фактом. Факт без влияния тоже можно отправить в хронологию, если он важен для картины.</div>`;
@@ -2357,6 +2364,16 @@ function toggleFact(i){
   save(); render();
 }
 function moveRow(arr,i,d){const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];save();render();}
+// Перетаскивание строк мышью. arrName — имя массива в S (например "facts._other" или "chrono").
+// Вызывается из ondragstart/ondragover/ondrop; после броска переставляет элементы и перерисовывает.
+let DRAG_SRC=null; // {arrName, index}
+function dragStart(ev,arrName,i){ DRAG_SRC={arrName,index:i}; ev.dataTransfer.effectAllowed="move"; try{ev.dataTransfer.setData("text/plain",String(i));}catch(e){} const tr=ev.target.closest("tr"); if(tr)tr.classList.add("drag-ghost"); }
+function dragEnd(ev){ const tr=ev.target.closest("tr"); if(tr)tr.classList.remove("drag-ghost"); document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over")); DRAG_SRC=null; }
+function dragOver(ev,arrName,i){ if(!DRAG_SRC||DRAG_SRC.arrName!==arrName)return; ev.preventDefault(); ev.dataTransfer.dropEffect="move"; const tr=ev.currentTarget; document.querySelectorAll(".drag-over").forEach(x=>{if(x!==tr)x.classList.remove("drag-over")}); tr.classList.add("drag-over"); }
+function dragDrop(ev,arrName,i){ if(!DRAG_SRC||DRAG_SRC.arrName!==arrName)return; ev.preventDefault(); const from=DRAG_SRC.index, to=i; DRAG_SRC=null;
+  const arr=arrName.split(".").reduce((o,k)=>o&&o[k],S); if(!Array.isArray(arr)||from===to||from<0||to<0||from>=arr.length||to>=arr.length){render();return;}
+  const [item]=arr.splice(from,1); arr.splice(to,0,item); save(); render(); }
+function dragAttrs(arrName,i){ return `draggable="true" ondragstart="dragStart(event,'${arrName}',${i})" ondragend="dragEnd(event)" ondragover="dragOver(event,'${arrName}',${i})" ondrop="dragDrop(event,'${arrName}',${i})"`; }
 function sortChrono(){S.chrono.sort((a,b)=>{const x=timeVal(a.time),y=timeVal(b.time);if(x<0)return 1;if(y<0)return -1;return x-y;});save();render();}
 function scaleTip(ev,i){
   const r=S.chrono[i]; if(!r)return;
