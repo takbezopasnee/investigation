@@ -1111,7 +1111,7 @@ function approveUser(id){
   if(org===null) return;
   setUserField(id,"org",org.trim()||"не указано").then(()=>setUserField(id,"approved",true));
 }
-function pendingUsers(){ return (USERS||[]).filter(u=>!u.approved&&!u.is_admin&&!u.blocked&&u.email_confirmed!==false); }
+function pendingUsers(){ return (USERS||[]).filter(u=>!u.approved&&!u.is_admin&&!u.blocked&&u.email_confirmed===true); }
 // число для значка над кнопкой «Журнал»: если список пользователей загружен — точное из него,
 // иначе — из фонового счётчика (чтобы значок был виден и до захода в журнал)
 function pendingBadgeCount(){ return (USERS!==null) ? pendingUsers().length : PENDING_COUNT; }
@@ -1310,6 +1310,13 @@ async function markChatSeen(){
   if(!CLOUD) return;
   try{ await rpc("mark_chat_seen",{}); CHAT_UNREAD=0; }catch(e){}
 }
+function markThreadSeen(o){
+  if(!PROFILE||!o) return;
+  if(!PROFILE.case_seen||typeof PROFILE.case_seen!=="object") PROFILE.case_seen={};
+  PROFILE.case_seen["thr:"+o]=new Date().toISOString();
+  if(CLOUD) api("/rest/v1/profiles?id=eq."+PROFILE.id,{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({case_seen:PROFILE.case_seen})}).catch(function(){});
+}
+function selectThread(o){ window.__chatOwner=o; markThreadSeen(o); render(); }
 
 // --- загрузка сообщений ветки «Вопросы» ---
 async function loadChat(){
@@ -1524,12 +1531,12 @@ function screenChat(){
       window.__chatOwner=sel;
       const list=owners.map(o=>{
         const nm=authorName(o); const msgs=byOwner[o]; const last=msgs[msgs.length-1];
-        let lastAdmin=-1; for(let i=0;i<msgs.length;i++){ if(msgs[i].author===PROFILE.id) lastAdmin=i; }
-        const waiting=msgs.slice(lastAdmin+1).filter(m=>m.author!==PROFILE.id).length;
-        return `<div onclick="window.__chatOwner='${o}';render()" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:${o===sel?'var(--blue-l)':'transparent'};border:1px solid var(--line)">
+        const seen=(PROFILE&&PROFILE.case_seen&&PROFILE.case_seen["thr:"+o])||null;
+        const unread=msgs.filter(m=>m.author!==PROFILE.id && (!seen || new Date(m.at).getTime()>new Date(seen).getTime())).length;
+        return `<div onclick="selectThread('${o}')" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:${o===sel?'var(--blue-l)':'transparent'};border:1px solid var(--line)">
           <div style="min-width:0"><b style="font-size:13px">${esc(nm)}</b>
           <div class="hint" style="margin:0">${esc((last.body||"").slice(0,42))}${(last.body||"").length>42?"…":""}</div></div>
-          ${waiting?`<span style="background:var(--coral);color:#fff;font-weight:700;font-size:11px;border-radius:10px;padding:1px 7px;flex:none" title="сообщений без ответа">${waiting}</span>`:""}</div>`;
+          ${unread?`<span style="background:var(--coral);color:#fff;font-weight:700;font-size:11px;border-radius:10px;padding:1px 7px;flex:none" title="непрочитанных сообщений">${unread}</span>`:""}</div>`;
       }).join("");
       const log=chatLog(byOwner[sel], "admin", "chatList", "chatInput",
         `sendAdminChat('${sel}')`);
@@ -1888,7 +1895,7 @@ function nav(){
     }).join("");
 }
 function goto(i){cur=i;render();}
-function openCase(id){S=DB.cases.find(c=>c.id===id);cur=0;statsView=0;render();}
+function openCase(id){S=DB.cases.find(c=>c.id===id);cur=0;statsView=0;CASE_MSGS=null;render();}
 function closeCase(){S=null;render();refreshCaseUnread();}
 function newCase(){const c=blankCase();DB.cases.push(c);save();if(typeof logAction==="function")logAction("создание дела",c.id,c.name);openCase(c.id);}
 function delCase(id,ev){ev.stopPropagation();if(!confirm("Удалить расследование безвозвратно?"))return;
