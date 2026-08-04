@@ -1321,9 +1321,9 @@ async function loadChat(){
   }
   let q;
   if(CHAT_TAB==="org"){
-    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,body&scope=eq.org&order=at.asc&limit=500";
+    q="/rest/v1/messages?select=*&scope=eq.org&order=at.asc&limit=500";
   } else { // admin — личная ветка: специалист видит свою (owner=я), админ выбирает ветку отдельно
-    q="/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,body&scope=eq.admin&order=at.asc&limit=500";
+    q="/rest/v1/messages?select=*&scope=eq.admin&order=at.asc&limit=500";
   }
   try{
     const r=await api(q);
@@ -1347,12 +1347,12 @@ function startChatPoll(kind){ // kind: 'chat' | 'case'
     try{
       if(kind==="case"){
         if(!S){ return; }
-        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
+        const r=await api("/rest/v1/messages?select=*&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
         if(r.ok){ const fresh=await r.json(); if(chatChanged(CASE_MSGS,fresh)){ CASE_MSGS=fresh; refreshChatList("caseChatList"); } }
       } else {
         if(statsView!==6) { stopChatPoll(); return; }
         const q = CHAT_TAB==="org" ? "scope=eq.org" : "scope=eq.admin";
-        const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,body&"+q+"&order=at.asc&limit=500");
+        const r=await api("/rest/v1/messages?select=*&"+q+"&order=at.asc&limit=500");
         if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); refreshChatList("chatList"); } }
       }
     }catch(e){}
@@ -1561,7 +1561,7 @@ async function loadCaseChat(){
   if(!CLOUD||!S){ CASE_MSGS=[]; return; }
   caseChatBusy=true;
   try{
-    const r=await api("/rest/v1/messages?select=id,at,author,scope,thread_org,owner,reply_to,case_id,body&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
+    const r=await api("/rest/v1/messages?select=*&scope=eq.case&case_id=eq."+S.id+"&order=at.asc&limit=500");
     CASE_MSGS = r.ok ? await r.json() : [];
   }catch(e){ CASE_MSGS=[]; }
   markCaseSeen();
