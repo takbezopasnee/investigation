@@ -50,8 +50,12 @@ input::placeholder,textarea::placeholder{color:#B9C3CD;opacity:1;font-style:ital
 .draghandle:hover{background:var(--gray-l);color:var(--ink)}
 .draghandle:active{cursor:grabbing}
 tr.drag-ghost{opacity:.4}
+.drag-ghost{opacity:.4}
+tr.drag-over>td{box-shadow:inset 0 2px 0 var(--blue)}
+.card.drag-over,.causeItem.drag-over{box-shadow:0 -2px 0 var(--blue),0 2px 8px rgba(74,121,168,.15)}
 tr.drag-over>td{box-shadow:inset 0 2px 0 var(--blue)}
 .factHead{font-size:15px;font-weight:700;color:var(--blue);letter-spacing:.01em;padding-bottom:6px;border-bottom:2px solid var(--blue-l);margin-bottom:10px;display:flex;align-items:baseline;gap:10px}
+.blockTitle{font-size:14.5px!important;font-weight:700;color:var(--blue)}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--blue);border-color:var(--blue)}
 .btn{border:none;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;font-weight:600;background:var(--ink);color:#fff}
 .btn:hover{opacity:.92}.btn.sec{background:var(--gray-l);color:var(--ink)}.btn.small{padding:5px 10px;font-size:13px}
@@ -1305,7 +1309,7 @@ function screenAudit(){
 
   <div class="card">
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
-      <b style="font-size:13px">Активность</b><span style="flex:1"></span>
+      <b class="blockTitle">Активность</b><span style="flex:1"></span>
       ${[[1,"сутки"],[7,"неделя"],[30,"месяц"]].map(([d,l])=>
         `<button class="btn small ${auditDays===d?"coral":"sec"} noprint" onclick="auditDays=${d};USERS=null;render()">${l}</button>`).join("")}
       <button class="btn small sec noprint" onclick="USERS=null;render()">обновить</button>
@@ -1316,7 +1320,7 @@ function screenAudit(){
   </div>
 
   <div class="card">
-    <b style="font-size:13px">Подробно</b>
+    <b class="blockTitle">Подробно</b>
     <div class="hint" style="margin:4px 0 8px">Последние ${(AUDIT||[]).length} записей.</div>
     ${(AUDIT&&AUDIT.length)?`<table class="t"><tr><th style="width:130px">Когда</th><th>Кто</th><th style="width:150px">Действие</th><th>Подробности</th></tr>
     ${AUDIT.map(l=>`<tr><td>${esc(fmtAt(l.at))}</td><td>${esc(auditName(l))}</td><td>${esc(l.action)}</td><td>${esc(l.details||"")}</td></tr>`).join("")}</table>`
@@ -1324,7 +1328,7 @@ function screenAudit(){
   </div>
 
   <div class="card">
-    <b style="font-size:13px">Пользователи (${(USERS||[]).length})</b>
+    <b class="blockTitle">Пользователи (${(USERS||[]).length})</b>
     <table class="t" style="margin-top:8px"><tr><th>Имя</th><th style="width:180px">Почта</th><th style="width:150px">Организация</th><th style="width:52px">Дел</th><th style="width:120px">Состояние</th><th style="width:280px"></th></tr>
     ${(USERS||[]).map(u=>{
       const state = u.is_admin ? `<span class="pill" style="background:var(--blue-l);color:var(--blue)">администратор</span>`
@@ -2087,7 +2091,7 @@ function screen0(){
 
   <div class="card">
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">
-      <b style="font-size:13px">Комиссия по расследованию</b><span style="flex:1"></span>
+      <b class="blockTitle">Комиссия по расследованию</b><span style="flex:1"></span>
       ${LOCKED()?"":`<button class="btn small sec noprint" onclick="addCommission()">+ Член комиссии</button>`}
     </div>
     ${S.info.commission.length?`<table class="t"><tr><th>Ф. И. О.</th><th style="width:230px">Должность</th><th style="width:190px">Роль в комиссии</th><th style="width:34px"></th></tr>
@@ -2368,12 +2372,22 @@ function moveRow(arr,i,d){const j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j
 // Вызывается из ondragstart/ondragover/ondrop; после броска переставляет элементы и перерисовывает.
 let DRAG_SRC=null; // {arrName, index}
 function dragStart(ev,arrName,i){ DRAG_SRC={arrName,index:i}; ev.dataTransfer.effectAllowed="move"; try{ev.dataTransfer.setData("text/plain",String(i));}catch(e){} const tr=ev.target.closest("tr"); if(tr)tr.classList.add("drag-ghost"); }
-function dragEnd(ev){ const tr=ev.target.closest("tr"); if(tr)tr.classList.remove("drag-ghost"); document.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over")); DRAG_SRC=null; }
+function dragEnd(ev){ const tr=ev.target.closest("tr")||ev.target.closest(".card")||ev.target.closest("[data-dragrow]"); if(tr)tr.classList.remove("drag-ghost"); document.querySelectorAll(".drag-over,.drag-ghost").forEach(x=>x.classList.remove("drag-over","drag-ghost")); DRAG_SRC=null; DRAG_SRC_ID=null; }
 function dragOver(ev,arrName,i){ if(!DRAG_SRC||DRAG_SRC.arrName!==arrName)return; ev.preventDefault(); ev.dataTransfer.dropEffect="move"; const tr=ev.currentTarget; document.querySelectorAll(".drag-over").forEach(x=>{if(x!==tr)x.classList.remove("drag-over")}); tr.classList.add("drag-over"); }
 function dragDrop(ev,arrName,i){ if(!DRAG_SRC||DRAG_SRC.arrName!==arrName)return; ev.preventDefault(); const from=DRAG_SRC.index, to=i; DRAG_SRC=null;
   const arr=arrName.split(".").reduce((o,k)=>o&&o[k],S); if(!Array.isArray(arr)||from===to||from<0||to<0||from>=arr.length||to>=arr.length){render();return;}
   const [item]=arr.splice(from,1); arr.splice(to,0,item); save(); render(); }
 function dragAttrs(arrName,i){ return `draggable="true" ondragstart="dragStart(event,'${arrName}',${i})" ondragend="dragEnd(event)" ondragover="dragOver(event,'${arrName}',${i})" ondrop="dragDrop(event,'${arrName}',${i})"`; }
+// d&d по идентификатору (для списков, чей порядок хранится отдельным массивом id: причины, мероприятия).
+// applyFn(fromId, toId) переставляет элемент fromId на позицию toId и сохраняет порядок.
+let DRAG_SRC_ID=null; // {group, id}
+function dragStartId(ev,group,id){ DRAG_SRC_ID={group,id}; ev.dataTransfer.effectAllowed="move"; try{ev.dataTransfer.setData("text/plain",id);}catch(e){} const el=ev.target.closest("[data-dragrow]")||ev.target.closest("tr")||ev.target.closest(".card"); if(el)el.classList.add("drag-ghost"); }
+function dragOverId(ev,group,id){ if(!DRAG_SRC_ID||DRAG_SRC_ID.group!==group)return; ev.preventDefault(); ev.dataTransfer.dropEffect="move"; const el=ev.currentTarget; document.querySelectorAll(".drag-over").forEach(x=>{if(x!==el)x.classList.remove("drag-over")}); el.classList.add("drag-over"); }
+function dragDropId(ev,group,id,applyFn){ if(!DRAG_SRC_ID||DRAG_SRC_ID.group!==group)return; ev.preventDefault(); const fromId=DRAG_SRC_ID.id, toId=id; DRAG_SRC_ID=null; if(fromId!==toId) applyFn(fromId,toId); else render(); }
+// переставить id в массиве-порядке order на позицию перед toId
+function reorderById(order,fromId,toId){ const from=order.indexOf(fromId), to=order.indexOf(toId); if(from<0||to<0||from===to)return order.slice(); const a=order.slice(); const [it]=a.splice(from,1); a.splice(to,0,it); return a; }
+function dropCause(fromId,toId){ const ids=causes().map(c=>c.id); S.causeOrder=reorderById(ids,fromId,toId); save(); render(); }
+function dropAction(fromId,toId){ const ids=displayActs().map(x=>x.a.id); if(S.actionSort&&S.actionSort.col)S.actionSort=null; S.actionOrder=reorderById(ids,fromId,toId); save(); render(); }
 function sortChrono(){S.chrono.sort((a,b)=>{const x=timeVal(a.time),y=timeVal(b.time);if(x<0)return 1;if(y<0)return -1;return x-y;});save();render();}
 function scaleTip(ev,i){
   const r=S.chrono[i]; if(!r)return;
@@ -2394,14 +2408,15 @@ function hlRow(i,on){const tr=document.getElementById("crow"+i);if(tr)tr.classLi
 function hlDot(i,on){document.querySelectorAll('.step-dot[data-ci="'+i+'"],.step-bar[data-ci="'+i+'"]').forEach(el=>{el.style.outline=on?"2px solid var(--ink)":"";el.style.outlineOffset=on?"1px":"";});}
 function screen1(){
   GROW_FOCUS_ONLY=true; // плотная таблица — поля растут только при фокусе
-  const rows=S.chrono.map((r,i)=>`<tr id="crow${i}" onmouseenter="hlDot(${i},1)" onmouseleave="hlDot(${i},0)">
+  const rows=S.chrono.map((r,i)=>`<tr id="crow${i}" onmouseenter="hlDot(${i},1)" onmouseleave="hlDot(${i},0)" ondragover="dragOver(event,'chrono',${i})" ondrop="dragDrop(event,'chrono',${i})">
+    <td style="width:22px;text-align:center;color:var(--mut)">${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить" draggable="true" ondragstart="dragStart(event,'chrono',${i})" ondragend="dragEnd(event)">⠿</span>`}</td>
     <td style="width:88px">${inpSec(r,"time","14:32:00")}</td>
     <td style="width:88px">${inp(r,"end","конец / до…")}</td>
     <td style="width:64px" class="${r.lane?("lane-"+r.lane):""}">${sel(r,"lane",LANES,()=>render())}</td>
     <td>${inpStop(r,"text","факт без оценки")}</td>
     <td style="width:170px">${srcSelect(r)}</td>
     <td style="width:34px;text-align:center">${(()=>{ const hasSrc=!!((r.src||"").trim()); return hasSrc?chk(r,"inchain","",()=>render()):`<span title="в цепь можно взять только запись с источником" style="opacity:.35;font-size:15px">☐</span>`; })()}<div style="font-size:9px;color:${(r.src||"").trim()?"var(--mut)":"#C4B0A8"}">в цепь</div></td>
-    <td style="width:30px"><div class="rowbtns"><button onclick="moveRow(S.chrono,${i},-1)">▲</button><button onclick="moveRow(S.chrono,${i},1)">▼</button><button onclick="S.chrono.splice(${i},1);save();render()" style="color:#A33">✕</button></div></td>
+    <td style="width:30px"><button class="btn small danger noprint" onclick="S.chrono.splice(${i},1);save();render()" style="color:#A33" title="удалить">✕</button></td>
   </tr>`).join("");
   GROW_FOCUS_ONLY=false;
   return `<h2>Шаг 2 · Хронология по дорожкам</h2>
@@ -2409,7 +2424,7 @@ function screen1(){
   ${laneCoverage()}
   ${S.chrono.length?stepScale():""}
   <div class="card" style="margin-top:12px">
-  ${S.chrono.length?`<table class="t"><tr><th>Время (чч:мм:сс)</th><th>Конец / до…</th><th>Дор.</th><th>Запись (факт)</th><th>Источник</th><th>в цепь</th><th></th></tr>${rows}</table>`:`<div class="empty">Хронология пуста. Начните со свободного рассказа водителя и телематики.</div>`}
+  ${S.chrono.length?`<table class="t"><tr><th style="width:22px"></th><th>Время (чч:мм:сс)</th><th>Конец / до…</th><th>Дор.</th><th>Запись (факт)</th><th>Источник</th><th>в цепь</th><th></th></tr>${rows}</table>`:`<div class="empty">Хронология пуста. Начните со свободного рассказа водителя и телематики.</div>`}
   <div style="margin-top:10px" class="noprint">
     ${LOCKED()?"":`<button class="btn" onclick="S.chrono.push({id:uid(),time:'',end:'',lane:'',text:'',src:'',isFact:false,inchain:false});save();render()">+ Запись</button>`}
     <button class="btn sec" onclick="sortChrono()">Сортировать по времени</button>
@@ -2672,15 +2687,15 @@ function screen2(){
   const cards=S.links.map((L,i)=>{
     const letter=linkLetter(i);
     L.circs=L.circs||[];
-    return `<div class="card" style="border-left:5px solid var(--blue)">
+    return `<div class="card" style="border-left:5px solid var(--blue)" ondragover="dragOver(event,'links',${i})" ondrop="dragDrop(event,'links',${i})">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        ${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить звено" draggable="true" ondragstart="dragStart(event,'links',${i})" ondragend="dragEnd(event)" style="color:var(--mut)">⠿</span>`}
         <span class="mono" style="font-weight:700;background:var(--blue-l);color:var(--blue);border-radius:8px;padding:3px 10px">Звено ${letter}</span>
         ${L.errCode?`<span class="pill" style="background:var(--blue-l);color:var(--blue)">${esc(L.errCode)}</span>`:""}
         ${(L.candidate&&typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<span class="pill" style="background:var(--gold-l);color:var(--amber)" title="формулировка не из каталога — кандидат в реестр">кандидат в каталог</span>`:""}
         ${chk(L,"pure","чистое развитие — без новой ошибки")}
         <span style="flex:1"></span>
-        ${LOCKED()?"":`<div class="rowbtns noprint"><button onclick="moveRow(S.links,${i},-1)">▲</button><button onclick="moveRow(S.links,${i},1)">▼</button></div>
-        <button class="btn small danger noprint" onclick="delLink(${i})">удалить</button>`}
+        ${LOCKED()?"":`<button class="btn small danger noprint" onclick="delLink(${i})">удалить</button>`}
       </div>
       <div class="fieldrow"><span>Событие-результат</span><div>${L.evLocked?"":srcRow(i,"event")}${L.evLocked?
         `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--gray-l)">${esc(L.event)}</div>
@@ -2711,7 +2726,7 @@ function screen2(){
   ${chronoPickBlock()}
   ${S.links.length?`<div class="card" style="padding:10px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <b style="font-size:13px">🗺 Схема цепи</b>
+        <b class="blockTitle">🗺 Схема цепи</b>
         <span class="hint" style="margin:0">обновляется автоматически при изменении звеньев</span><span style="flex:1"></span>
         <button class="btn small sec noprint" onclick="S._schemeHide=!S._schemeHide;render()">${S._schemeHide?"показать":"свернуть"}</button>
       </div>
@@ -3261,8 +3276,8 @@ function screen5(){
         <div style="flex:1">${inp(a,"text","мероприятие, закрывающее причину")}</div>
         <button class="btn small danger noprint" onclick="delAct('${a.id}')">✕</button>
       </div>`).join("");
-    return `<div class="causeItem ${c.dup?"dup":""}">
-      <div class="rowbtns noprint"><button onclick="moveCause('${c.id}',-1)">▲</button><button onclick="moveCause('${c.id}',1)">▼</button></div>
+    return `<div class="causeItem ${c.dup?"dup":""}" data-dragrow ondragover="dragOverId(event,'cause','${c.id}')" ondrop="dragDropId(event,'cause','${c.id}',dropCause)">
+      ${LOCKED()?"":`<span class="draghandle noprint" title="потяните, чтобы переставить" draggable="true" ondragstart="dragStartId(event,'cause','${c.id}')" ondragend="dragEnd(event)" style="color:var(--mut)">⠿</span>`}
       <span class="num">${idx}</span>
       <div style="flex:1">
         <div>${inp(c.obj,"text","формулировка причины (можно склеить из нескольких)")}</div>
@@ -3323,14 +3338,14 @@ function displayActs(){ // [{a,causeLabel}] в отображаемом поря
 function actStatusClass(st){ return st==="выполнено"?"st-done":(st==="в процессе"?"st-prog":"st-none"); }
 function screen7(){
   const disp=displayActs();
-  const rows=disp.map(({a,causeLabel})=>`<tr class="${a.dup?"":actStatusClass(a.status)}" style="${a.dup?"opacity:.5":""}">
+  const rows=disp.map(({a,causeLabel})=>`<tr class="${a.dup?"":actStatusClass(a.status)}" style="${a.dup?"opacity:.5":""}" ondragover="dragOverId(event,'action','${a.id}')" ondrop="dragDropId(event,'action','${a.id}',dropAction)">
+    <td style="width:22px;text-align:center;color:var(--mut)">${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить" draggable="true" ondragstart="dragStartId(event,'action','${a.id}')" ondragend="dragEnd(event)">⠿</span>`}</td>
     <td style="width:210px">${esc(causeLabel)}</td>
     <td>${inp(a,"text","что сделать (SMART)")}</td>
     <td style="width:150px">${sel(a,"who",ROLES)}</td>
     <td style="width:90px">${inp(a,"due","срок")}</td>
     <td style="width:120px">${sel(a,"status",ACT_STATUS,()=>render(),true)}</td>
     <td style="width:70px"><div style="display:flex;gap:2px">
-      <div class="rowbtns noprint"><button onclick="moveAction('${a.id}',-1)">▲</button><button onclick="moveAction('${a.id}',1)">▼</button></div>
       <button class="btn small sec noprint" title="дубль" onclick="toggleActDup('${a.id}')">${a.dup?"⟲":"дуб"}</button>
       ${a.causeId?"":`<button class="btn small danger noprint" onclick="delAct('${a.id}')">✕</button>`}
     </div></td></tr>`).join("");
@@ -3340,7 +3355,7 @@ function screen7(){
   }).join("");
   return `<h2>Шаг 7 · Корректирующие мероприятия (SMART)</h2>
   <div class="sub">Мероприятия заведены на шаге 5 под причинами; здесь дописываются исполнитель, срок и статус (не выполнено / в процессе / выполнено — строки подсвечены). Сортировка — кликом по заголовку, порядок — стрелками.</div>
-  ${disp.length?`<div class="card"><table class="t"><tr>${th}<th></th></tr>${rows}</table>
+  ${disp.length?`<div class="card"><table class="t"><tr><th style="width:22px"></th>${th}<th></th></tr>${rows}</table>
     <div class="noprint" style="margin-top:10px"><button class="btn sec" onclick="S.acts.push({id:uid(),causeId:null,text:'',who:'',due:'',status:'',dup:false});save();render()">+ Мероприятие без привязки к причине</button></div></div>`
   :`<div class="empty">Мероприятий нет — добавьте их под причинами на шаге 5.</div>
     <div class="noprint" style="margin-top:10px"><button class="btn sec" onclick="S.acts=S.acts||[];S.acts.push({id:uid(),causeId:null,text:'',who:'',due:'',status:'',dup:false});save();render()">+ Мероприятие без привязки к причине</button></div>`}`;
