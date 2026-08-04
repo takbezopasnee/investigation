@@ -45,6 +45,7 @@ label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px;font-weigh
 input[type=text],textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
 textarea{resize:vertical;min-height:36px}
 textarea.grow1{resize:none;min-height:0;overflow:hidden;white-space:pre-wrap;word-break:break-word;line-height:1.35}
+input::placeholder,textarea::placeholder{color:#B9C3CD;opacity:1;font-style:italic}
 input:focus,textarea:focus,select:focus{outline:2px solid var(--blue);border-color:var(--blue)}
 .btn{border:none;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer;font-weight:600;background:var(--ink);color:#fff}
 .btn:hover{opacity:.92}.btn.sec{background:var(--gray-l);color:var(--ink)}.btn.small{padding:5px 10px;font-size:13px}
@@ -482,6 +483,7 @@ async function loadLocalDB(){
   if(!DB) DB={cases:[]};
   DB.cases.forEach(migrateCase);
 }
+function isTyping(){ const a=document.activeElement; if(!a)return false; const tag=(a.tagName||"").toLowerCase(); return tag==="input"||tag==="textarea"||tag==="select"||a.isContentEditable===true; }
 function save(){
   if(S)S.updated=Date.now();
   if(typeof CLOUD!=="undefined"&&CLOUD){ if(S) cloudSaveCase(S); return; }
@@ -1053,7 +1055,7 @@ async function startCloud(){
     // счётчики: непрочитанные сообщения + ожидающие заявки; и периодическое обновление
     Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>render());
     if(unreadTimer) clearInterval(unreadTimer);
-    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>{ if(statsView!==6) render(); }); } }, 30000);
+    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>{ if(statsView!==6 && !isTyping()) render(); }); } }, 30000);
   }catch(e){
     if(/JWT|PGRST303|expired/i.test(e.message||"")){
       saveSession(null);
@@ -2113,6 +2115,7 @@ function factSrcSelect(o){ if(LOCKED())return roView(o.src); const mats=(S.info&
   </select>`; }
 // Метка влияния (значок) для строки факта и для шапки анализа
 function infBadge(inf){ if(inf==="оказало")return `<span title="оказало влияние" style="color:var(--coral);font-weight:700">●</span>`; if(inf==="возможно")return `<span title="возможно повлияло" style="color:var(--gold);font-weight:700">○</span>`; return ""; }
+function factRowClass(o){ if(o&&factChrEx(o))return "row-maybe"; if(o&&o.inf==="оказало")return "row-affect"; if(o&&o.inf==="возможно")return "row-maybe"; return ""; }
 function screenFacts(){
   ensureFacts(S);
   const OPTMAP={TS_TYPES:TS_TYPES,PLACE_AREA:PLACE_AREA,PLACE_SPOT:PLACE_SPOT};
@@ -2130,7 +2133,7 @@ function screenFacts(){
     const dateCtx = s.key==="time" ? (()=>{ const c=dayContext(S.info.dateISO); const t=S.info.time; if(!c&&!t) return `<div class="hint" style="margin:4px 0 8px">Дата и время ДТП заполняются на шаге «Регистрация».</div>`; const bits=[]; if(c)bits.push(esc(c)); if(t)bits.push("время "+esc(t)); return `<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:8px;padding:9px 13px;margin:4px 0 12px;color:var(--blue);font-weight:700;font-size:14px">🗓 ${bits.join(" · ")}</div>`; })() : "";
     const infoBlock = s.info.length ? `<div class="grid2"${s.factors.length?' style="margin-bottom:12px"':''}>${s.info.map(infoField).join("")}</div>` : "";
     const factorsTable = s.factors.length ? `<table class="t"><tr><th style="width:200px">Фактор</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th></tr>
-        ${s.factors.map(fn=>{ const o=F[fn.k]||{v:"",inf:"",use:false,src:""}; const hasSrc=!!(o.src&&o.src.trim()); const rc=o.inf==="оказало"?"row-affect":(o.inf==="возможно"?"row-maybe":""); return `<tr class="${rc}">
+        ${s.factors.map(fn=>{ const o=F[fn.k]||{v:"",inf:"",use:false,src:""}; const hasSrc=!!(o.src&&o.src.trim()); const rc=factRowClass(o); return `<tr class="${rc}">
           <td><b style="font-weight:600">${esc(fn.label)}</b><div class="hint" style="margin:1px 0 0">${esc(fn.hint||"")}</div></td>
           <td>${inp(o,"v","что установлено")}</td>
           <td>${factSrcSelect(o)}</td>
@@ -2138,16 +2141,16 @@ function screenFacts(){
           <td>${hasSrc?`${sel(o,"inf",FACT_INFLUENCE,()=>render())} ${infBadge(o.inf)}${factMoveBtns(s.key,fn.k)}`:`<span class="hint" style="margin:0">укажите источник</span>`}</td></tr>`; }).join("")}</table>` : "";
     const counter = s.factors.length ? `<span class="hint" style="margin:0">${done}/${s.factors.length} с оценкой</span>` : "";
     const exList = (S.facts._extra&&S.facts._extra[s.key])||[];
-    const exRows = exList.map(p=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=p.inf==="оказало"?"row-affect":(p.inf==="возможно"?"row-maybe":""); return `<tr class="${rc}">
-        <td>${inp(p,"label","название факта")}</td>
+    const exRows = exList.map(p=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=factRowClass(p); return `<tr class="${rc}">
         <td>${inp(p,"v","что установлено")}</td>
         <td>${factSrcSelect(p)}</td>
         <td style="text-align:center">${LOCKED()?(p.use?"✓":"—"):(hasSrc?`<input type="checkbox" ${p.use?"checked":""} onclick="factToggleUse('_extra:${s.key}','${p.id}')" title="это установленный факт (есть источник)">`:`<span class="hint" style="margin:0" title="сначала укажите источник">—</span>`)}</td>
         <td>${hasSrc?`${sel(p,"inf",FACT_INFLUENCE,()=>render())} ${infBadge(p.inf)}${factMoveBtns("_extra:"+s.key,p.id)}`:`<span class="hint" style="margin:0">укажите источник</span>`}</td>
         <td>${LOCKED()?"":`<button class="btn small danger noprint" onclick="delExtraFact('${s.key}','${p.id}')" title="удалить факт">✕</button>`}</td></tr>`; }).join("");
     const extraBlock = `<div style="margin-top:10px">
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span class="hint" style="margin:0">Дополнительные факты по разделу «${esc(s.title)}»</span><span style="flex:1"></span>${LOCKED()?"":`<button class="btn small sec noprint" onclick="addExtraFact('${s.key}')">+ Факт</button>`}</div>
-        ${exList.length?`<table class="t"><tr><th style="width:200px">Название</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:34px"></th></tr>${exRows}</table>`:""}
+        <div class="hint" style="margin:0 0 6px">Дополнительные факты по разделу «${esc(s.title)}»</div>
+        ${exList.length?`<table class="t"><tr><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:34px"></th></tr>${exRows}</table>`:""}
+        ${LOCKED()?"":`<div style="margin-top:6px"><button class="btn small sec noprint" onclick="addExtraFact('${s.key}')">+ Факт</button></div>`}
       </div>`;
     return `<div class="card">
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px"><b style="font-size:13px">${esc(s.title)}</b>${counter}</div>
@@ -2171,17 +2174,17 @@ function screenFacts(){
   ${FACT_SECTIONS.map(section).join("")}
   <div class="card">
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
-      <b style="font-size:13px">Прочее</b><span class="hint" style="margin:0">факты, не попавшие в разделы выше</span><span style="flex:1"></span>
-      ${LOCKED()?"":`<button class="btn small sec noprint" onclick="addOtherFact()">+ Факт</button>`}
+      <b style="font-size:13px">Прочее</b><span class="hint" style="margin:0">факты, не попавшие в разделы выше</span>
     </div>
-    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:110px">Время</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:34px"></th></tr>
-      ${S.facts._other.map(p=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=p.inf==="оказало"?"row-affect":(p.inf==="возможно"?"row-maybe":""); return `<tr class="${rc}">
+    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:110px">Время</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:58px"></th></tr>
+      ${S.facts._other.map((p,i)=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=factRowClass(p); return `<tr class="${rc}">
         <td>${inpSec(p,"time","14:32:00")}</td>
         <td>${inp(p,"v","что установлено")}</td>
         <td>${factSrcSelect(p)}</td>
         <td style="text-align:center">${LOCKED()?(p.use?"✓":"—"):(hasSrc?`<input type="checkbox" ${p.use?"checked":""} onclick="factToggleUse('_other','${p.id}')" title="это установленный факт (есть источник)">`:`<span class="hint" style="margin:0" title="сначала укажите источник">—</span>`)}</td>
         <td>${hasSrc?`${sel(p,"inf",FACT_INFLUENCE,()=>render())} ${infBadge(p.inf)}${factMoveBtns("_other",p.id)}`:`<span class="hint" style="margin:0">укажите источник</span>`}</td>
-        <td>${LOCKED()?"":`<button class="btn small danger noprint" onclick="delOtherFact('${p.id}')" title="удалить пункт">✕</button>`}</td></tr>`; }).join("")}</table>` : `<div class="empty">Пусто. Кнопкой «+ Факт» добавьте произвольный факт с оценкой влияния.</div>`}
+        <td>${LOCKED()?"":`<div class="rowbtns"><button onclick="moveRow(S.facts._other,${i},-1)" title="выше">▲</button><button onclick="moveRow(S.facts._other,${i},1)" title="ниже">▼</button><button onclick="delOtherFact('${p.id}')" title="удалить" style="color:#A33">✕</button></div>`}</td></tr>`; }).join("")}</table>` : `<div class="empty">Пусто. Кнопкой «+ Факт» добавьте произвольный факт с оценкой влияния.</div>`}
+    ${LOCKED()?"":`<div style="margin-top:6px"><button class="btn small sec noprint" onclick="addOtherFact()">+ Факт</button></div>`}
   </div>
   <div class="hint">Порядок: укажите <b>источник</b> → отметьте <b>факт</b> → поставьте <b>влияние</b> → кнопками отправьте «→ в хронологию» (с источником) или «→ в анализ» (для «оказало/возможно»). Указанное здесь <b>время</b> перенесётся в хронологию вместе с фактом. Факт без влияния тоже можно отправить в хронологию, если он важен для картины.</div>`;
 }
