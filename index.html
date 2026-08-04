@@ -2257,7 +2257,7 @@ function screen1(){
     <td style="width:34px;text-align:center">${r.isFact?chk(r,"inchain","",()=>render()):`<span title="в цепь можно взять только факт" style="opacity:.35;font-size:15px">☐</span>`}<div style="font-size:9px;color:${r.isFact?"var(--mut)":"#C4B0A8"}">в цепь</div></td>
     <td style="width:30px"><div class="rowbtns"><button onclick="moveRow(S.chrono,${i},-1)">▲</button><button onclick="moveRow(S.chrono,${i},1)">▼</button><button onclick="S.chrono.splice(${i},1);save();render()" style="color:#A33">✕</button></div></td>
   </tr>`).join("");
-  return `<h2>Шаг 1 · Хронология по дорожкам</h2>
+  return `<h2>Шаг 2 · Хронология по дорожкам</h2>
   <div class="sub">Черновик всего известного, вперёд от начала смены. Запись — на дорожку носителя (В·А·Д·С·О). Длящееся — заполните «конец / до…» (на шкале станет отрезком). Отметьте «факт» там, где это установленный факт (есть источник), а не мнение; только факты можно взять «в цепь».</div>
   ${laneCoverage()}
   ${S.chrono.length?stepScale():""}
@@ -2559,7 +2559,7 @@ function screen2(){
       </div>`:""}
     </div>`;
   }).join("");
-  return `<h2>Шаг 2 · Звенья цепи</h2>
+  return `<h2>Шаг 3 · Звенья цепи</h2>
   <div class="sub"><span class="f">Событие = Ошибка × Обстоятельства</span> · первым ставьте <b>финальное</b> звено (оно получит литеру А), затем причины вглубь. Одна ошибка в звене; обстоятельства — отдельными строками с типом. Ошибку берите из каталога (код сохранится для статистики); своей нет — запишите, станет кандидатом в каталог.</div>
   ${chronoPickBlock()}
   ${S.links.length?`<div class="card" style="padding:10px">
@@ -3002,7 +3002,7 @@ function pendingBlock(){
 }
 function screen3(){
   const roots=S.reviews.filter(r=>!r.parent);
-  return `<h2>Шаг 3 · Разбор ошибок</h2>
+  return `<h2>Шаг 4 · Разбор ошибок</h2>
   ${pendingBlock()}
   <div class="sub">Действия <b>1</b> и <b>2</b> восстанавливают <b>контекст ошибки</b>: где именно сломалось действие оператора и что к этому привело. Контекст и выводит на системную причину — её формулируем внизу, в зоне <b>3</b>. Одна ошибка может дать несколько причин.</div>
   ${roots.length?roots.map(reviewCard).join(""):`<div class="empty">Разборов нет. Создайте из звеньев (шаг 2) или из обстоятельств (шаг 4).</div>`}
@@ -3059,7 +3059,7 @@ function pullCircs(){
   }
   save();render();}
 function screen4(){
-  return `<h2>Шаг 4 · Обстоятельства</h2>
+  return `<h2>Шаг 5 · Обстоятельства</h2>
   <div class="sub">Первый вопрос — <b>имеет ли компания влияние</b>. Нет — «непредотвратимое, стоп». Да — назовите несработавший барьер, его владельца и состояние, затем сформулируйте системные причины (их может быть несколько).</div>
   ${LOCKED()?"":`<div class="noprint" style="margin-bottom:10px">
     <button class="btn sec" onclick="pullCircs()">Подтянуть из звеньев</button>
@@ -3134,7 +3134,7 @@ function screen5(){
         </div>`}
       </div></div>`;
   }).join("");
-  return `<h2>Шаг 5 · Системные причины</h2>
+  return `<h2>Шаг 6 · Системные причины</h2>
   <div class="sub">Собраны из разборов и обстоятельств; порядок — стрелками. Под каждой причиной — мероприятия, которые её закрывают (пока только формулировки; исполнитель, срок и статус — на шаге 6). Если мероприятие сейчас придумать невозможно — отметьте «копим статистику».</div>
   ${cs.length?rows:`<div class="empty">Причин пока нет. Появятся из разборов (шаг 3) и обстоятельств (шаг 4). Ноль причин при всех «стоп» — законный итог (непредотвратимое).</div>`}`;
 }
@@ -3189,7 +3189,7 @@ function screen7(){
     const on=S.actionSort&&S.actionSort.col===h[0];
     return `<th style="cursor:pointer" onclick="sortActions('${h[0]}')" title="сортировать">${h[1]} ${on?(S.actionSort.dir>0?"▲":"▼"):"↕"}</th>`;
   }).join("");
-  return `<h2>Шаг 6 · Корректирующие мероприятия (SMART)</h2>
+  return `<h2>Шаг 7 · Корректирующие мероприятия (SMART)</h2>
   <div class="sub">Мероприятия заведены на шаге 5 под причинами; здесь дописываются исполнитель, срок и статус (не выполнено / в процессе / выполнено — строки подсвечены). Сортировка — кликом по заголовку, порядок — стрелками.</div>
   ${disp.length?`<div class="card"><table class="t"><tr>${th}<th></th></tr>${rows}</table>
     <div class="noprint" style="margin-top:10px"><button class="btn sec" onclick="S.acts.push({id:uid(),causeId:null,text:'',who:'',due:'',status:'',dup:false});save();render()">+ Мероприятие без привязки к причине</button></div></div>`
@@ -3238,7 +3238,7 @@ function screen8(){
   const status=n>0?"ПРЕДОТВРАТИМОЕ":(allClosed?"НЕПРЕДОТВРАТИМОЕ (все ветви — стоп)":"— разбор не завершён");
   const dist={водитель:0,операторы:0,руководство:0}; cs.forEach(c=>dist[LEVEL(c.role)]++);
   const list=cs.map((c,i)=>`<li><b>${i+1}.</b> ${esc(c.text||"(без формулировки)")} <span class="klist">· ${esc((c.obj&&c.obj.cat)||"категория не выбрана")} · ${LEVEL(c.role)}${c.needStats?" · <b style='color:var(--amber)'>копим статистику</b>":""}</span></li>`).join("");
-  return `<h2>Шаг 7 · Выводы</h2>
+  return `<h2>Шаг 8 · Выводы</h2>
   <div class="sub">Собирается автоматически. Для печати — кнопка «Печать отчёта» в шапке.</div>
   <div class="card">
     <label>Краткое описание происшествия</label>
