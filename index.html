@@ -537,28 +537,38 @@ function LOCKED(){ if(!S) return false;
   if(S.is_sample && !(typeof PROFILE!=="undefined" && PROFILE && PROFILE.is_admin)) return true;
   return !!S.closed; }
 function roView(v,multi){ return `<div class="roField${multi?" multi":""}">${esc(v||"—")}</div>`; }
+let GROW_FOCUS_ONLY=false; // true — поле растёт только при фокусе (для плотной таблицы хронологии); false — постоянный рост
 function autoGrowFit(e){ e.style.height="auto"; e.style.height=(e.scrollHeight)+"px"; }
-function bindAutoGrow(e,obj,key){ if(!e)return;
+function bindAutoGrow(e,obj,key,focusOnly){ if(!e)return;
   e.title = obj[key]||"";
   const collapse=()=>{ e.style.height=""; e.rows=1; };
-  const expand=()=>{ e.rows=1; autoGrowFit(e); };
-  e.oninput=()=>{ obj[key]=e.value; e.title=e.value; save(); if(document.activeElement===e) autoGrowFit(e); };
-  e.onfocus=()=>{ expand(); };
-  e.onblur=()=>{ collapse(); };
+  e.oninput=()=>{ obj[key]=e.value; e.title=e.value; save(); autoGrowFit(e); };
   e.onkeydown=(ev)=>{ if(ev.key==="Enter"){ ev.preventDefault(); e.blur(); } };
-  collapse();
+  if(focusOnly){
+    e.onfocus=()=>{ e.rows=1; autoGrowFit(e); };
+    e.onblur=()=>{ collapse(); };
+    collapse();
+  } else {
+    e.onfocus=()=>{ autoGrowFit(e); };
+    setTimeout(()=>autoGrowFit(e),0); // сразу раскрыть под текст
+  }
 }
-function inp(obj,key,ph="",multi=false){ if(LOCKED()) return roView(obj[key],multi); const id=uid();
+function inp(obj,key,ph="",multi=false){ if(LOCKED()) return roView(obj[key],multi); const id=uid(); const focusOnly=GROW_FOCUS_ONLY;
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
     if(multi){ e.title=obj[key]||""; e.oninput=()=>{obj[key]=e.value;e.title=e.value;save();autoGrowFit(e);}; e.onfocus=()=>autoGrowFit(e); setTimeout(()=>autoGrowFit(e),0); }
-    else { bindAutoGrow(e,obj,key); }
+    else { bindAutoGrow(e,obj,key,focusOnly); }
   },0);
   return multi?`<textarea id="${id}" placeholder="${esc(ph)}"></textarea>`:`<textarea id="${id}" rows="1" class="grow1" placeholder="${esc(ph)}"></textarea>`;}
-function inpStop(obj,key,ph){ if(LOCKED()) return roView(obj[key],true); const id=uid();
+function inpStop(obj,key,ph){ if(LOCKED()) return roView(obj[key],true); const id=uid(); const focusOnly=GROW_FOCUS_ONLY;
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
+    e.title=obj[key]||"";
     const w=document.getElementById(id+"w");if(w)w.innerHTML=stopHTML(e.value);
-    e.oninput=()=>{obj[key]=e.value;save();if(w)w.innerHTML=stopHTML(e.value);};},0);
-  return `<textarea id="${id}" placeholder="${esc(ph)}"></textarea><div id="${id}w"></div>`;}
+    const fit=()=>autoGrowFit(e);
+    e.oninput=()=>{obj[key]=e.value;e.title=e.value;save();if(w)w.innerHTML=stopHTML(e.value);fit();};
+    if(focusOnly){ e.onfocus=fit; e.onblur=()=>{e.style.height="";e.rows=1;}; e.rows=1; e.style.height=""; }
+    else { e.onfocus=fit; setTimeout(fit,0); }
+  },0);
+  return `<textarea id="${id}" rows="1" class="grow1" placeholder="${esc(ph)}"></textarea><div id="${id}w"></div>`;}
 function stopHTML(t){const low=(t||"").toLowerCase();const hit=STOPWORDS.filter(w=>low.includes(w));
   return hit.length?`<div class="warn">Оценка вместо факта: «${hit.join("», «")}». Запишите наблюдение (что показала бы камера).</div>`:"";}
 function sel(obj,key,opts,onch,always){ if(LOCKED()&&!always) return roView(obj[key]); const id=uid();
@@ -2112,7 +2122,7 @@ function screenFacts(){
     const done=s.factors.filter(fn=>F[fn.k]&&F[fn.k].inf).length;
     const dateCtx = s.key==="time" ? (()=>{ const c=dayContext(S.info.dateISO); const t=S.info.time; if(!c&&!t) return `<div class="hint" style="margin:4px 0 8px">Дата и время ДТП заполняются на шаге «Регистрация».</div>`; const bits=[]; if(c)bits.push(esc(c)); if(t)bits.push("время "+esc(t)); return `<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:8px;padding:9px 13px;margin:4px 0 12px;color:var(--blue);font-weight:700;font-size:14px">🗓 ${bits.join(" · ")}</div>`; })() : "";
     const infoBlock = s.info.length ? `<div class="grid2"${s.factors.length?' style="margin-bottom:12px"':''}>${s.info.map(infoField).join("")}</div>` : "";
-    const factorsTable = s.factors.length ? `<table class="t"><tr><th style="width:200px">Фактор</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:165px">Влияние</th></tr>
+    const factorsTable = s.factors.length ? `<table class="t"><tr><th style="width:200px">Фактор</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th></tr>
         ${s.factors.map(fn=>{ const o=F[fn.k]||{v:"",inf:"",use:false,src:""}; const hasSrc=!!(o.src&&o.src.trim()); const rc=o.inf==="оказало"?"row-affect":(o.inf==="возможно"?"row-maybe":""); return `<tr class="${rc}">
           <td><b style="font-weight:600">${esc(fn.label)}</b><div class="hint" style="margin:1px 0 0">${esc(fn.hint||"")}</div></td>
           <td>${inp(o,"v","что установлено")}</td>
@@ -2145,7 +2155,7 @@ function screenFacts(){
       <b style="font-size:13px">Прочее</b><span class="hint" style="margin:0">факты, не попавшие в разделы выше</span><span style="flex:1"></span>
       ${LOCKED()?"":`<button class="btn small sec noprint" onclick="addOtherFact()">+ Факт</button>`}
     </div>
-    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:185px">Название</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:165px">Влияние</th><th style="width:34px"></th></tr>
+    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:185px">Название</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:34px"></th></tr>
       ${S.facts._other.map(p=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=p.inf==="оказало"?"row-affect":(p.inf==="возможно"?"row-maybe":""); return `<tr class="${rc}">
         <td>${inp(p,"label","название факта")}</td>
         <td>${inp(p,"v","что установлено")}</td>
@@ -2344,6 +2354,7 @@ function scaleTipHide(){ const t=document.getElementById("scaleTip"); if(t)t.sty
 function hlRow(i,on){const tr=document.getElementById("crow"+i);if(tr)tr.classList.toggle("hl",!!on);}
 function hlDot(i,on){document.querySelectorAll('.step-dot[data-ci="'+i+'"],.step-bar[data-ci="'+i+'"]').forEach(el=>{el.style.outline=on?"2px solid var(--ink)":"";el.style.outlineOffset=on?"1px":"";});}
 function screen1(){
+  GROW_FOCUS_ONLY=true; // плотная таблица — поля растут только при фокусе
   const rows=S.chrono.map((r,i)=>`<tr id="crow${i}" onmouseenter="hlDot(${i},1)" onmouseleave="hlDot(${i},0)">
     <td style="width:88px">${inpSec(r,"time","14:32:00")}</td>
     <td style="width:88px">${inp(r,"end","конец / до…")}</td>
@@ -2353,6 +2364,7 @@ function screen1(){
     <td style="width:34px;text-align:center">${(()=>{ const hasSrc=!!((r.src||"").trim()); return hasSrc?chk(r,"inchain","",()=>render()):`<span title="в цепь можно взять только запись с источником" style="opacity:.35;font-size:15px">☐</span>`; })()}<div style="font-size:9px;color:${(r.src||"").trim()?"var(--mut)":"#C4B0A8"}">в цепь</div></td>
     <td style="width:30px"><div class="rowbtns"><button onclick="moveRow(S.chrono,${i},-1)">▲</button><button onclick="moveRow(S.chrono,${i},1)">▼</button><button onclick="S.chrono.splice(${i},1);save();render()" style="color:#A33">✕</button></div></td>
   </tr>`).join("");
+  GROW_FOCUS_ONLY=false;
   return `<h2>Шаг 2 · Хронология по дорожкам</h2>
   <div class="sub">Черновик всего известного, вперёд от начала смены. Запись — на дорожку носителя (В·А·Д·С·О). Длящееся — заполните «конец / до…» (на шкале станет отрезком). Отметьте «факт» там, где это установленный факт (есть источник), а не мнение; только факты можно взять «в цепь».</div>
   ${laneCoverage()}
