@@ -304,7 +304,7 @@ const TS_TYPES=["легковой","грузовой","автобус","ТТ","�
 const WEEKDAYS=["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
 function weekdayOf(iso){ if(!/^\d{4}-\d{2}-\d{2}$/.test(iso||""))return ""; const d=new Date(iso+"T00:00:00"); return isNaN(d)?"":WEEKDAYS[d.getDay()]; }
 function factsDefault(){ const o={}; FACT_SECTIONS.forEach(s=>{ o[s.key]={}; s.factors.forEach(fn=>{ o[s.key][fn.k]={v:"",inf:"",use:false,src:""}; }); }); o._other=[]; o._extra={}; return o; }
-function normFreeFact(p){ if(!p.id)p.id=uid(); if(typeof p.label!=="string")p.label=""; if(typeof p.v!=="string")p.v=""; if(typeof p.inf!=="string")p.inf=""; if(typeof p.use!=="boolean")p.use=false; if(typeof p.src!=="string")p.src=""; }
+function normFreeFact(p){ if(!p.id)p.id=uid(); if(typeof p.label!=="string")p.label=""; if(typeof p.v!=="string")p.v=""; if(typeof p.inf!=="string")p.inf=""; if(typeof p.use!=="boolean")p.use=false; if(typeof p.src!=="string")p.src=""; if(typeof p.time!=="string")p.time=""; }
 function ensureFacts(c){ if(!c.facts||typeof c.facts!=="object"||Array.isArray(c.facts)) c.facts={};
   FACT_SECTIONS.forEach(s=>{ if(!c.facts[s.key]||typeof c.facts[s.key]!=="object"||Array.isArray(c.facts[s.key])) c.facts[s.key]={};
     s.factors.forEach(fn=>{ const o=c.facts[s.key][fn.k]; if(!o||typeof o!=="object") c.facts[s.key][fn.k]={v:"",inf:"",use:false,src:""}; else { if(typeof o.use!=="boolean")o.use=false; if(typeof o.src!=="string")o.src=""; } }); });
@@ -317,13 +317,13 @@ const FACT_LANE={driver:"В",vehicle:"А",road:"Д",weather:"С",time:"С"};
 function extraSec(sk){ return (typeof sk==="string"&&sk.indexOf("_extra:")===0)?sk.slice(7):null; } // вернёт ключ секции или null
 // Достаёт объект факта по ключам. Секции: (sk,fk). Прочее: sk="_other". Свободные в секции: sk="_extra:<секция>", fk=id.
 function factObj(sk,fk){ if(!S.facts)return null; if(sk==="_other"){ return (S.facts._other||[]).find(p=>p.id===fk)||null; } const es=extraSec(sk); if(es){ return ((S.facts._extra||{})[es]||[]).find(p=>p.id===fk)||null; } return (S.facts[sk]&&S.facts[sk][fk])||null; }
-function factLabel(sk,fk){ if(sk==="_other"||extraSec(sk)){ const p=factObj(sk,fk); return p?(p.label||"Прочий факт"):""; } const sec=FACT_SECTIONS.find(x=>x.key===sk); const fn=sec&&sec.factors.find(x=>x.k===fk); return fn?fn.label:""; }
-function factText(sk,fk){ const o=factObj(sk,fk); const lab=factLabel(sk,fk); return (o&&o.v&&o.v.trim())?o.v.trim():lab; }
+function factLabel(sk,fk){ if(sk==="_other"){ const p=factObj(sk,fk); if(!p)return ""; if(p.label&&p.label.trim())return p.label.trim(); return (p.v&&p.v.trim())?p.v.trim():"Прочий факт"; } if(extraSec(sk)){ const p=factObj(sk,fk); return p?(p.label||"Прочий факт"):""; } const sec=FACT_SECTIONS.find(x=>x.key===sk); const fn=sec&&sec.factors.find(x=>x.k===fk); return fn?fn.label:""; }
+function factText(sk,fk){ const o=factObj(sk,fk); if(o&&o.v&&o.v.trim())return o.v.trim(); return factLabel(sk,fk); }
 function factChrEx(o){ return !!(o&&o.chId&&Array.isArray(S.chrono)&&S.chrono.some(r=>r.id===o.chId)); }
 function factAnEx(o){ return !!(o&&o.anId); } // перенесён «в анализ»
 function factPlaced(o){ return factChrEx(o)||factAnEx(o); } // куда-то перенесён (взаимоисключающе)
 function factLaneOf(sk){ const es=extraSec(sk); if(es)return FACT_LANE[es]||"П"; if(sk==="_other")return "П"; return FACT_LANE[sk]||"П"; }
-function factToChrono(sk,fk){ const o=factObj(sk,fk); if(!o||factPlaced(o))return; const lane=factLaneOf(sk); const src=(o.src||"").trim(); const rec={id:uid(),time:"",end:"",lane:lane,text:factText(sk,fk),src:src,isFact:!!src,inchain:false}; if(!Array.isArray(S.chrono))S.chrono=[]; S.chrono.push(rec); o.chId=rec.id; save(); render(); }
+function factToChrono(sk,fk){ const o=factObj(sk,fk); if(!o||factPlaced(o))return; const lane=factLaneOf(sk); const src=(o.src||"").trim(); const tm=(o.time||"").trim(); const rec={id:uid(),time:tm,end:"",lane:lane,text:factText(sk,fk),src:src,isFact:!!src,inchain:false}; if(!Array.isArray(S.chrono))S.chrono=[]; S.chrono.push(rec); o.chId=rec.id; save(); render(); }
 function factUndoChrono(sk,fk){ const o=factObj(sk,fk); if(!o||!o.chId)return; if(Array.isArray(S.chrono))S.chrono=S.chrono.filter(r=>r.id!==o.chId); delete o.chId; save(); render(); }
 function factToAnalysis(sk,fk){ const o=factObj(sk,fk); if(!o||factPlaced(o))return; o.anId=uid(); o.anUsed=false; save(); render(); }
 function factUndoAnalysis(sk,fk){ const o=factObj(sk,fk); if(!o||!o.anId)return; delete o.anId; delete o.anUsed; save(); render(); }
@@ -344,7 +344,7 @@ function analysisStrip(){ const items=analysisFacts(true); const all=analysisFac
     <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px"><b style="font-size:13px;color:var(--blue)">📎 Факты для анализа</b><span class="hint" style="margin:0">из Шага 1 · отметьте использованные — скроются${usedN?` (скрыто: ${usedN})`:""}</span></div>
     ${items.length?rows:`<div class="hint" style="margin:6px 0 0">Все факты отмечены как использованные.</div>`}</div>`;
 }
-function addOtherFact(){ if(!S.facts)ensureFacts(S); if(!Array.isArray(S.facts._other))S.facts._other=[]; S.facts._other.push({id:uid(),label:"",v:"",inf:"",use:false,src:""}); save(); render(); }
+function addOtherFact(){ if(!S.facts)ensureFacts(S); if(!Array.isArray(S.facts._other))S.facts._other=[]; S.facts._other.push({id:uid(),label:"",v:"",inf:"",use:false,src:"",time:""}); save(); render(); }
 function delOtherFact(id){ const o=factObj("_other",id); if(o){ if(o.chId&&Array.isArray(S.chrono))S.chrono=S.chrono.filter(r=>r.id!==o.chId); } S.facts._other=(S.facts._other||[]).filter(p=>p.id!==id); save(); render(); }
 function addExtraFact(sk){ ensureFacts(S); if(!Array.isArray(S.facts._extra[sk]))S.facts._extra[sk]=[]; S.facts._extra[sk].push({id:uid(),label:"",v:"",inf:"",use:false,src:""}); save(); render(); }
 function delExtraFact(sk,id){ const o=factObj("_extra:"+sk,id); if(o){ if(o.chId&&Array.isArray(S.chrono))S.chrono=S.chrono.filter(r=>r.id!==o.chId); } if(S.facts._extra&&Array.isArray(S.facts._extra[sk])) S.facts._extra[sk]=S.facts._extra[sk].filter(p=>p.id!==id); save(); render(); }
@@ -371,12 +371,11 @@ function inpSec(obj,key,ph){ // время чч:мм:сс, секунды по �
 }
 function isoToRu(iso){const m=(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(m[3]+"."+m[2]+"."+m[1]):"";}
 function inpDate(obj,key){ if(LOCKED()) return roView(isoToRu(obj[key])); const id=uid();
-  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=isoToRu(obj[key]);
-    const parse=v=>{const m=v.trim().match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})$/);
-      return m?(m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0")):"";};
-    e.oninput=()=>{const iso=parse(e.value);obj[key]=iso||(e.value.trim()?obj[key]:"");if(iso)obj[key]=iso;save();};
-    e.onchange=()=>{const iso=parse(e.value);obj[key]=iso;e.value=isoToRu(iso);save();render();};},0);
-  return `<input type="text" id="${id}" placeholder="дд.мм.гггг" style="max-width:140px">`;
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return; e.value=obj[key]||"";
+    e.onchange=()=>{ obj[key]=e.value||""; save(); render(); };
+    e.oninput=()=>{ obj[key]=e.value||""; save(); };
+  },0);
+  return `<input type="date" id="${id}" style="max-width:170px">`;
 }
 function inpTime(obj,key){ if(LOCKED()) return roView(obj[key]); const id=uid();
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
@@ -2175,16 +2174,16 @@ function screenFacts(){
       <b style="font-size:13px">Прочее</b><span class="hint" style="margin:0">факты, не попавшие в разделы выше</span><span style="flex:1"></span>
       ${LOCKED()?"":`<button class="btn small sec noprint" onclick="addOtherFact()">+ Факт</button>`}
     </div>
-    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:185px">Название</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:34px"></th></tr>
+    ${(S.facts._other&&S.facts._other.length)?`<table class="t"><tr><th style="width:110px">Время</th><th>Что установлено</th><th style="width:150px">Источник</th><th style="width:46px">факт</th><th style="width:185px">Влияние на ДТП</th><th style="width:34px"></th></tr>
       ${S.facts._other.map(p=>{ const hasSrc=!!(p.src&&p.src.trim()); const rc=p.inf==="оказало"?"row-affect":(p.inf==="возможно"?"row-maybe":""); return `<tr class="${rc}">
-        <td>${inp(p,"label","название факта")}</td>
+        <td>${inpSec(p,"time","14:32:00")}</td>
         <td>${inp(p,"v","что установлено")}</td>
         <td>${factSrcSelect(p)}</td>
         <td style="text-align:center">${LOCKED()?(p.use?"✓":"—"):(hasSrc?`<input type="checkbox" ${p.use?"checked":""} onclick="factToggleUse('_other','${p.id}')" title="это установленный факт (есть источник)">`:`<span class="hint" style="margin:0" title="сначала укажите источник">—</span>`)}</td>
         <td>${hasSrc?`${sel(p,"inf",FACT_INFLUENCE,()=>render())} ${infBadge(p.inf)}${factMoveBtns("_other",p.id)}`:`<span class="hint" style="margin:0">укажите источник</span>`}</td>
         <td>${LOCKED()?"":`<button class="btn small danger noprint" onclick="delOtherFact('${p.id}')" title="удалить пункт">✕</button>`}</td></tr>`; }).join("")}</table>` : `<div class="empty">Пусто. Кнопкой «+ Факт» добавьте произвольный факт с оценкой влияния.</div>`}
   </div>
-  <div class="hint">Порядок: укажите <b>источник</b> → отметьте <b>факт</b> → поставьте <b>влияние</b> → кнопками отправьте «→ в хронологию» (с источником) или «→ в анализ» (для «оказало/возможно»). Факт без влияния тоже можно отправить в хронологию, если он важен для картины.</div>`;
+  <div class="hint">Порядок: укажите <b>источник</b> → отметьте <b>факт</b> → поставьте <b>влияние</b> → кнопками отправьте «→ в хронологию» (с источником) или «→ в анализ» (для «оказало/возможно»). Указанное здесь <b>время</b> перенесётся в хронологию вместе с фактом. Факт без влияния тоже можно отправить в хронологию, если он важен для картины.</div>`;
 }
 
 /* ===== ШАГ 1: ХРОНОЛОГИЯ + ШКАЛА ===== */
