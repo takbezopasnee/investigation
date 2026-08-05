@@ -105,6 +105,8 @@ table.t td{border:1px solid var(--line);padding:5px 7px;vertical-align:top}
 .caseCard .stat{display:inline-block;font-size:12px;background:var(--green-l);color:var(--green);border-radius:12px;padding:2px 10px;font-weight:700}
 .caseCard .stat.z{background:var(--gray-l);color:var(--mut)}
 .caseCard.arch{background:var(--gray-l);border-color:#CBD5DF;border-left:4px solid #A9B7C4}
+@keyframes linkFlash{0%{box-shadow:0 0 0 3px var(--blue)}100%{box-shadow:0 0 0 3px rgba(74,121,168,0)}}
+.link-flash{animation:linkFlash 1.6s ease-out}
 .t tr.row-affect>td{background:var(--coral-l)}
 .t tr.row-maybe>td{background:var(--gold-l)}
 .caseCard.arch h3{color:var(--mut)}
@@ -2718,10 +2720,10 @@ function screen2(){
   const cards=S.links.map((L,i)=>{
     const letter=linkLetter(i);
     L.circs=L.circs||[];
-    return `<div class="card" style="border-left:5px solid var(--blue)" ondragover="dragOver(event,'links',${i})" ondrop="dragDrop(event,'links',${i})">
+    return `<div class="card" id="lnkCard${L.id}" style="border-left:5px solid var(--blue)" ondragover="dragOver(event,'links',${i})" ondrop="dragDrop(event,'links',${i})">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         ${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить звено" draggable="true" ondragstart="dragStart(event,'links',${i})" ondragend="dragEnd(event)" style="color:var(--mut)">⠿</span>`}
-        <span class="mono" style="font-weight:700;background:var(--blue-l);color:var(--blue);border-radius:8px;padding:3px 10px">Звено ${letter}</span>
+        <span class="mono" style="font-weight:700;background:var(--blue-l);color:var(--blue);border-radius:8px;padding:3px 10px;cursor:pointer" title="показать на схеме цепи" onclick="focusScheme('${L.id}')">Звено ${letter}</span>
         ${L.errCode?`<span class="pill" style="background:var(--blue-l);color:var(--blue)">${esc(L.errCode)}</span>`:""}
         ${(L.candidate&&typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<span class="pill" style="background:var(--gold-l);color:var(--amber)" title="формулировка не из каталога — кандидат в реестр">кандидат в каталог</span>`:""}
         ${chk(L,"pure","чистое развитие — без новой ошибки")}
@@ -2755,7 +2757,7 @@ function screen2(){
   return `<h2>Шаг 3 · Звенья цепи</h2>
   <div class="sub"><span class="f">Событие = Ошибка × Обстоятельства</span> · первым ставьте <b>финальное</b> звено (оно получит литеру А), затем причины вглубь. Одна ошибка в звене; обстоятельства — отдельными строками с типом. Ошибку берите из каталога (код сохранится для статистики); своей нет — запишите, станет кандидатом в каталог.</div>
   ${chronoPickBlock()}
-  ${S.links.length?`<div class="card" style="padding:10px">
+  ${S.links.length?`<div class="card chain-scheme" style="padding:10px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <b class="blockTitle">🗺 Схема цепи</b>
         <span class="hint" style="margin:0">обновляется автоматически при изменении звеньев</span><span style="flex:1"></span>
@@ -2772,6 +2774,20 @@ function lockParentLabel(L){
     if((P.circs||[]).some(c=>c.kind==="prev"&&c.linkRef===L.id)) return "звена "+linkLetter(xi);
   }
   return "верхнего звена";
+}
+function focusScheme(id){
+  if(S._schemeHide===true){ S._schemeHide=false; render(); }
+  setTimeout(()=>{
+    const sch=document.querySelector(".chain-scheme");
+    if(sch) sch.scrollIntoView({behavior:"smooth",block:"center"});
+  }, S._schemeHide===false?60:0);
+}
+function focusLink(id){
+  const el=document.getElementById("lnkCard"+id); if(!el)return;
+  if(S._schemeHide!==true){ /* схема открыта — просто прокрутим к карточке */ }
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+  el.classList.remove("link-flash"); void el.offsetWidth; el.classList.add("link-flash");
+  setTimeout(()=>{ if(el)el.classList.remove("link-flash"); }, 1600);
 }
 function delLink(i){
   const id=S.links[i].id;
@@ -2869,6 +2885,7 @@ function schemeSVG(){
   // узлы
   links.forEach((L,i)=>{
     const p=pos[L.id], NH=nodeH(L);
+    out+=`<g style="cursor:pointer" onclick="focusLink('${L.id}')"><title>Показать звено ${linkLetter(i)} в списке</title>`;
     // литера над блоками
     out+=`<text x="${p.x}" y="${p.y-8}" font-size="12" font-weight="bold" fill="#2E4A66">${linkLetter(i)}</text>`;
     blocksOf[L.id].forEach(b=>{
@@ -2904,6 +2921,7 @@ function schemeSVG(){
         out+=`<line x1="${p.x+IN_W}" y1="${ay}" x2="${evX}" y2="${evY+27}" stroke="${col}" stroke-width="1.6" marker-end="url(#${mk})"/>`;
       });
     }
+    out+=`</g>`;
   });
   return `<div style="overflow-x:auto"><svg width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">
     <defs>
