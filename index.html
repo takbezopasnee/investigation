@@ -3059,25 +3059,24 @@ function stageHint(stage){
   return `<div class="hint" style="background:var(--gold-l);padding:6px 9px;border-radius:8px;margin-top:6px">Подсказка: сбой на этапе «${stage}» — вероятно, <b>ошибка на основе правил или знаний</b> (заблуждение). Но проверьте: не сознательное ли это нарушение?</div>`;
 }
 
-function ctxFactUsed(recId){ // где факт уже задействован в контексте разборов
-  const out=[]; (S.reviews||[]).forEach(r=>{ if((r.ctxFacts||[]).includes(recId)) out.push(r); }); return out; }
-function addFactToContext(rid,recId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=r.ctxFacts||[]; if(!r.ctxFacts.includes(recId)) r.ctxFacts.push(recId); save(); render(); }
-function delFactFromContext(rid,recId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=(r.ctxFacts||[]).filter(x=>x!==recId); save(); render(); }
+function ctxFactUsed(anId){ // где факт анализа уже добавлен в контекст
+  const out=[]; (S.reviews||[]).forEach(r=>{ if((r.ctxFacts||[]).includes(anId)) out.push(r); }); return out; }
+function addFactToContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=r.ctxFacts||[]; if(!r.ctxFacts.includes(anId)) r.ctxFacts.push(anId); save(); render(); }
+function delFactFromContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=(r.ctxFacts||[]).filter(x=>x!==anId); save(); render(); }
+function analysisFactByAnId(anId){ return analysisFacts(false).find(f=>f.o&&f.o.anId===anId)||null; }
 function reviewContextBlock(r){
   r.ctxFacts=r.ctxFacts||[];
-  // доступные для выбора = отобранные «в цепь», ещё не добавленные ни в один контекст
-  const sel=chronoSelected();
-  const avail=sel.filter(rec=>ctxFactUsed(rec.id).length===0);
-  const mine=(r.ctxFacts||[]).map(id=>(S.chrono||[]).find(x=>x.id===id)).filter(Boolean);
+  // источник — факты, отправленные «в анализ» (шапка вверху шага). Исключаем уже добавленные в любой контекст.
+  const all=analysisFacts(false);
+  const avail=all.filter(f=>ctxFactUsed(f.o.anId).length===0);
+  const mine=(r.ctxFacts||[]).map(anId=>analysisFactByAnId(anId)).filter(Boolean);
   const picker=(LOCKED()||!avail.length)?"":`<select class="noprint" style="width:100%;margin-bottom:6px" onchange="if(this.value){addFactToContext('${r.id}',this.value);this.value='';}">
-      <option value="">➕ добавить отобранный факт из хронологии…</option>
-      ${avail.map(rec=>`<option value="${rec.id}">${esc((rec.time?rec.time+" · ":"")+(rec.text||"").slice(0,60))}</option>`).join("")}
+      <option value="">➕ добавить факт из анализа…</option>
+      ${avail.map(f=>`<option value="${f.o.anId}">${esc((f.label||"")+(f.text&&f.text!==f.label?" — "+f.text:"")).slice(0,70)}</option>`).join("")}
     </select>`;
-  const chips=mine.map(rec=>`<div class="it" style="display:flex;align-items:center;gap:6px">
-      <span class="mono" style="font-size:10.5px;color:var(--mut)">${esc(rec.time||"—")}</span>
-      <span class="pill" style="background:var(--gray-l);margin:0">${esc(rec.lane||"—")}</span>
-      <span style="flex:1">${esc(rec.text||"")}</span>
-      ${LOCKED()?"":`<button class="btn small sec noprint" onclick="delFactFromContext('${r.id}','${rec.id}')" title="убрать — факт вернётся в список">✕</button>`}</div>`).join("");
+  const chips=mine.map(f=>`<div class="it" style="display:flex;align-items:center;gap:6px">
+      ${infBadge(f.inf)}<span style="flex:1"><b style="font-weight:600">${esc(f.label||"")}</b>${f.text&&f.text!==f.label?` — ${esc(f.text)}`:""}</span>
+      ${LOCKED()?"":`<button class="btn small sec noprint" onclick="delFactFromContext('${r.id}','${f.o.anId}')" title="убрать — факт вернётся в список">✕</button>`}</div>`).join("");
   return `<div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
     <label style="font-size:12px;color:var(--mut)">Контекст события (что и при каких обстоятельствах произошло)</label>
     ${picker}
