@@ -353,8 +353,9 @@ function analysisFacts(unusedOnly){ const out=[]; if(!S.facts)return out;
     ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_extra:"+s.key,p.id),inf:p.inf}); }); });
   (S.facts._other||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_other",p.id),inf:p.inf}); });
   return out; }
-// Факт «влияющий, но нигде не задействован»: влияние оказало/возможно, но не в хронологии (chId) и не в анализе (anId).
-function factUnplaced(o){ return !!(o&&(o.inf==="оказало"||o.inf==="возможно")&&!o.chId&&!o.anId); }
+// Факт «влияющий, но не задействован»: влияние оказало/возможно, и при этом
+// не в хронологии, и (не в анализе ЛИБО в анализе, но не отмечен «использован»).
+function factUnplaced(o){ if(!o)return false; if(!(o.inf==="оказало"||o.inf==="возможно"))return false; if(o.chId)return false; if(o.anId&&o.anUsed)return false; return true; }
 // Собрать все такие факты по всем разделам (для проверки закрытия и подсветки).
 function unplacedInfluencingFacts(){ const out=[]; if(!S.facts)return out;
   FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(factUnplaced(o)) out.push({sk:s.key,fk:fn.k,o:o,label:freeFactLabel(s.key,fn.k)}); });
@@ -402,9 +403,9 @@ function inpDue(obj,key){ if(LOCKED()) return roView(obj[key]); const id=uid(); 
     const c=document.getElementById(cid);
     if(c){ c.onchange=()=>{ if(c.value){ const iso=c.value; const ru=iso.slice(8,10)+"."+iso.slice(5,7)+"."+iso.slice(0,4); obj[key]=ru; e.value=ru; e.title=ru; save(); render(); } }; }
   },0);
-  return `<div style="display:flex;align-items:center;gap:3px">
-    <input type="text" id="${id}" placeholder="срок" style="flex:1;min-width:0">
-    ${LOCKED()?"":`<input type="date" id="${cid}" title="выбрать из календаря" style="width:26px;padding:0;border:none;background:transparent;cursor:pointer">`}
+  return `<div style="display:flex;align-items:center;gap:4px;min-width:0">
+    <input type="text" id="${id}" placeholder="срок" class="timefield" style="flex:1 1 auto;min-width:70px">
+    ${LOCKED()?"":`<input type="date" id="${cid}" title="выбрать из календаря" style="flex:0 0 22px;width:22px;height:24px;padding:0;border:none;background:transparent;cursor:pointer;color-scheme:light">`}
   </div>`;
 }
 function inpDate(obj,key){ if(LOCKED()) return roView(isoToRu(obj[key])); const id=uid();
@@ -3413,7 +3414,7 @@ function screen7(){
     <td style="width:210px">${esc(causeLabel)}</td>
     <td>${inp(a,"text","что сделать (SMART)")}</td>
     <td style="width:150px">${sel(a,"who",ROLES)}</td>
-    <td style="width:130px">${inpDue(a,"due")}</td>
+    <td style="width:150px">${inpDue(a,"due")}</td>
     <td style="width:120px">${sel(a,"status",ACT_STATUS,()=>render(),true)}</td>
     <td style="width:70px"><div style="display:flex;gap:2px">
       <button class="btn small sec noprint" title="дубль" onclick="toggleActDup('${a.id}')">${a.dup?"⟲":"дуб"}</button>
@@ -3451,7 +3452,7 @@ function closeChecks(){
     if(!(a.status||"").trim()) problems.push(`Мероприятие «${(a.text||"").slice(0,32)}»: не выбран статус.`);
   });
   const unpl=unplacedInfluencingFacts();
-  if(unpl.length){ const names=unpl.map(f=>f.label).filter(Boolean).slice(0,6).join(", "); problems.push(`Есть факты с влиянием («оказало»/«возможно»), не задействованные в расследовании (${unpl.length}): ${names}${unpl.length>6?"…":""}. Отправьте их «→ в хронологию» или «→ в анализ» на шаге 1, либо измените их влияние на «не оказало».`); }
+  if(unpl.length){ const names=unpl.map(f=>f.label).filter(Boolean).slice(0,6).join(", "); problems.push(`Есть факты с влиянием («оказало»/«возможно»), не задействованные в расследовании (${unpl.length}): ${names}${unpl.length>6?"…":""}. Отправьте их «→ в хронологию» или «→ в анализ» и используйте в анализе (отметьте «использован» или добавьте в контекст разбора), либо измените влияние на «не оказало».`); }
   return problems;
 }
 function closeCase2(){
