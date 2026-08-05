@@ -45,6 +45,8 @@ label{display:block;font-size:12px;color:var(--mut);margin-bottom:3px;font-weigh
 input[type=text],textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
 textarea{resize:vertical;min-height:36px}
 textarea.grow1{resize:none;min-height:0;overflow:hidden;white-space:pre-wrap;word-break:break-word;line-height:1.35}
+.timefield{white-space:nowrap;min-width:78px;font-variant-numeric:tabular-nums}
+input[type="date"]{min-width:150px;font-variant-numeric:tabular-nums}
 input::placeholder,textarea::placeholder{color:#B9C3CD;opacity:1;font-style:italic}
 .draghandle{cursor:grab;font-size:15px;line-height:1;user-select:none;padding:2px 4px;border-radius:4px;display:inline-block}
 .draghandle:hover{background:var(--gray-l);color:var(--ink)}
@@ -108,6 +110,9 @@ table.t td{border:1px solid var(--line);padding:5px 7px;vertical-align:top}
 @keyframes linkFlash{0%{box-shadow:0 0 0 3px var(--blue)}100%{box-shadow:0 0 0 3px rgba(74,121,168,0)}}
 .link-flash{animation:linkFlash 1.6s ease-out}
 .t tr.row-affect>td{background:var(--coral-l)}
+.t tr.fact-unplaced>td{box-shadow:inset 0 0 0 2px var(--coral)}
+.t tr.fact-unplaced>td:first-child{box-shadow:inset 2px 0 0 var(--coral),inset 0 2px 0 var(--coral),inset 0 -2px 0 var(--coral)}
+.t tr.fact-unplaced>td:last-child{box-shadow:inset -2px 0 0 var(--coral),inset 0 2px 0 var(--coral),inset 0 -2px 0 var(--coral)}
 .t tr.row-maybe>td{background:var(--gold-l)}
 .caseCard.arch h3{color:var(--mut)}
 .caseCard.sample{background:var(--gold-l);border-color:var(--gold);border-left:4px solid var(--gold);opacity:1}
@@ -348,6 +353,14 @@ function analysisFacts(unusedOnly){ const out=[]; if(!S.facts)return out;
     ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_extra:"+s.key,p.id),inf:p.inf}); }); });
   (S.facts._other||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_other",p.id),inf:p.inf}); });
   return out; }
+// Факт «влияющий, но нигде не задействован»: влияние оказало/возможно, но не в хронологии (chId) и не в анализе (anId).
+function factUnplaced(o){ return !!(o&&(o.inf==="оказало"||o.inf==="возможно")&&!o.chId&&!o.anId); }
+// Собрать все такие факты по всем разделам (для проверки закрытия и подсветки).
+function unplacedInfluencingFacts(){ const out=[]; if(!S.facts)return out;
+  FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(factUnplaced(o)) out.push({sk:s.key,fk:fn.k,o:o,label:freeFactLabel(s.key,fn.k)}); });
+    ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(factUnplaced(p)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт"}); }); });
+  (S.facts._other||[]).forEach(p=>{ if(factUnplaced(p)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт"}); });
+  return out; }
 function analysisStrip(){ const items=analysisFacts(true); const all=analysisFacts(false); if(!all.length)return "";
   const rows=items.map(it=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid var(--line)">
     <div style="flex:1">${infBadge(it.inf)} <b style="font-weight:600">${esc(it.label)}</b>${it.text&&it.text!==it.label?` — ${esc(it.text)}`:""}${it.inf?` <span class="hint" style="margin:0">(${esc(it.inf)})</span>`:""}</div>
@@ -380,9 +393,20 @@ function inpSec(obj,key,ph){ // время чч:мм:сс, секунды по �
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
     e.oninput=()=>{obj[key]=e.value;save();};
     e.onchange=()=>{obj[key]=normTime(e.value);e.value=obj[key];save();render();};},0);
-  return `<input type="text" id="${id}" placeholder="${esc(ph||"чч:мм:сс")}">`;
+  return `<input type="text" id="${id}" class="timefield" placeholder="${esc(ph||"чч:мм:сс")}">`;
 }
 function isoToRu(iso){const m=(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(m[3]+"."+m[2]+"."+m[1]):"";}
+function inpDue(obj,key){ if(LOCKED()) return roView(obj[key]); const id=uid(); const cid=id+"cal";
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return; e.value=obj[key]||""; e.title=e.value;
+    e.oninput=()=>{ obj[key]=e.value; e.title=e.value; save(); };
+    const c=document.getElementById(cid);
+    if(c){ c.onchange=()=>{ if(c.value){ const iso=c.value; const ru=iso.slice(8,10)+"."+iso.slice(5,7)+"."+iso.slice(0,4); obj[key]=ru; e.value=ru; e.title=ru; save(); render(); } }; }
+  },0);
+  return `<div style="display:flex;align-items:center;gap:3px">
+    <input type="text" id="${id}" placeholder="срок" style="flex:1;min-width:0">
+    ${LOCKED()?"":`<input type="date" id="${cid}" title="выбрать из календаря" style="width:26px;padding:0;border:none;background:transparent;cursor:pointer">`}
+  </div>`;
+}
 function inpDate(obj,key){ if(LOCKED()) return roView(isoToRu(obj[key])); const id=uid();
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return; e.value=obj[key]||"";
     e.onchange=()=>{ obj[key]=e.value||""; save(); render(); };
@@ -2127,7 +2151,7 @@ function factSrcSelect(o){ if(LOCKED())return roView(o.src); const mats=(S.info&
   </select>`; }
 // Метка влияния (значок) для строки факта и для шапки анализа
 function infBadge(inf){ if(inf==="оказало")return `<span title="оказало влияние" style="color:var(--coral);font-weight:700">●</span>`; if(inf==="возможно")return `<span title="возможно повлияло" style="color:var(--gold);font-weight:700">○</span>`; return ""; }
-function factRowClass(o){ if(o&&factChrEx(o))return "row-maybe"; if(o&&o.inf==="оказало")return "row-affect"; if(o&&o.inf==="возможно")return "row-maybe"; return ""; }
+function factRowClass(o){ let cls=""; if(o&&factChrEx(o))cls="row-maybe"; else if(o&&o.inf==="оказало")cls="row-affect"; else if(o&&o.inf==="возможно")cls="row-maybe"; if(factUnplaced(o))cls+=" fact-unplaced"; return cls.trim(); }
 function screenFacts(){
   ensureFacts(S);
   const OPTMAP={TS_TYPES:TS_TYPES,PLACE_AREA:PLACE_AREA,PLACE_SPOT:PLACE_SPOT};
@@ -2412,8 +2436,8 @@ function screen1(){
   GROW_FOCUS_ONLY=true; // плотная таблица — поля растут только при фокусе
   const rows=S.chrono.map((r,i)=>`<tr id="crow${i}" onmouseenter="hlDot(${i},1)" onmouseleave="hlDot(${i},0)" ondragover="dragOver(event,'chrono',${i})" ondrop="dragDrop(event,'chrono',${i})">
     <td style="width:22px;text-align:center;color:var(--mut)">${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить" draggable="true" ondragstart="dragStart(event,'chrono',${i})" ondragend="dragEnd(event)">⠿</span>`}</td>
-    <td style="width:88px">${inpSec(r,"time","14:32:00")}</td>
-    <td style="width:88px">${inp(r,"end","конец / до…")}</td>
+    <td style="width:96px">${inpSec(r,"time","14:32:00")}</td>
+    <td style="width:96px">${inp(r,"end","конец / до…")}</td>
     <td style="width:64px" class="${r.lane?("lane-"+r.lane):""}">${sel(r,"lane",LANES,()=>render())}</td>
     <td>${inpStop(r,"text","факт без оценки")}</td>
     <td style="width:170px">${srcSelect(r)}</td>
@@ -3389,7 +3413,7 @@ function screen7(){
     <td style="width:210px">${esc(causeLabel)}</td>
     <td>${inp(a,"text","что сделать (SMART)")}</td>
     <td style="width:150px">${sel(a,"who",ROLES)}</td>
-    <td style="width:90px">${inp(a,"due","срок")}</td>
+    <td style="width:130px">${inpDue(a,"due")}</td>
     <td style="width:120px">${sel(a,"status",ACT_STATUS,()=>render(),true)}</td>
     <td style="width:70px"><div style="display:flex;gap:2px">
       <button class="btn small sec noprint" title="дубль" onclick="toggleActDup('${a.id}')">${a.dup?"⟲":"дуб"}</button>
@@ -3426,6 +3450,8 @@ function closeChecks(){
     if(!(a.due||"").trim()) problems.push(`Мероприятие «${(a.text||"").slice(0,32)}»: не указан срок.`);
     if(!(a.status||"").trim()) problems.push(`Мероприятие «${(a.text||"").slice(0,32)}»: не выбран статус.`);
   });
+  const unpl=unplacedInfluencingFacts();
+  if(unpl.length){ const names=unpl.map(f=>f.label).filter(Boolean).slice(0,6).join(", "); problems.push(`Есть факты с влиянием («оказало»/«возможно»), не задействованные в расследовании (${unpl.length}): ${names}${unpl.length>6?"…":""}. Отправьте их «→ в хронологию» или «→ в анализ» на шаге 1, либо измените их влияние на «не оказало».`); }
   return problems;
 }
 function closeCase2(){
