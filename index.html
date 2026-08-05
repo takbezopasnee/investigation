@@ -3061,14 +3061,13 @@ function stageHint(stage){
 
 function ctxFactUsed(anId){ // где факт анализа уже добавлен в контекст
   const out=[]; (S.reviews||[]).forEach(r=>{ if((r.ctxFacts||[]).includes(anId)) out.push(r); }); return out; }
-function addFactToContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=r.ctxFacts||[]; if(!r.ctxFacts.includes(anId)) r.ctxFacts.push(anId); save(); render(); }
-function delFactFromContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=(r.ctxFacts||[]).filter(x=>x!==anId); save(); render(); }
+function addFactToContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=r.ctxFacts||[]; if(!r.ctxFacts.includes(anId)) r.ctxFacts.push(anId); const f=analysisFactByAnId(anId); if(f&&f.o) f.o.anUsed=true; save(); render(); }
+function delFactFromContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=(r.ctxFacts||[]).filter(x=>x!==anId); const f=analysisFactByAnId(anId); if(f&&f.o) f.o.anUsed=false; save(); render(); }
 function analysisFactByAnId(anId){ return analysisFacts(false).find(f=>f.o&&f.o.anId===anId)||null; }
 function reviewContextBlock(r){
   r.ctxFacts=r.ctxFacts||[];
-  // источник — факты, отправленные «в анализ» (шапка вверху шага). Исключаем уже добавленные в любой контекст.
-  const all=analysisFacts(false);
-  const avail=all.filter(f=>ctxFactUsed(f.o.anId).length===0);
+  // источник — факты, отправленные «в анализ» (шапка вверху шага). В выпадашке — только ещё не использованные и не добавленные в контекст.
+  const avail=analysisFacts(true).filter(f=>ctxFactUsed(f.o.anId).length===0);
   const mine=(r.ctxFacts||[]).map(anId=>analysisFactByAnId(anId)).filter(Boolean);
   const picker=(LOCKED()||!avail.length)?"":`<select class="noprint" style="width:100%;margin-bottom:6px" onchange="if(this.value){addFactToContext('${r.id}',this.value);this.value='';}">
       <option value="">➕ добавить факт из анализа…</option>
