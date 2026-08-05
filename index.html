@@ -328,8 +328,8 @@ const FACT_LANE={driver:"В",vehicle:"А",road:"Д",weather:"С",time:"С"};
 function extraSec(sk){ return (typeof sk==="string"&&sk.indexOf("_extra:")===0)?sk.slice(7):null; } // вернёт ключ секции или null
 // Достаёт объект факта по ключам. Секции: (sk,fk). Прочее: sk="_other". Свободные в секции: sk="_extra:<секция>", fk=id.
 function factObj(sk,fk){ if(!S.facts)return null; if(sk==="_other"){ return (S.facts._other||[]).find(p=>p.id===fk)||null; } const es=extraSec(sk); if(es){ return ((S.facts._extra||{})[es]||[]).find(p=>p.id===fk)||null; } return (S.facts[sk]&&S.facts[sk][fk])||null; }
-function factLabel(sk,fk){ if(sk==="_other"){ const p=factObj(sk,fk); if(!p)return ""; if(p.label&&p.label.trim())return p.label.trim(); return (p.v&&p.v.trim())?p.v.trim():"Прочий факт"; } if(extraSec(sk)){ const p=factObj(sk,fk); return p?(p.label||"Прочий факт"):""; } const sec=FACT_SECTIONS.find(x=>x.key===sk); const fn=sec&&sec.factors.find(x=>x.k===fk); return fn?fn.label:""; }
-function factText(sk,fk){ const o=factObj(sk,fk); if(o&&o.v&&o.v.trim())return o.v.trim(); return factLabel(sk,fk); }
+function freeFactLabel(sk,fk){ if(sk==="_other"){ const p=factObj(sk,fk); if(!p)return ""; if(p.label&&p.label.trim())return p.label.trim(); return (p.v&&p.v.trim())?p.v.trim():"Прочий факт"; } if(extraSec(sk)){ const p=factObj(sk,fk); return p?(p.label||"Прочий факт"):""; } const sec=FACT_SECTIONS.find(x=>x.key===sk); const fn=sec&&sec.factors.find(x=>x.k===fk); return fn?fn.label:""; }
+function factText(sk,fk){ const o=factObj(sk,fk); if(o&&o.v&&o.v.trim())return o.v.trim(); return freeFactLabel(sk,fk); }
 function factChrEx(o){ return !!(o&&o.chId&&Array.isArray(S.chrono)&&S.chrono.some(r=>r.id===o.chId)); }
 function factAnEx(o){ return !!(o&&o.anId); } // перенесён «в анализ»
 function factPlaced(o){ return factChrEx(o)||factAnEx(o); } // куда-то перенесён (взаимоисключающе)
@@ -342,7 +342,7 @@ function factToggleUsed(sk,fk){ const o=factObj(sk,fk); if(!o||!o.anId)return; o
 function factToggleUse(sk,fk){ const o=factObj(sk,fk); if(!o)return; o.use=!o.use; if(!o.use){ if(o.chId)factUndoChrono(sk,fk); if(o.anId)factUndoAnalysis(sk,fk); } save(); render(); }
 // Собрать все факты, отправленные «в анализ» (для шапки в шагах 4 и 5). unusedOnly=true — скрыть отмеченные использованными.
 function analysisFacts(unusedOnly){ const out=[]; if(!S.facts)return out;
-  FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(o&&o.anId&&(!unusedOnly||!o.anUsed)) out.push({sk:s.key,fk:fn.k,o:o,label:factLabel(s.key,fn.k),text:factText(s.key,fn.k),inf:o.inf}); });
+  FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(o&&o.anId&&(!unusedOnly||!o.anUsed)) out.push({sk:s.key,fk:fn.k,o:o,label:freeFactLabel(s.key,fn.k),text:factText(s.key,fn.k),inf:o.inf}); });
     ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_extra:"+s.key,p.id),inf:p.inf}); }); });
   (S.facts._other||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_other",p.id),inf:p.inf}); });
   return out; }
@@ -2473,8 +2473,8 @@ function ownErr(i){
 /* --- обстоятельства звена: объекты с типом --- */
 function inpCircText(i,ci){
   const c=S.links[i].circs[ci]; const id=uid();
-  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=c.text||"";
-    e.oninput=()=>{c.text=e.value;
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=syncCircGet(c);e.title=e.value;
+    e.oninput=()=>{ syncCircSet(c,e.value); e.title=e.value;
       // синхронизация: событие авто-созданного звена правится только здесь
       if(c.kind==="prev"&&c.linkRef){const T2=S.links.find(x=>x.id===c.linkRef);
         if(T2&&T2.evLocked&&T2.autoFrom===c.id)T2.event=e.value;}
@@ -2541,6 +2541,45 @@ function allFromChrono(){
 function factLabel(id){
   const r=(S.chrono||[]).find(x=>x.id===id);
   return r?((r.time?r.time+" · ":"")+(r.text||"").slice(0,40)):"факт хронологии";
+}
+/* ===== СИНХРОНИЗАЦИЯ ФОРМУЛИРОВОК (вариант «по ссылке») =====
+   Первоисточник формулировки — запись хронологии (если факт из неё отобран),
+   иначе — само звено. Разбор ошибки, привязанный к звену (L.reviewId===r.id),
+   и обстоятельства, привязанные к факту (fromRec), читают/пишут через первоисточник.
+   Так правка в любом месте отражается всюду. */
+function linkOfReview(r){ return (S.links||[]).find(L=>L.reviewId===r.id)||null; }
+// «Ошибка» разбора: источник — errRec звена → запись хронологии; иначе L.error; иначе r.error.
+function syncErrorGet(r){ const L=linkOfReview(r);
+  if(L){ if(L.errRec){ const rec=(S.chrono||[]).find(x=>x.id===L.errRec); if(rec) return rec.text||""; } return L.error||""; }
+  return r.error||""; }
+function syncErrorSet(r,val){ const L=linkOfReview(r);
+  if(L){ if(L.errRec){ const rec=(S.chrono||[]).find(x=>x.id===L.errRec); if(rec){ rec.text=val; r.error=val; return; } } L.error=val; r.error=val; return; }
+  r.error=val; }
+// «Событие» звена: источник — fromChrono → запись хронологии; иначе L.event.
+function syncEventGet(L){ if(L.fromChrono){ const rec=(S.chrono||[]).find(x=>x.id===L.fromChrono); if(rec) return rec.text||""; } return L.event||""; }
+function syncEventSet(L,val){ if(L.fromChrono){ const rec=(S.chrono||[]).find(x=>x.id===L.fromChrono); if(rec){ rec.text=val; L.event=val; return; } } L.event=val; }
+// «Обстоятельство»: источник — fromRec → запись хронологии; иначе c.text.
+function syncCircGet(c){ if(c.fromRec){ const rec=(S.chrono||[]).find(x=>x.id===c.fromRec); if(rec) return rec.text||""; } return c.text||""; }
+function syncCircSet(c,val){ if(c.fromRec){ const rec=(S.chrono||[]).find(x=>x.id===c.fromRec); if(rec){ rec.text=val; c.text=val; return; } } c.text=val; }
+// Обёртка ввода: как inp, но чтение/запись через sync-функции (get/set замыкания).
+function inpSync(getV,setV,ph){ if(LOCKED()) return roView(getV(),true); const id=uid(); const focusOnly=GROW_FOCUS_ONLY;
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return; e.value=getV()||""; e.title=e.value;
+    e.oninput=()=>{ setV(e.value); e.title=e.value; save(); autoGrowFit(e); };
+    e.onkeydown=(ev)=>{ if(ev.key==="Enter"){ ev.preventDefault(); e.blur(); } };
+    if(focusOnly){ e.onfocus=()=>autoGrowFit(e); e.onblur=()=>{e.style.height="";e.rows=1;}; e.rows=1; }
+    else { e.onfocus=()=>autoGrowFit(e); setTimeout(()=>autoGrowFit(e),0); }
+  },0);
+  return `<textarea id="${id}" rows="1" class="grow1" placeholder="${esc(ph||"")}"></textarea>`;
+}
+function inpStopSync(getV,setV,ph){ if(LOCKED()) return roView(getV(),true); const id=uid(); const focusOnly=GROW_FOCUS_ONLY;
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return; e.value=getV()||""; e.title=e.value;
+    const w=document.getElementById(id+"w"); if(w)w.innerHTML=stopHTML(e.value);
+    e.oninput=()=>{ setV(e.value); e.title=e.value; if(w)w.innerHTML=stopHTML(e.value); save(); autoGrowFit(e); };
+    e.onkeydown=(ev)=>{ if(ev.key==="Enter"){ ev.preventDefault(); e.blur(); } };
+    if(focusOnly){ e.onfocus=()=>autoGrowFit(e); e.onblur=()=>{e.style.height="";e.rows=1;}; e.rows=1; }
+    else { e.onfocus=()=>autoGrowFit(e); setTimeout(()=>autoGrowFit(e),0); }
+  },0);
+  return `<textarea id="${id}" rows="1" class="grow1" placeholder="${esc(ph||"")}"></textarea><div id="${id}w"></div>`;
 }
 function linkTag(i,field){
   if(LOCKED()) return "";
@@ -2700,10 +2739,10 @@ function screen2(){
       <div class="fieldrow"><span>Событие-результат</span><div>${L.evLocked?"":srcRow(i,"event")}${L.evLocked?
         `<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--gray-l)">${esc(L.event)}</div>
          <div class="hint">⛓ Звено создано из обстоятельства ${lockParentLabel(L)}; текст события правится там и здесь заблокирован.</div>`
-        :inpStop(L,"event","«начался занос», «отказали тормоза»")+linkTag(i,"event")+pickPanel(i,"event")}</div></div>
+        :inpStopSync(()=>syncEventGet(L),v=>syncEventSet(L,v),"«начался занос», «отказали тормоза»")+linkTag(i,"event")+pickPanel(i,"event")}</div></div>
       ${L.pure?`<div class="hint">Чистое развитие: нового акта нет — выдумывать не нужно.</div>`:`
       <div class="fieldrow"><span>Ошибка — одна</span><div>${srcRow(i,"error")}
-        ${inpStop(L,"error","акт оператора")}
+        ${inpStopSync(()=>{ const r=(S.reviews||[]).find(x=>x.id===L.reviewId); return r?syncErrorGet(r):(L.error||""); },v=>{ const r=(S.reviews||[]).find(x=>x.id===L.reviewId); if(r)syncErrorSet(r,v); else { if(L.errRec){const rec=(S.chrono||[]).find(x=>x.id===L.errRec); if(rec){rec.text=v; L.error=v; return;}} L.error=v; } },"акт оператора")}
         ${linkTag(i,"error")}
         ${pickPanel(i,"error")}
         ${L._suggCirc?`<div class="hint">Каталог подсказывает: ${esc(L._suggCirc.join("; "))} <button class="btn small sec noprint" onclick="addSugg(${i})">добавить обстоятельствами</button></div>`:""}
@@ -3028,6 +3067,19 @@ function stageHint(stage){
   return `<div class="hint" style="background:var(--gold-l);padding:6px 9px;border-radius:8px;margin-top:6px">Подсказка: сбой на этапе «${stage}» — вероятно, <b>ошибка на основе правил или знаний</b> (заблуждение). Но проверьте: не сознательное ли это нарушение?</div>`;
 }
 
+function addFactToContext(rid,recId){ const r=(S.reviews||[]).find(x=>x.id===rid); const rec=(S.chrono||[]).find(x=>x.id===recId); if(!r||!rec)return; const line=((rec.time?rec.time+" · ":"")+(rec.text||"").trim()); const cur=(r.context||"").trim(); if(cur.split("\n").some(l=>l.trim()===line))return; r.context=cur?(cur+"\n"+line):line; save(); render(); }
+function reviewContextBlock(r){
+  const sel=chronoSelected(); // отобранные «в цепь» факты
+  const picker=(LOCKED()||!sel.length)?"":`<select class="noprint" style="width:100%;margin-bottom:6px" onchange="if(this.value){addFactToContext('${r.id}',this.value);this.value='';}">
+      <option value="">➕ добавить отобранный факт из хронологии…</option>
+      ${sel.map(rec=>`<option value="${rec.id}">${esc((rec.time?rec.time+" · ":"")+(rec.text||"").slice(0,60))}</option>`).join("")}
+    </select>`;
+  return `<div style="margin-bottom:10px">
+    <label style="font-size:12px;color:var(--mut)">Контекст события (что и при каких обстоятельствах произошло)</label>
+    ${picker}
+    ${inp(r,"context","опишите обстановку своими словами; можно добавить факты из списка выше",true)}
+  </div>`;
+}
 function reviewCard(r){
   const kids=S.reviews.filter(x=>x.parent===r.id);
   const cls=(r.causes&&r.causes.length)?"cause":"";
@@ -3037,11 +3089,12 @@ function reviewCard(r){
   return `<div class="review ${cls}" id="rv${r.id}">
     <h4>Разбор ошибки <span class="who">${esc(displayRole(r))}</span>${r.from?`<span class="from">${esc(r.from)}</span>`:""}${typePill}
       <span style="flex:1"></span>${canDel?`<button class="btn small danger noprint" onclick="delReview('${r.id}')">удалить</button>`:""}</h4>
-    <div class="fieldrow"><span>Ошибка (акт)</span><div>${inp(r,"error","",true)}<div style="max-width:340px;margin-top:6px">${ownerSelectReview(r)}</div></div></div>
+    <div class="fieldrow"><span>Ошибка (акт)</span><div>${inpSync(()=>syncErrorGet(r),v=>syncErrorSet(r,v),"формулировка ошибки")}<div style="max-width:340px;margin-top:6px">${ownerSelectReview(r)}</div></div></div>
 
     <div class="two-col">
       <div class="col left">
         <div class="col-h"><span class="colnum">1</span>Где сломалось · что за ошибка</div>
+        ${reviewContextBlock(r)}
         ${sdkStage(r)}
         ${stageHint(r.stage)}
         <div style="margin-top:10px">${sdkRender(r)}</div>
@@ -3202,7 +3255,7 @@ function circRow(c,i){
   }
   return `<div class="card" style="border-left:5px solid var(--blue)">
     <div style="display:flex;gap:10px"><div style="flex:1">
-      <div class="fieldrow"><span>Обстоятельство</span><div>${inp(c,"text","",true)}</div></div>${body}
+      <div class="fieldrow"><span>Обстоятельство</span><div>${inpSync(()=>syncCircGet(c),v=>syncCircSet(c,v),"")}</div></div>${body}
     </div><button class="btn small danger noprint" style="align-self:flex-start" onclick="S.circs.splice(${i},1);save();render()">✕</button></div></div>`;
 }
 function setInfl(i,val){const c=S.circs[i];c.influence=val;
