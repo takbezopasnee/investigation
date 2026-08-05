@@ -2495,9 +2495,7 @@ function circRowLink(L,i,c,ci){
       ${linkOpts.map(o=>`<option value="${o.id}" ${c.linkRef===o.id?"selected":""}>${esc(o.label)}</option>`).join("")}
     </select>`:""}
     <button class="btn small danger noprint" onclick="S.links[${i}].circs.splice(${ci},1);save();render()">✕</button>
-  </div>${c.fromRec?`<div class="hint" style="display:flex;align-items:center;gap:6px;margin:-2px 0 6px">
-    <span>⛓ из факта: ${esc(factLabel(c.fromRec))}</span>
-    <button class="btn small sec noprint" onclick="S.links[${i}].circs[${ci}].fromRec='';save();render()" title="отвязать — факт вернётся в список">отвязать</button></div>`:""}`;
+  </div>`;
 }
 function makePrevLink(c){ // создать/найти звено под событие-обстоятельство
   const t=(c.text||"").trim();
@@ -2582,13 +2580,7 @@ function inpStopSync(getV,setV,ph){ if(LOCKED()) return roView(getV(),true); con
   return `<textarea id="${id}" rows="1" class="grow1" placeholder="${esc(ph||"")}"></textarea><div id="${id}w"></div>`;
 }
 function linkTag(i,field){
-  if(LOCKED()) return "";
-  const L=S.links[i];
-  const id = field==="event"?L.fromChrono : (field==="error"?L.errRec:null);
-  if(!id) return "";
-  return `<div class="hint" style="display:flex;align-items:center;gap:6px;margin-top:3px">
-    <span>⛓ из факта: ${esc(factLabel(id))}</span>
-    <button class="btn small sec noprint" onclick="unlinkField(${i},'${field}')" title="отвязать — факт вернётся в список">отвязать</button></div>`;
+  return ""; // подписи «из факта» убраны — факты приходят через «в анализ»; связь сохраняется для синхронизации
 }
 function unlinkField(i,field){
   const L=S.links[i];
@@ -3067,17 +3059,30 @@ function stageHint(stage){
   return `<div class="hint" style="background:var(--gold-l);padding:6px 9px;border-radius:8px;margin-top:6px">Подсказка: сбой на этапе «${stage}» — вероятно, <b>ошибка на основе правил или знаний</b> (заблуждение). Но проверьте: не сознательное ли это нарушение?</div>`;
 }
 
-function addFactToContext(rid,recId){ const r=(S.reviews||[]).find(x=>x.id===rid); const rec=(S.chrono||[]).find(x=>x.id===recId); if(!r||!rec)return; const line=((rec.time?rec.time+" · ":"")+(rec.text||"").trim()); const cur=(r.context||"").trim(); if(cur.split("\n").some(l=>l.trim()===line))return; r.context=cur?(cur+"\n"+line):line; save(); render(); }
+function ctxFactUsed(recId){ // где факт уже задействован в контексте разборов
+  const out=[]; (S.reviews||[]).forEach(r=>{ if((r.ctxFacts||[]).includes(recId)) out.push(r); }); return out; }
+function addFactToContext(rid,recId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=r.ctxFacts||[]; if(!r.ctxFacts.includes(recId)) r.ctxFacts.push(recId); save(); render(); }
+function delFactFromContext(rid,recId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=(r.ctxFacts||[]).filter(x=>x!==recId); save(); render(); }
 function reviewContextBlock(r){
-  const sel=chronoSelected(); // отобранные «в цепь» факты
-  const picker=(LOCKED()||!sel.length)?"":`<select class="noprint" style="width:100%;margin-bottom:6px" onchange="if(this.value){addFactToContext('${r.id}',this.value);this.value='';}">
+  r.ctxFacts=r.ctxFacts||[];
+  // доступные для выбора = отобранные «в цепь», ещё не добавленные ни в один контекст
+  const sel=chronoSelected();
+  const avail=sel.filter(rec=>ctxFactUsed(rec.id).length===0);
+  const mine=(r.ctxFacts||[]).map(id=>(S.chrono||[]).find(x=>x.id===id)).filter(Boolean);
+  const picker=(LOCKED()||!avail.length)?"":`<select class="noprint" style="width:100%;margin-bottom:6px" onchange="if(this.value){addFactToContext('${r.id}',this.value);this.value='';}">
       <option value="">➕ добавить отобранный факт из хронологии…</option>
-      ${sel.map(rec=>`<option value="${rec.id}">${esc((rec.time?rec.time+" · ":"")+(rec.text||"").slice(0,60))}</option>`).join("")}
+      ${avail.map(rec=>`<option value="${rec.id}">${esc((rec.time?rec.time+" · ":"")+(rec.text||"").slice(0,60))}</option>`).join("")}
     </select>`;
-  return `<div style="margin-bottom:10px">
+  const chips=mine.map(rec=>`<div class="it" style="display:flex;align-items:center;gap:6px">
+      <span class="mono" style="font-size:10.5px;color:var(--mut)">${esc(rec.time||"—")}</span>
+      <span class="pill" style="background:var(--gray-l);margin:0">${esc(rec.lane||"—")}</span>
+      <span style="flex:1">${esc(rec.text||"")}</span>
+      ${LOCKED()?"":`<button class="btn small sec noprint" onclick="delFactFromContext('${r.id}','${rec.id}')" title="убрать — факт вернётся в список">✕</button>`}</div>`).join("");
+  return `<div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
     <label style="font-size:12px;color:var(--mut)">Контекст события (что и при каких обстоятельствах произошло)</label>
     ${picker}
-    ${inp(r,"context","опишите обстановку своими словами; можно добавить факты из списка выше",true)}
+    ${mine.length?`<div class="pickzone" style="margin:0 0 6px">${chips}</div>`:""}
+    ${inp(r,"context","опишите обстановку своими словами",true)}
   </div>`;
 }
 function reviewCard(r){
@@ -3094,10 +3099,10 @@ function reviewCard(r){
     <div class="two-col">
       <div class="col left">
         <div class="col-h"><span class="colnum">1</span>Где сломалось · что за ошибка</div>
-        ${reviewContextBlock(r)}
         ${sdkStage(r)}
         ${stageHint(r.stage)}
         <div style="margin-top:10px">${sdkRender(r)}</div>
+        ${reviewContextBlock(r)}
       </div>
       <div class="col right">
         <div class="col-h"><span class="colnum">2</span>Что вызвало (факторы)</div>
