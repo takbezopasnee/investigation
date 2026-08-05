@@ -354,14 +354,25 @@ function analysisFacts(unusedOnly){ const out=[]; if(!S.facts)return out;
   (S.facts._other||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_other",p.id),inf:p.inf}); });
   return out; }
 // Факт «влияющий, но не задействован»: влияние оказало/возможно, и при этом
-// не в хронологии, и (не в анализе ЛИБО в анализе, но не отмечен «использован»).
-function factUnplaced(o){ if(!o)return false; if(!(o.inf==="оказало"||o.inf==="возможно"))return false; if(o.chId)return false; if(o.anId&&o.anUsed)return false; return true; }
+// не в хронологии, не отнесён к влиянию на компанию, и (не в анализе ЛИБО в анализе, но не «использован»).
+function factUnplaced(o){ if(!o)return false; if(!(o.inf==="оказало"||o.inf==="возможно"))return false; if(o.chId)return false; if(o.orgImpact)return false; if(o.anId&&o.anUsed)return false; return true; }
 // Собрать все такие факты по всем разделам (для проверки закрытия и подсветки).
 function unplacedInfluencingFacts(){ const out=[]; if(!S.facts)return out;
   FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(factUnplaced(o)) out.push({sk:s.key,fk:fn.k,o:o,label:freeFactLabel(s.key,fn.k)}); });
     ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(factUnplaced(p)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт"}); }); });
   (S.facts._other||[]).forEach(p=>{ if(factUnplaced(p)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт"}); });
   return out; }
+// Все влияющие факты (оказало/возможно) по разделам — для блока «влияние на компанию» в Выводах.
+function influencingFactsAll(){ const out=[]; if(!S.facts)return out;
+  const inf=o=>o&&(o.inf==="оказало"||o.inf==="возможно");
+  FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(inf(o)) out.push({sk:s.key,fk:fn.k,o:o,label:freeFactLabel(s.key,fn.k)}); });
+    ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(inf(p)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт"}); }); });
+  (S.facts._other||[]).forEach(p=>{ if(inf(p)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт"}); });
+  return out; }
+// Факты, отнесённые к влиянию на компанию (для акта/печати).
+function orgImpactFacts(){ return influencingFactsAll().filter(f=>f.o&&f.o.orgImpact); }
+function factToggleOrg(sk,fk){ const o=factObj(sk,fk); if(!o)return; o.orgImpact=!o.orgImpact; if(!o.orgImpact)delete o.orgNote; save(); render(); }
+function setFactOrgNote(sk,fk,v){ const o=factObj(sk,fk); if(!o)return; o.orgNote=v; save(); }
 function analysisStrip(){ const items=analysisFacts(true); const all=analysisFacts(false); if(!all.length)return "";
   const rows=items.map(it=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-top:1px solid var(--line)">
     <div style="flex:1">${infBadge(it.inf)} <b style="font-weight:600">${esc(it.label)}</b>${it.text&&it.text!==it.label?` — ${esc(it.text)}`:""}${it.inf?` <span class="hint" style="margin:0">(${esc(it.inf)})</span>`:""}</div>
@@ -3411,16 +3422,15 @@ function screen7(){
   const disp=displayActs();
   const rows=disp.map(({a,causeLabel})=>`<tr class="${a.dup?"":actStatusClass(a.status)}" style="${a.dup?"opacity:.5":""}" ondragover="dragOverId(event,'action','${a.id}')" ondrop="dragDropId(event,'action','${a.id}',dropAction)">
     <td style="width:22px;text-align:center;color:var(--mut)">${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить" draggable="true" ondragstart="dragStartId(event,'action','${a.id}')" ondragend="dragEnd(event)">⠿</span>`}</td>
-    <td style="width:210px">${esc(causeLabel)}</td>
-    <td>${inp(a,"text","что сделать (SMART)")}</td>
-    <td style="width:150px">${sel(a,"who",ROLES)}</td>
-    <td style="width:150px">${inpDue(a,"due")}</td>
-    <td style="width:120px">${sel(a,"status",ACT_STATUS,()=>render(),true)}</td>
+    <td><div class="hint" style="margin:0 0 3px">${esc(causeLabel)}</div>${inp(a,"text","что сделать (SMART)")}</td>
+    <td style="width:190px">${sel(a,"who",ROLES)}</td>
+    <td style="width:160px">${inpDue(a,"due")}</td>
+    <td style="width:150px">${sel(a,"status",ACT_STATUS,()=>render(),true)}</td>
     <td style="width:70px"><div style="display:flex;gap:2px">
       <button class="btn small sec noprint" title="дубль" onclick="toggleActDup('${a.id}')">${a.dup?"⟲":"дуб"}</button>
       ${a.causeId?"":`<button class="btn small danger noprint" onclick="delAct('${a.id}')">✕</button>`}
     </div></td></tr>`).join("");
-  const th=[["label","К чему"],["text","Мероприятие"],["who","Исполнитель (роль)"],["due","Срок"],["status","Статус"]].map(h=>{
+  const th=[["text","Мероприятие"],["who","Исполнитель (роль)"],["due","Срок"],["status","Статус"]].map(h=>{
     const on=S.actionSort&&S.actionSort.col===h[0];
     return `<th style="cursor:pointer" onclick="sortActions('${h[0]}')" title="сортировать">${h[1]} ${on?(S.actionSort.dir>0?"▲":"▼"):"↕"}</th>`;
   }).join("");
@@ -3467,6 +3477,37 @@ function reopenCase(){
   if(!confirm("Извлечь расследование из архива для правки?"))return;
   S.closed=false; S.archived=false; save(); if(typeof logAction==="function")logAction("извлечение из архива",S.id,S.name); render();
 }
+function orgImpactBlock(){
+  // кандидаты: влияющие факты, не задействованные в анализе (кроме уже отнесённых к компании)
+  const cand=unplacedInfluencingFacts();
+  const chosen=orgImpactFacts();
+  if(!cand.length && !chosen.length) return "";
+  const chosenRows=chosen.map(f=>`<div style="padding:8px 0;border-top:1px solid var(--line)">
+      <div style="display:flex;align-items:center;gap:8px">
+        ${infBadge(f.o.inf)}<b style="font-weight:600">${esc(f.label)}</b>${f.o.v&&f.o.v!==f.label?` <span class="hint" style="margin:0">— ${esc(f.o.v)}</span>`:""}
+        <span style="flex:1"></span>
+        ${LOCKED()?"":`<button class="btn small sec noprint" onclick="factToggleOrg('${f.sk}','${f.fk}')" title="убрать из раздела">✕</button>`}
+      </div>
+      <div style="margin-top:5px">${inpSync_org(f)}</div>
+    </div>`).join("");
+  const candRows=cand.map(f=>`<label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer">
+      <input type="checkbox" onclick="factToggleOrg('${f.sk}','${f.fk}')">
+      ${infBadge(f.o.inf)}<span>${esc(f.label)}${f.o.v&&f.o.v!==f.label?` — ${esc(f.o.v)}`:""}</span>
+    </label>`).join("");
+  return `<div class="card" style="border-left:5px solid var(--amber)">
+    <div class="col-h" style="margin-bottom:6px">Влияние на компанию в целом</div>
+    <div class="hint" style="margin:0 0 8px">Факты, не оказавшие прямого влияния на это ДТП, но значимые для компании (системные риски, наблюдения на будущее). Отнесённые сюда факты считаются учтёнными и не мешают закрытию.</div>
+    ${chosen.length?`<div style="margin-bottom:6px">${chosenRows}</div>`:""}
+    ${cand.length?`<div class="hint" style="margin:6px 0 2px">Не задействованные в анализе влияющие факты — отметьте, если они важны для компании:</div>${candRows}`:""}
+  </div>`;
+}
+function inpSync_org(f){ if(LOCKED()) return roView(f.o.orgNote||"",true); const id=uid();
+  setTimeout(()=>{const e=document.getElementById(id);if(!e)return; e.value=f.o.orgNote||""; e.title=e.value;
+    e.oninput=()=>{ setFactOrgNote(f.sk,f.fk,e.value); e.title=e.value; autoGrowFit(e); };
+    e.onfocus=()=>autoGrowFit(e); setTimeout(()=>autoGrowFit(e),0);
+  },0);
+  return `<textarea id="${id}" rows="1" class="grow1" placeholder="в чём влияние на компанию (риск, что предпринять на уровне системы)"></textarea>`;
+}
 function screen8(){
   const cs=causes().filter(c=>!c.dup); const n=cs.length;
   const anyReviews=S.reviews.length+S.circs.length>0;
@@ -3489,6 +3530,7 @@ function screen8(){
     <div style="margin-top:10px"><label>Распределение</label>водитель: <b>${dist["водитель"]}</b> · операторы: <b>${dist["операторы"]}</b> · руководство: <b>${dist["руководство"]}</b></div>
     ${n?`<div style="margin-top:10px"><label>Причины</label><ul style="padding-left:18px">${list}</ul></div>`:""}
   </div>
+  ${orgImpactBlock()}
   <div class="card"><label>Особые мнения / примечания</label>${inp(S.concl,"notes","",true)}</div>
   ${S.closed
     ? `<div class="closedBar"><b>Расследование закрыто${S.closedAt?" · "+new Date(S.closedAt).toLocaleDateString("ru"):""}</b>
@@ -4123,7 +4165,7 @@ function statCases(){ return DB.cases.filter(c=>!c.is_sample); } // образц
 let regQuery="", regSort={col:"date",dir:-1};
 function regRows(){
   const q=regQuery.trim().toLowerCase();
-  let rows=DB.cases.map(c=>{
+  let rows=DB.cases.filter(c=>!c.is_sample).map(c=>{
     const st=caseStats(c); const i=c.info||{};
     return {c, num:i.num||"", date:i.dateISO||"", time:i.time||"", kind:i.kind||"",
       area:i.area||"", spot:i.spot||"", ts:i.ts||"", tsType:i.tsType||"", unit:i.unit||"",
