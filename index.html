@@ -3063,8 +3063,9 @@ function reviewContextBlock(r){
   const chips=mine.map(f=>`<div class="it" style="display:flex;align-items:center;gap:6px">
       ${infBadge(f.inf)}<span style="flex:1"><b style="font-weight:600">${esc(f.label||"")}</b>${f.text&&f.text!==f.label?` — ${esc(f.text)}`:""}</span>
       ${LOCKED()?"":`<button class="btn small sec noprint" onclick="delFactFromContext('${r.id}','${f.o.anId}')" title="убрать — факт вернётся в список">✕</button>`}</div>`).join("");
-  return `<div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
-    <label style="font-size:12px;color:var(--mut)">Контекст события (что и при каких обстоятельствах произошло)</label>
+  return `<div style="margin-top:12px;padding:12px 14px;background:var(--gray-l);border:1px solid var(--line);border-radius:10px">
+    <div class="col-h" style="margin-bottom:8px">Дополнительный контекст</div>
+    <label style="font-size:12px;color:var(--mut)">Что и при каких обстоятельствах произошло (для информации при формулировании причин)</label>
     ${picker}
     ${mine.length?`<div class="pickzone" style="margin:0 0 6px">${chips}</div>`:""}
     ${inp(r,"context","опишите обстановку своими словами",true)}
@@ -3087,7 +3088,6 @@ function reviewCard(r){
         ${sdkStage(r)}
         ${stageHint(r.stage)}
         <div style="margin-top:10px">${sdkRender(r)}</div>
-        ${reviewContextBlock(r)}
       </div>
       <div class="col right">
         <div class="col-h"><span class="colnum">2</span>Что вызвало (факторы)</div>
@@ -3098,6 +3098,8 @@ function reviewCard(r){
         </div>
       </div>
     </div>
+
+    ${reviewContextBlock(r)}
 
     <div class="verdict-zone">
       <div class="col-h" style="margin-bottom:8px;color:#4A7A3A"><span class="colnum" style="background:var(--green)">3</span>Системные причины этого разбора</div>
@@ -3230,7 +3232,8 @@ function circRow(c,i){
   } else {
     v.kind="cause";
     c.causes=c.causes||[];
-    body=`<div style="margin-top:8px"><label>Несработавший барьер (должен был предотвратить или нейтрализовать)</label>${inp(c,"barrier","«нет весового контроля на выезде»")}
+    body=`<div class="hint" style="margin-top:6px;display:flex;align-items:center;gap:8px">Влияние есть → разбираем барьер и причину. <span class="noprint"><a href="#" onclick="setInfl(${i},'');return false">изменить выбор влияния</a></span></div>
+      <div style="margin-top:8px"><label>Несработавший барьер (должен был предотвратить или нейтрализовать)</label>${inp(c,"barrier","«нет весового контроля на выезде»")}
         <div class="grid2" style="margin-top:6px">
           <div><label>Владелец (роль)</label>${ownerSelect(c)}</div>
           <div><label>Состояние барьера</label>${sel(c,"bstate",BSTATES)}</div>
@@ -3251,7 +3254,7 @@ function circRow(c,i){
 function setInfl(i,val){const c=S.circs[i];c.influence=val;
   if(val==="no")c.verdict={kind:"stop"};
   else if(val==="yes"){c.verdict={kind:"cause",text:c.verdict&&c.verdict.text||"",cat:c.verdict&&c.verdict.cat||""};}
-  else {c.verdict={};}
+  // при val==="" (изменить выбор) verdict/барьер/причины НЕ трогаем — вернётся, если снова выберут «Да»
   save();render();}
 function pullCircs(){
   const have=new Set(S.circs.map(c=>(c.text||"").trim().toLowerCase()));
