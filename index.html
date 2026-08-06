@@ -371,6 +371,16 @@ function influencingFactsAll(){ const out=[]; if(!S.facts)return out;
   return out; }
 // Факты, отнесённые к влиянию на компанию (для акта/печати).
 function orgImpactFacts(){ return influencingFactsAll().filter(f=>f.o&&f.o.orgImpact); }
+// Все заполненные факты дела (для акта), с секцией, влиянием и куда направлен.
+function allFactsForReport(){ const out=[]; if(!S.facts)return out;
+  const filled=o=>o&&((o.v&&o.v.trim())||(o.src&&o.src.trim())||(o.inf&&o.inf.trim())||(o.label&&o.label.trim()));
+  const dest=o=>{ if(o.chId)return "в хронологию"; if(o.anId)return "в анализ"; if(o.orgImpact)return "влияние на компанию"; return ""; };
+  FACT_SECTIONS.forEach(s=>{
+    s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(filled(o)) out.push({sec:s.title,name:freeFactLabel(s.key,fn.k),v:o.v||"",src:o.src||"",inf:o.inf||"",dest:dest(o)}); });
+    ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(filled(p)) out.push({sec:s.title,name:p.label||"доп. факт",v:p.v||"",src:p.src||"",inf:p.inf||"",dest:dest(p)}); });
+  });
+  (S.facts._other||[]).forEach(p=>{ if(filled(p)) out.push({sec:"Прочее",name:p.time||"—",v:p.v||"",src:p.src||"",inf:p.inf||"",dest:dest(p)}); });
+  return out; }
 function factToggleOrg(sk,fk){ const o=factObj(sk,fk); if(!o)return; o.orgImpact=!o.orgImpact; if(!o.orgImpact)delete o.orgNote; save(); render(); }
 function setFactOrgNote(sk,fk,v){ const o=factObj(sk,fk); if(!o)return; o.orgNote=v; save(); }
 function analysisStrip(){ const items=analysisFacts(true); const all=analysisFacts(false); if(!all.length)return "";
@@ -1915,14 +1925,14 @@ function screenMethod(){
     <p>Расследование отвечает на четыре вопроса по порядку — и на каждом шаге отвечают только на свой вопрос.</p>
     <p style="margin-top:6px"><b>Что случилось?</b></p>
     <ul style="margin:6px 0 0 18px;line-height:1.6">
-      <li><b>Шаг 0. Регистрация.</b> ТС, задание, водитель, последствия.</li>
-      <li><b>Шаг 1. Факты.</b> Сбор материалов (доказательной базы) по чек-листу.</li>
-      <li><b>Шаг 2. Хронология по дорожкам</b> В·А·Д·С·О·П. Факт без оценки, с источником; одна запись — один переход.</li>
+      <li><b>Шаг 0. Регистрация.</b> ТС, задание, водитель, последствия, состав комиссии и перечень материалов (доказательная база).</li>
+      <li><b>Шаг 1. Информация и факты.</b> Установленное раскладывается по разделам (водитель, ТС, маршрут, погода, место, время) и в «Прочее». Порядок работы со строкой: сначала <b>источник</b>, затем <b>«факт»</b> и <b>влияние на ДТП</b> (оказало / возможно / не оказало). Влияющий факт направляется либо <b>в хронологию</b> (станет событием на дорожке), либо <b>в анализ</b> (справкой на шагах разбора). Факт «оказало/возможно» нельзя оставить без хода — иначе разбор неполон.</li>
+      <li><b>Шаг 2. Хронология по дорожкам</b> В·А·Д·С·О·П. Факт без оценки, с источником; одна запись — один переход. В цепь берётся только запись, подтверждённая источником.</li>
       <li><b>Шаг 3. Звенья цепи.</b> Отбор ключевых событий и связывание в звенья по грамматике.</li>
     </ul>
     <p style="margin-top:8px"><b>Как случилось?</b></p>
     <ul style="margin:6px 0 0 18px;line-height:1.6">
-      <li><b>Шаг 4. Разбор ошибок.</b> Где сломалось → что за ошибка (промах/упущение/заблуждение/нарушение) → что вызвало (фактор) → чей барьер → вывод.</li>
+      <li><b>Шаг 4. Разбор ошибок.</b> Где сломалось → что за ошибка (промах/упущение/заблуждение/нарушение) → что вызвало (фактор) → чей барьер → вывод. Отдельно собирается <b>контекст ошибки</b>: значимые факты из анализа плюс описание обстановки — именно контекст выводит на системную причину.</li>
       <li><b>Шаг 5. Обстоятельства.</b> Маршрутизация по подконтрольности + барьер с владельцем.</li>
     </ul>
     <p style="margin-top:8px"><b>Почему случилось?</b></p>
@@ -1932,8 +1942,9 @@ function screenMethod(){
     <p style="margin-top:8px"><b>Что делать?</b></p>
     <ul style="margin:6px 0 0 18px;line-height:1.6">
       <li><b>Шаг 7. Мероприятия (SMART).</b> На каждую причину — действие с исполнителем и сроком.</li>
-      <li><b>Шаг 8. Выводы.</b> Предотвратимое ли ДТП; сколько причин и на каких уровнях.</li>
-    </ul>`)}
+      <li><b>Шаг 8. Выводы.</b> Предотвратимое ли ДТП; сколько причин и на каких уровнях. Здесь же разделяются два вида влияния: факты, повлиявшие <b>на это ДТП</b> (они уже в разборе), и факты, не повлиявшие на происшествие, но значимые <b>для компании в целом</b> — системные наблюдения и риски на будущее.</li>
+    </ul>
+    <p style="margin-top:8px"><b>Два вида влияния.</b> Метод различает влияние факта <b>на конкретное происшествие</b> (идёт в цепь и разбор) и влияние <b>на безопасность компании в целом</b> (не участвует в данной цепи, но фиксируется как системный сигнал). Первое отвечает на вопрос «почему случилось это ДТП», второе — «что ещё в системе стоит поправить, пока не случилось».</p>`)}
 
   ${h3("7. Сквозной пример: отказ тормозов на спуске")}
   ${mCard("Перегруженный самосвал", `
@@ -3633,7 +3644,9 @@ async function boot(){
 boot();
 /* ===== ОТЧЁТ ПО ШАБЛОНУ АКТА v5 ===== */
 function displayOwner2(o){ return o.owner==="другое (указать)"?(o.ownerOther||"другое"):(o.owner||""); }
-function rHead(t,sub){ return `<h2 style="font-family:Arial;font-size:12.5pt;color:#1F3864;margin:20px 0 3px;border-bottom:1.5pt solid #4A79A8;padding-bottom:3px">${t}</h2>`+
+let RSECN=0;
+function rHeadReset(){ RSECN=0; }
+function rHead(t,sub){ RSECN++; const title=RSECN+". "+t; return `<h2 style="font-family:Arial;font-size:12.5pt;color:#1F3864;margin:20px 0 3px;border-bottom:1.5pt solid #4A79A8;padding-bottom:3px">${title}</h2>`+
   (sub?`<p style="font-family:Arial;font-size:8.5pt;color:#5B6B7C;margin:0 0 6px">${sub}</p>`:""); }
 function rTable(hs,rows,widths,zebra){
   const wd=i=> widths&&widths[i]?`width:${widths[i]};`:"";
@@ -3682,6 +3695,7 @@ function reportStamp(){
   return "Документ сформирован: "+who+" · "+org+" · "+dt;
 }
 function buildReport(schemeImg){
+  rHeadReset();
   const cs=causes().filter(c=>!c.dup);
   const dist={водитель:0,операторы:0,руководство:0}; cs.forEach(c=>dist[LEVEL(c.role)]++);
   const anyR=S.reviews.length+S.circs.length>0;
@@ -3693,11 +3707,11 @@ function buildReport(schemeImg){
   <div style="text-align:center;margin-bottom:8px"><img src="${LOGO_DARK_SRC}" style="height:32px" alt="Так безопаснее"></div>
   <h1 style="font-family:Arial;font-size:15pt;text-align:center;margin-bottom:2px;color:#1F3864">АКТ расследования дорожно-транспортного происшествия</h1>
   <p style="font-family:Arial;text-align:center;font-size:11pt;margin:0 0 2px">№ ${esc(S.info.num||"____")}</p>
-  <p style="font-family:Arial;text-align:center;font-size:9.5pt;color:#5B6B7C;margin:0 0 3px">по методике «Формула безопасности»: ДТП = Ошибка × Обстоятельства</p>
+  <p style="font-family:Arial;text-align:center;font-size:9.5pt;color:#5B6B7C;margin:0 0 3px">по методике «Формула безопасности»™</p>
   <p style="font-family:Arial;text-align:center;color:#8A96A3;font-size:8.5pt;margin:0 0 12px">${esc(S.name)} · сформировано ${new Date().toLocaleDateString("ru")}${S.closed?" · расследование закрыто":""}</p>
   <div style="border-top:2pt solid #1F3864;margin-bottom:4px"></div>`;
 
-  h+=rHead("1. Сведения о происшествии");
+  h+=rHead("Сведения о происшествии");
   const wd=weekdayOf(S.info.dateISO);
   const dstr=(S.info.dateISO?S.info.dateISO.split("-").reverse().join("."):"")+(S.info.time?" "+S.info.time:"")+(wd?" ("+wd+")":"");
   h+=rTable(["Поле","Значение"],[
@@ -3708,7 +3722,7 @@ function buildReport(schemeImg){
     ["Пострадавших",esc(S.info.victims)],
     ["Краткое описание",esc(S.info.desc)],["Последствия",esc(S.info.harm)]]);
 
-  h+=rHead("2. Комиссия и материалы","Состав комиссии и доказательная база расследования");
+  h+=rHead("Комиссия и материалы","Состав комиссии и доказательная база расследования");
   const comm=(S.info.commission||[]).filter(m=>(m.name||"").trim()||(m.post||"").trim());
   h+=rTable(["Ф. И. О.","Должность","Роль в комиссии"],
     comm.length?comm.map(m=>[esc(m.name),esc(m.post),esc(m.role)]):[["&nbsp;","",""],["","",""],["","",""]],
@@ -3718,8 +3732,16 @@ function buildReport(schemeImg){
     mats.length?mats.map(m=>[esc(m.name),esc(m.has||"—"),esc(m.note)]):[["","",""]],
     ["45%","15%","40%"],true);
 
+  const factsRep=allFactsForReport();
+  if(factsRep.length){
+    h+=rHead("Информация и факты","Установленные сведения по разделам, с источником, оценкой влияния на ДТП и указанием, как факт задействован.");
+    h+=rTable(["Раздел","Факт","Что установлено","Источник","Влияние на ДТП","Задействован"],
+      factsRep.map(f=>[esc(f.sec),esc(f.name),esc(f.v),esc(f.src||"—"),esc(f.inf||"—"),esc(f.dest||"—")]),
+      ["14%","18%","30%","16%","12%","10%"],true);
+  }
+
   if(S.chrono.length){
-    h+=rHead("3. Хронология происшествия","Записи упорядочены по времени. В цепь событий берутся только установленные факты.");
+    h+=rHead("Хронология происшествия","Записи упорядочены по времени. В цепь событий берутся только установленные факты.");
     const sorted=S.chrono.slice().sort((a,b)=>{
       const va=timeVal(a.time), vb=timeVal(b.time);
       if(va<0&&vb<0)return 0; if(va<0)return 1; if(vb<0)return -1; return va-vb;
@@ -3736,7 +3758,7 @@ function buildReport(schemeImg){
   }
 
   if(S.links.length){
-    h+=rHead("4. Звенья цепи","Событие = Ошибка × Обстоятельства. Каждое звено — один акт оператора и условия, в которых он дал результат.");
+    h+=rHead("Звенья цепи","Событие = Ошибка × Обстоятельства. Каждое звено — один акт оператора и условия, в которых он дал результат.");
     h+=rTable(["Звено","Событие-результат","Ошибка (чья)","Обстоятельства"],
       S.links.map((L,i)=>[linkLetter(i),esc(L.event),
         L.pure?"— (чистое развитие)":(esc(L.error)+(L.errCode?" ["+esc(L.errCode)+"]":"")+(L.who?" ("+esc(L.who)+")":"")),circsText(L)]),
@@ -3750,17 +3772,23 @@ function buildReport(schemeImg){
   }
 
   if(S.reviews.length){
-    h+=rHead("5. Разбор ошибок");
+    h+=rHead("Разбор ошибок");
+    const reviewOut=(r)=>{
+      let parts=[];
+      if((r.causes||[]).length) parts.push(r.causes.map(c=>"<b>системная причина:</b> "+esc(c.text)+(c.owner?" — "+esc(displayOwner2(c)):"")).join("<br>"));
+      if(r.context&&r.context.trim()) parts.push('<span style="color:#5B6B7C"><b>контекст:</b> '+esc(r.context.trim())+'</span>');
+      return parts.length?parts.join("<br>"):"—";
+    };
     h+=rTable(["№","Ошибка (чья)","Где","Тип","Факторы","ВЫВОДЫ (системные причины)"],
       S.reviews.map((r,i)=>[i+1,
         esc(r.error)+(displayRole(r)!=="—"?" ("+esc(displayRole(r))+")":""),
         esc(r.stage),esc(r.type)+(r.subtype?" · "+esc(r.subtype):""),
         (r.factors||[]).filter(f=>f&&f.name).map(f=>esc(f.name)+(f.barrier?" → барьер: "+esc(f.barrier):"")+(f.owner?" ("+esc(displayOwner2(f))+(f.bstate?", "+esc(f.bstate):"")+")":"")).join("<br>"),
-        (r.causes||[]).length?(r.causes.map(c=>"<b>системная причина:</b> "+esc(c.text)+(c.owner?" — "+esc(displayOwner2(c)):"")).join("<br>")):"—"]));
+        reviewOut(r)]));
   }
 
   if(S.circs.length){
-    h+=rHead("6. Обстоятельства");
+    h+=rHead("Обстоятельства");
     h+=rTable(["Обстоятельство","Влияние компании","Несработавший барьер (владелец)","ВЫВОДЫ"],
       S.circs.map(c=>{
         const infl=c.influence==="no"?"нет":(c.influence==="yes"?"да":"—");
@@ -3770,14 +3798,14 @@ function buildReport(schemeImg){
       }));
   }
 
-  h+=rHead("7. Системные причины");
+  h+=rHead("Системные причины");
   if(cs.length){
     h+=rTable(["№","Системная причина (несработавший барьер)","Владелец","Категория"],
       cs.map((c,i)=>[i+1,esc(c.text),esc(c.role),esc((c.obj&&c.obj.cat)||"")]));
   } else h+=`<p style="font-size:11.5px;color:#555">Системные причины не установлены${allClosed?" — все ветви завершены выводом «непредотвратимое»":""}.</p>`;
 
   const acts=(S.acts||[]).filter(a=>!a.dup&&(a.text||"").trim());
-  h+=rHead("8. Корректирующие действия (SMART)");
+  h+=rHead("Корректирующие действия (SMART)");
   const actRows=[];
   cs.forEach((c,i)=>{
     (S.acts||[]).filter(a=>a.causeId===c.id&&!a.dup&&(a.text||"").trim()).forEach(a=>{
@@ -3791,13 +3819,21 @@ function buildReport(schemeImg){
   h+=actRows.length?rTable(["Причина","Мероприятие","Исполнитель (роль)","Срок","Статус"],actRows)
     :rTable(["Причина","Мероприятие","Исполнитель (роль)","Срок","Статус"],[["","","","",""],["","","","",""]]);
 
-  h+=rHead("9. Выводы");
+  const org=orgImpactFacts();
+  if(org.length){
+    h+=rHead("Влияние на компанию в целом","Факты, не оказавшие прямого влияния на данное происшествие, но значимые для безопасности компании — системные наблюдения и риски.");
+    h+=rTable(["Факт","Что установлено","В чём влияние на компанию"],
+      org.map(f=>[esc(f.label),esc(f.o.v||""),esc(f.o.orgNote||"")]),
+      ["24%","32%","44%"],true);
+  }
+
+  h+=rHead("Выводы");
   h+=rTable(["Поле","Значение"],[
     ["Происшествие",status],["Число системных причин",String(cs.length)],
     ["Распределение по уровням","водитель: "+dist["водитель"]+"   операторы: "+dist["операторы"]+"   руководство: "+dist["руководство"]],
     ["Особые мнения / примечания",esc(S.concl.notes)]]);
 
-  h+=rHead("10. Подписи");
+  h+=rHead("Подписи");
   const signers=(S.info.commission||[]).filter(m=>(m.name||"").trim());
   if(signers.length){
     h+=rTable(["Роль","Ф. И. О.","Должность","Подпись"],
@@ -3809,7 +3845,8 @@ function buildReport(schemeImg){
   }
   h+=`<p style="font-family:Arial;font-size:10.5pt;margin:12px 0 0">С актом ознакомлен (водитель ${esc(S.info.driver||"№ ____")}): ________________________________</p>`;
   h+=`</div>`;
-h+=`<div style="margin-top:16pt;font-size:8pt;color:#5B6B7C;text-align:center">Расследование выполнено по методике «Формула безопасности» · Экспертный центр «Так безопаснее» · takbezopasnee.ru</div>`;
+h+=`<div style="margin-top:16pt;font-size:8pt;color:#5B6B7C;text-align:center">Расследование выполнено по методике «Формула безопасности»™ · Экспертный центр «Так безопаснее» · takbezopasnee.ru</div>`;
+h+=`<div style="margin-top:2pt;font-size:7.5pt;color:#8A96A3;text-align:center">© Экспертный центр «Так безопаснее». Методика «Формула безопасности»™ — объект авторских прав; использование с разрешения правообладателя.</div>`;
 h+=`<div style="margin-top:4pt;font-size:7.5pt;color:#8A96A3;text-align:center">${esc(reportStamp())}</div>`;
   return h;
 }
@@ -3822,7 +3859,7 @@ async function printReport(){
   // фиксированный печатный футер с персональной меткой на каждой странице
   let ps=document.getElementById("printStamp");
   if(!ps){ ps=document.createElement("div"); ps.id="printStamp"; document.body.appendChild(ps); }
-  ps.textContent=reportStamp();
+  ps.innerHTML=`<div>методика «Формула безопасности»™ · © Экспертный центр «Так безопаснее» · takbezopasnee.ru</div><div style="font-size:6.5pt">${esc(reportStamp())}</div>`;
   window.print();
   if(ps) ps.remove();
   m.innerHTML=keep; render();
@@ -3844,7 +3881,7 @@ async function downloadDoc(){
     img{max-width:100%;}
   </style>`;
   const wordFooter=`<div style="mso-element:footer" id="f1"><p class="MsoFooter">
-    Акт расследования ДТП · «Формула безопасности» · Экспертный центр «Так безопаснее» · стр.
+    Акт расследования ДТП · методика «Формула безопасности»™ · © Экспертный центр «Так безопаснее» · стр.
     <span style="mso-field-code:PAGE"></span> из <span style="mso-field-code:NUMPAGES"></span></p>
     <p class="MsoFooter" style="font-size:7pt;color:#A5AEB8">${esc(reportStamp())}</p></div>`;
   flash("Готовим документ…");
