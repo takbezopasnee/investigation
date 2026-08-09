@@ -1536,7 +1536,7 @@ async function loadChat(){
   }catch(e){ CHAT_MSGS=[]; }
   chatBusySet(false);
   await markChatSeen();
-  if(CHAT_TAB==="admin"){ const owner=(PROFILE&&PROFILE.is_admin)?(window.__chatOwner||null):(PROFILE&&PROFILE.id); await refreshThreadSeen(owner); }
+  if(CHAT_TAB==="admin"){ const owner=(PROFILE&&PROFILE.is_admin)?(window.__chatOwner||null):(PROFILE&&PROFILE.id); if(owner) markThreadSeen(owner); await refreshThreadSeen(owner); }
   render();
   startChatPoll("chat");
 }
@@ -1560,7 +1560,7 @@ function startChatPoll(kind){ // kind: 'chat' | 'case'
         const q = CHAT_TAB==="org" ? "scope=eq.org" : "scope=eq.admin";
         const r=await api("/rest/v1/messages?select=*&"+q+"&order=at.asc&limit=500");
         if(CHAT_TAB==="admin"){ const owner=(PROFILE&&PROFILE.is_admin)?(window.__chatOwner||null):(PROFILE&&PROFILE.id); const prev=THREAD_SEEN_AT; try{ await refreshThreadSeen(owner); }catch(e){} if(THREAD_SEEN_AT!==prev){ refreshChatList("chatList"); } }
-        if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); refreshChatList("chatList"); } }
+        if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); if(CHAT_TAB==="admin"){ const owner=(PROFILE&&PROFILE.is_admin)?(window.__chatOwner||null):(PROFILE&&PROFILE.id); if(owner) markThreadSeen(owner); } refreshChatList("chatList"); } }
       }
     }catch(e){}
   }, 10000);
@@ -2096,8 +2096,8 @@ function nav(){
   el.innerHTML=backBar()+
     stepsDef.map((s,i)=>{
       let b="";
-      if(i===3&&S.reviews.length)b=`<span class="badge">${S.reviews.length}</span>`;
-      if(i===5){const n=causes().filter(c=>!c.dup).length;if(n)b=`<span class="badge" style="background:var(--green-l);color:var(--green)">${n}</span>`;}
+      if(i===4&&S.reviews.length)b=`<span class="badge">${S.reviews.length}</span>`;
+      if(i===6){const n=causes().filter(c=>!c.dup).length;if(n)b=`<span class="badge" style="background:var(--green-l);color:var(--green)">${n}</span>`;}
       return `<div class="step ${i===cur?"active":""}" onclick="goto(${i})"><span class="n">${s[0]}</span><span>${s[1]}</span>${b}</div>`;
     }).join("");
 }
@@ -3652,9 +3652,26 @@ function screen8(){
 const STEP_GOALS=["заполнить сведения","собрать материалы","составить хронологию","построить цепь событий","разобрать ошибки","оценить обстоятельства","сформулировать причины","назначить мероприятия","подвести итог"];
 const STEP_NAMES=["Регистрация","Факты","Хронология","Звенья цепи","Разбор ошибок","Обстоятельства","Причины","Мероприятия","Выводы"];
 function openSample(){
-  const smp=DB.cases.find(c=>c.is_sample);
-  if(smp){ statsView=0; openCase(smp.id); flash("Открыт учебный образец"); }
-  else { alert("Учебный образец пока не назначен."); }
+  const smps=DB.cases.filter(c=>c.is_sample);
+  if(!smps.length){ alert("Учебный образец пока не назначен."); return; }
+  if(smps.length===1){ statsView=0; openCase(smps[0].id); flash("Открыт учебный образец"); return; }
+  // несколько образцов — предложить выбор, какой открыть (ничего не «разобразцовываем»)
+  const prev=document.getElementById("sampleChooser"); if(prev) prev.remove();
+  const wrap=document.createElement("div");
+  wrap.id="sampleChooser"; wrap.className="modalWrap";
+  wrap.onclick=(e)=>{ if(e.target===wrap) wrap.remove(); };
+  wrap.innerHTML=`<div class="modalBox">
+    <b style="font-size:14px">Выберите учебный образец</b>
+    <div class="hint" style="margin:6px 0 10px">Доступно несколько образцов — какой открыть?</div>
+    <div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto">
+      ${smps.map(c=>`<button class="btn sec" style="justify-content:flex-start;text-align:left" data-id="${c.id}">
+        ${esc(c.name||"Без названия")}${(c.info&&c.info.num)?` · №${esc(c.info.num)}`:""}${(c.info&&c.info.dateISO)?" · "+esc(isoToRu(c.info.dateISO)):""}</button>`).join("")}
+    </div>
+    <div style="margin-top:12px;text-align:right"><button class="btn sec" id="sampleChooserCancel">Отмена</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  wrap.querySelectorAll("button[data-id]").forEach(b=>{ b.onclick=()=>{ const id=b.getAttribute("data-id"); wrap.remove(); statsView=0; openCase(id); flash("Открыт учебный образец"); }; });
+  wrap.querySelector("#sampleChooserCancel").onclick=()=>wrap.remove();
 }
 const STEP_HELP=[
   "Заполните паспорт происшествия: дату, время, вид ДТП, место, тип ТС, номер водителя. Здесь же — комиссия по расследованию и материалы (доказательная база).",
