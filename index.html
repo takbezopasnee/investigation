@@ -1307,11 +1307,12 @@ function reassignPanel(){
 }
 // --- передача ОДНОГО дела (только админ) ---
 let reassignCaseId=null;
-async function ensureUsers(){ if(USERS) return; try{ const ru=await api("/rest/v1/profiles?select=id,full_name,org,is_admin&order=full_name.asc"); if(ru.ok) USERS=await ru.json(); }catch(e){} }
+async function ensureUsers(){ if(USERS) return; try{ const ru=await api("/rest/v1/profiles?select=id,full_name,org,is_admin,approved,blocked&order=full_name.asc"); if(ru.ok) USERS=await ru.json(); }catch(e){} }
 async function reassignOneCase(caseId){
   await ensureUsers();
-  const others=(USERS||[]).filter(x=>!x.blocked&&(x.approved||x.is_admin));
-  if(!others.length){ alert("Некому передать: нет специалистов с доступом."); return; }
+  const owner=(CASE_ORG[caseId]&&CASE_ORG[caseId].owner)||null;
+  const others=(USERS||[]).filter(x=>x.id!==owner&&!x.blocked&&(x.approved||x.is_admin));
+  if(!others.length){ alert("Некому передать: нет других специалистов с доступом."); return; }
   reassignCaseId=caseId; render();
 }
 async function doReassignOne(toId){
@@ -1331,7 +1332,8 @@ function cancelReassignOne(){ reassignCaseId=null; render(); }
 function reassignOnePanel(){
   if(!reassignCaseId) return "";
   const cs=DB.cases.find(c=>c.id===reassignCaseId);
-  const others=(USERS||[]).filter(x=>!x.blocked&&(x.approved||x.is_admin));
+  const owner=(CASE_ORG[reassignCaseId]&&CASE_ORG[reassignCaseId].owner)||null;
+  const others=(USERS||[]).filter(x=>x.id!==owner&&!x.blocked&&(x.approved||x.is_admin));
   return `<div class="modalWrap" onclick="if(event.target===this)cancelReassignOne()">
     <div class="modalBox">
       <b style="font-size:14px">Передать расследование</b>
@@ -4280,11 +4282,12 @@ function regRows(){
     return {c, num:i.num||"", date:i.dateISO||"", time:i.time||"", kind:i.kind||"",
       area:i.area||"", spot:i.spot||"", ts:i.ts||"", tsType:i.tsType||"", unit:i.unit||"",
       driver:i.driver||"", name:c.name||"", causes:st.causes, acts:st.acts, done:st.done,
+      desc:i.desc||"",
       org:(CASE_ORG[c.id]&&CASE_ORG[c.id].org)||"",
       status:c.closed?"закрыто":(st.causes?"в работе":"черновик")};
   });
   if(q){
-    rows=rows.filter(r=>[r.num,r.name,r.kind,r.area,r.spot,r.ts,r.tsType,r.unit,r.driver,
+    rows=rows.filter(r=>[r.num,r.name,r.desc,r.kind,r.tsType,r.unit,
       isoToRu(r.date),r.status].join(" ").toLowerCase().includes(q));
   }
   const k=regSort.col, d=regSort.dir;
@@ -4305,8 +4308,8 @@ function regTableHTML(){
   const rows=regRows();
   const admin = typeof PROFILE!=="undefined" && PROFILE && PROFILE.is_admin;
   const cols=[["num","№",56],["date","Дата",92],["time","Время",62],["kind","Вид ДТП",150],
-    ["area","Место происш.",140],["spot","Место ДТП",150],["tsType","Тип ТС",90],["unit","Подразделение",130],
-    ["driver","Водитель",90],["causes","Причин",64],["acts","Мер",70],["status","Статус",90]];
+    ["name","Название ДТП",170],["desc","Краткое описание",230],["tsType","Тип ТС",90],["unit","Подразделение",130],
+    ["causes","Причин",64],["acts","Мер",70],["status","Статус",90]];
   if(admin) cols.push(["org","Компания",150]);
   if(!rows.length) return `<div class="empty">${regQuery?"Ничего не найдено — измените запрос.":"Расследований пока нет."}</div>`;
   return `<table class="t"><tr>${cols.map(([k,l,w])=>{
@@ -4315,8 +4318,8 @@ function regTableHTML(){
     }).join("")}${admin?`<th style="width:90px"></th>`:""}</tr>
     ${rows.map(r=>`<tr class="regRow ${r.c.closed?"st-done":""}" onclick="openFromRegistry('${r.c.id}')">
       <td>${esc(r.num||"—")}</td><td>${esc(isoToRu(r.date)||"—")}</td><td>${esc(r.time||"")}</td>
-      <td>${esc(r.kind||"—")}</td><td>${esc(r.area||"")}</td><td>${esc(r.spot||"")}</td>
-      <td>${esc(r.tsType||"")}</td><td>${esc(r.unit||"")}</td><td>${esc(r.driver||"")}</td>
+      <td>${esc(r.kind||"—")}</td><td>${esc(r.name||"—")}</td><td>${esc(r.desc||"")}</td>
+      <td>${esc(r.tsType||"")}</td><td>${esc(r.unit||"")}</td>
       <td><b>${r.causes}</b></td><td>${r.done}/${r.acts}</td>
       <td>${r.c.closed?`<span class="pill" style="background:var(--green-l);color:var(--green)">закрыто</span>`:esc(r.status)}</td>
       ${admin?`<td>${esc(r.org||"—")}</td><td><button class="btn small sec noprint" onclick="event.stopPropagation();reassignOneCase('${r.c.id}')" title="передать это дело другому специалисту">передать</button></td>`:""}
