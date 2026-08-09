@@ -1506,7 +1506,15 @@ function markThreadSeen(o){
   PROFILE.case_seen["thr:"+o]=new Date().toISOString();
   if(CLOUD) api("/rest/v1/profiles?id=eq."+PROFILE.id,{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({case_seen:PROFILE.case_seen})}).catch(function(){});
 }
-function selectThread(o){ window.__chatOwner=o; markThreadSeen(o); render(); }
+function selectThread(o){ window.__chatOwner=o; markThreadSeen(o); render(); refreshThreadSeen(o).then(()=>render()); }
+
+// --- отметки «просмотрено» в личной ветке ---
+let THREAD_SEEN_AT=null; // когда собеседник в последний раз открывал чат (мс); null — неизвестно
+async function refreshThreadSeen(owner){
+  if(!CLOUD||!owner){ THREAD_SEEN_AT=null; return; }
+  try{ const t=await rpc("thread_seen",{owner_id:owner}); THREAD_SEEN_AT=t?new Date(t).getTime():null; }
+  catch(e){ THREAD_SEEN_AT=null; }
+}
 
 // --- загрузка сообщений ветки «Вопросы» ---
 async function loadChat(){
@@ -1528,6 +1536,7 @@ async function loadChat(){
   }catch(e){ CHAT_MSGS=[]; }
   chatBusySet(false);
   await markChatSeen();
+  if(CHAT_TAB==="admin"){ const owner=(PROFILE&&PROFILE.is_admin)?(window.__chatOwner||null):(PROFILE&&PROFILE.id); await refreshThreadSeen(owner); }
   render();
   startChatPoll("chat");
 }
@@ -1550,6 +1559,7 @@ function startChatPoll(kind){ // kind: 'chat' | 'case'
         if(statsView!==6) { stopChatPoll(); return; }
         const q = CHAT_TAB==="org" ? "scope=eq.org" : "scope=eq.admin";
         const r=await api("/rest/v1/messages?select=*&"+q+"&order=at.asc&limit=500");
+        if(CHAT_TAB==="admin"){ const owner=(PROFILE&&PROFILE.is_admin)?(window.__chatOwner||null):(PROFILE&&PROFILE.id); const prev=THREAD_SEEN_AT; try{ await refreshThreadSeen(owner); }catch(e){} if(THREAD_SEEN_AT!==prev){ refreshChatList("chatList"); } }
         if(r.ok){ const fresh=await r.json(); if(chatChanged(CHAT_MSGS,fresh)){ CHAT_MSGS=fresh; markChatSeen(); refreshChatList("chatList"); } }
       }
     }catch(e){}
@@ -1656,9 +1666,15 @@ function chatBubble(m, scope){
   const nameLine = authorName(m.author);
   const q = (m.reply_to!=null) ? findMsg(m.reply_to) : null;
   const quote = q ? `<div style="border-left:3px solid ${mine?"rgba(255,255,255,.6)":"var(--blue)"};background:${mine?"rgba(255,255,255,.15)":"rgba(74,121,168,.09)"};border-radius:4px;padding:3px 8px;margin-bottom:5px;font-size:12px"><b>${esc(authorName(q.author))}</b>: ${esc((q.body||"").slice(0,70))}${(q.body||"").length>70?"…":""}</div>` : "";
+  let receipt="";
+  if(mine && scope==="admin"){
+    const read = THREAD_SEEN_AT && THREAD_SEEN_AT > d.getTime();
+    if(read){ const st=new Date(THREAD_SEEN_AT).toLocaleTimeString("ru",{hour:"2-digit",minute:"2-digit"}); receipt=` · <span style="color:var(--blue)" title="собеседник заходил в ветку после этого сообщения">✓✓ просмотрено ${st}</span>`; }
+    else receipt=` · <span title="сообщение отправлено">✓ отправлено</span>`;
+  }
   return `<div style="align-self:${side};max-width:80%;margin-bottom:10px">
     <div style="background:${bg};color:${col};padding:9px 13px;border-radius:${rad};font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word">${quote}${esc(m.body)}</div>
-    <div style="font-size:10px;color:var(--mut);margin-top:3px;${mine?"text-align:right":""}">${esc(nameLine)} · ${time} · <span style="cursor:pointer;color:var(--blue)" onclick="setReply(${m.id})">Ответить</span>${canDel?` · <span style="cursor:pointer;color:var(--coral)" onclick="delChatMsg(${m.id},'${scope}')">удалить</span>`:""}</div>
+    <div style="font-size:10px;color:var(--mut);margin-top:3px;${mine?"text-align:right":""}">${esc(nameLine)} · ${time}${receipt} · <span style="cursor:pointer;color:var(--blue)" onclick="setReply(${m.id})">Ответить</span>${canDel?` · <span style="cursor:pointer;color:var(--coral)" onclick="delChatMsg(${m.id},'${scope}')">удалить</span>`:""}</div>
   </div>`;
 }
 
