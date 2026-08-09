@@ -514,6 +514,8 @@ function migrateCase(c){
   for(const x of (c.circs||[])){ // обстоятельства: состояние барьера и свои причины
     if(x.bstate===undefined)x.bstate="";
     if(!x.causes)x.causes=[];
+    if(!x.ctxFacts)x.ctxFacts=[];
+    if(x.context===undefined)x.context="";
   }
   const inf=c.info||(c.info={});
   if(inf.date!==undefined&&inf.dateISO===undefined){
@@ -1113,9 +1115,9 @@ async function startCloud(){
     try{ localFound=await checkLocalCases(); }catch(e){ localFound=[]; }
     render();
     // счётчики: непрочитанные сообщения + ожидающие заявки; и периодическое обновление
-    Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>render());
+    Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>{ checkUnreadSound(); render(); });
     if(unreadTimer) clearInterval(unreadTimer);
-    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>{ if(statsView!==6 && !isTyping()) render(); }); } }, 30000);
+    unreadTimer=setInterval(()=>{ if(CLOUD&&statsView!==6){ Promise.all([refreshUnread(), refreshPending(), refreshCaseUnread()]).then(()=>{ checkUnreadSound(); if(statsView!==6 && !isTyping()) render(); }); } }, 30000);
   }catch(e){
     if(/JWT|PGRST303|expired/i.test(e.message||"")){
       saveSession(null);
@@ -1420,6 +1422,19 @@ let unreadTimer=null;      // периодическое обновление с
 let CASE_MSGS=null;        // сообщения открытого дела (обсуждение)
 let REPLY_TO=null;         // id сообщения, на которое отвечаем (или null)
 let caseChatBusy=false;
+
+// --- звук уведомления о новом сообщении (устройство-настройка, в базу не едет) ---
+let SOUND_ON = (function(){ try{ return localStorage.getItem("fb_sound")!=="off"; }catch(e){ return true; } })(); // по умолчанию включён
+let PREV_UNREAD = null;      // точка отсчёта; null = ещё не инициализировано (первая загрузка не пищит)
+let _actx = null;            // общий AudioContext
+function _ensureActx(){ try{ if(!_actx){ const AC=window.AudioContext||window.webkitAudioContext; if(AC) _actx=new AC(); } if(_actx&&_actx.state==="suspended") _actx.resume(); }catch(e){} return _actx; }
+// разблокировка звука по первому взаимодействию пользователя (браузеры блокируют автозвук до жеста)
+try{ window.addEventListener("pointerdown", function _unlock(){ _ensureActx(); window.removeEventListener("pointerdown", _unlock); }, {once:true}); }catch(e){}
+function beep(){ try{ const ctx=_ensureActx(); if(!ctx) return; const t0=ctx.currentTime; const thump=(f,st,dur,peak)=>{ const o=ctx.createOscillator(), g=ctx.createGain(); o.type="sine"; o.frequency.setValueAtTime(f,t0+st); g.gain.setValueAtTime(.0001,t0+st); g.gain.exponentialRampToValueAtTime(peak,t0+st+.02); g.gain.exponentialRampToValueAtTime(.0001,t0+st+dur); o.connect(g); g.connect(ctx.destination); o.start(t0+st); o.stop(t0+st+dur+.02); }; thump(320,0,.16,.22); thump(300,.14,.18,.20); }catch(e){} }
+function toggleSound(){ SOUND_ON=!SOUND_ON; try{ localStorage.setItem("fb_sound", SOUND_ON?"on":"off"); }catch(e){} if(SOUND_ON) beep(); render(); }
+function totalUnread(){ let s=(typeof CHAT_UNREAD==="number"?CHAT_UNREAD:0); try{ for(const k in CASE_UNREAD){ s+=(CASE_UNREAD[k]||0); } }catch(e){} return s; }
+// вызывается после обновления счётчиков: пищит, если суммарное непрочитанное выросло
+function checkUnreadSound(){ const t=totalUnread(); if(PREV_UNREAD===null){ PREV_UNREAD=t; return; } if(t>PREV_UNREAD && SOUND_ON) beep(); PREV_UNREAD=t; }
 
 // --- счётчик непрочитанных (простой) ---
 async function refreshUnread(){
@@ -2004,7 +2019,7 @@ function topbar(){
       <button class="undoBtn" onclick="doRedo()" title="Вернуть отменённое (Ctrl+Y)" ${REDO.length?"":"disabled"}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h4"/></svg>Вернуть</button>`:""}${inCase?`<button onclick="printReport()">Печать отчёта</button><button onclick="downloadDoc()">Скачать .doc</button>`:""}
     ${(typeof CLOUD!=="undefined"&&CLOUD)
-      ? `<button class="hdrNav" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;S=null;render()" title="Вопросы и обсуждения">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>${(PROFILE&&PROFILE.is_admin)?`<button class="hdrNav" style="position:relative" onclick="statsView=2;USERS=null;S=null;render()" title="Журнал и пользователи">📋 Журнал${pendingBadgeCount()?`<span class="reqBadge">${pendingBadgeCount()}</span>`:""}</button>`:""}<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
+      ? `<button class="hdrNav" onclick="toggleSound()" title="${SOUND_ON?'Звук новых сообщений включён — выключить':'Звук новых сообщений выключен — включить'}">${SOUND_ON?'🔔':'🔕'}</button><button class="hdrNav" style="position:relative" onclick="statsView=6;CHAT_MSGS=null;S=null;render()" title="Вопросы и обсуждения">💬 Вопросы${CHAT_UNREAD?`<span class="reqBadge">${CHAT_UNREAD}</span>`:""}</button>${(PROFILE&&PROFILE.is_admin)?`<button class="hdrNav" style="position:relative" onclick="statsView=2;USERS=null;S=null;render()" title="Журнал и пользователи">📋 Журнал${pendingBadgeCount()?`<span class="reqBadge">${pendingBadgeCount()}</span>`:""}</button>`:""}<span style="font-size:11px;color:rgba(255,255,255,.8);margin-left:10px">${esc((PROFILE&&PROFILE.org)||"")}${(PROFILE&&PROFILE.is_admin)?" · админ":""}</span><button onclick="signOut()">Выйти</button>`
       : `<span style="font-size:11px;color:rgba(255,255,255,.55);margin-left:10px">локальный режим</span>`}`;
 }
 function backBar(){ // единая кнопка возврата в одном месте
@@ -3095,10 +3110,12 @@ function stageHint(stage){
   return `<div class="hint" style="background:var(--gold-l);padding:6px 9px;border-radius:8px;margin-top:6px">Подсказка: сбой на этапе «${stage}» — вероятно, <b>ошибка на основе правил или знаний</b> (заблуждение). Но проверьте: не сознательное ли это нарушение?</div>`;
 }
 
+function ctxHolders(){ return (S.reviews||[]).concat(S.circs||[]); } // владельцы контекста: разборы + обстоятельства
+function ctxHolderById(id){ return ctxHolders().find(x=>x.id===id)||null; }
 function ctxFactUsed(anId){ // где факт анализа уже добавлен в контекст
-  const out=[]; (S.reviews||[]).forEach(r=>{ if((r.ctxFacts||[]).includes(anId)) out.push(r); }); return out; }
-function addFactToContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=r.ctxFacts||[]; if(!r.ctxFacts.includes(anId)) r.ctxFacts.push(anId); const f=analysisFactByAnId(anId); if(f&&f.o) f.o.anUsed=true; save(); render(); }
-function delFactFromContext(rid,anId){ const r=(S.reviews||[]).find(x=>x.id===rid); if(!r)return; r.ctxFacts=(r.ctxFacts||[]).filter(x=>x!==anId); const f=analysisFactByAnId(anId); if(f&&f.o) f.o.anUsed=false; save(); render(); }
+  const out=[]; ctxHolders().forEach(r=>{ if((r.ctxFacts||[]).includes(anId)) out.push(r); }); return out; }
+function addFactToContext(rid,anId){ const r=ctxHolderById(rid); if(!r)return; r.ctxFacts=r.ctxFacts||[]; if(!r.ctxFacts.includes(anId)) r.ctxFacts.push(anId); const f=analysisFactByAnId(anId); if(f&&f.o) f.o.anUsed=true; save(); render(); }
+function delFactFromContext(rid,anId){ const r=ctxHolderById(rid); if(!r)return; r.ctxFacts=(r.ctxFacts||[]).filter(x=>x!==anId); const f=analysisFactByAnId(anId); if(f&&f.o) f.o.anUsed=false; save(); render(); }
 function analysisFactByAnId(anId){ return analysisFacts(false).find(f=>f.o&&f.o.anId===anId)||null; }
 function reviewContextBlock(r){
   r.ctxFacts=r.ctxFacts||[];
@@ -3298,6 +3315,7 @@ function circRow(c,i){
   return `<div class="card" style="border-left:5px solid var(--blue)">
     <div style="display:flex;gap:10px"><div style="flex:1">
       <div class="fieldrow"><span>Обстоятельство</span><div>${inp(c,"text","",true)}</div></div>${body}
+      ${reviewContextBlock(c)}
     </div><button class="btn small danger noprint" style="align-self:flex-start" onclick="S.circs.splice(${i},1);save();render()">✕</button></div></div>`;
 }
 function setInfl(i,val){const c=S.circs[i];c.influence=val;
