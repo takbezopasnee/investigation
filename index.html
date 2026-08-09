@@ -3317,6 +3317,7 @@ function circRow(c,i){
           <div><label>Владелец (роль)</label>${ownerSelect(c)}</div>
           <div><label>Состояние барьера</label>${sel(c,"bstate",BSTATES)}</div>
         </div></div>
+      ${reviewContextBlock(c)}
       <div class="causebox" style="margin-top:8px"><b>Системная причина:</b> ${inp(v,"text","«маршрут назначается без учёта фактической массы и профиля»")}
         <div style="max-width:230px;margin-top:6px"><label>Категория</label>${sel(v,"cat",CATS)}</div></div>
       ${c.causes.map((x,xi)=>`<div class="causebox" style="margin-top:6px">
@@ -3328,7 +3329,6 @@ function circRow(c,i){
   return `<div class="card" style="border-left:5px solid var(--blue)">
     <div style="display:flex;gap:10px"><div style="flex:1">
       <div class="fieldrow"><span>Обстоятельство</span><div>${inp(c,"text","",true)}</div></div>${body}
-      ${c.influence==="yes"?reviewContextBlock(c):""}
     </div><button class="btn small danger noprint" style="align-self:flex-start" onclick="S.circs.splice(${i},1);save();render()">✕</button></div></div>`;
 }
 function setInfl(i,val){const c=S.circs[i];c.influence=val;
