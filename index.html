@@ -441,7 +441,9 @@ function inpTime(obj,key){ if(LOCKED()) return roView(obj[key]); const id=uid();
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
     e.oninput=()=>{obj[key]=e.value;save();};
     e.onchange=()=>{const m=e.value.trim().match(/^(\d{1,2})[:.](\d{2})$/);
-      obj[key]=m?(m[1].padStart(2,"0")+":"+m[2]):e.value.trim();e.value=obj[key];save();render();};},0);
+      obj[key]=m?(m[1].padStart(2,"0")+":"+m[2]):e.value.trim();e.value=obj[key];
+      if(obj===S.info&&key==="time")maybeAddDtpMarker();
+      save();render();};},0);
   return `<input type="text" id="${id}" placeholder="чч:мм" style="max-width:100px">`;
 }
 const CATS=["структура управления","управление рисками","контроль обеспечения БДД","популяризация","отбор и обучение водителей","повышение квалификации водителей","поддержание ТС в технически исправном состоянии","организация дорожного движения","управление поездками","управление подрядными организациями","отсутствие системной причины","системная причина не выявлена"];
@@ -2455,6 +2457,17 @@ function reorderById(order,fromId,toId){ const from=order.indexOf(fromId), to=or
 function dropCause(fromId,toId){ const ids=causes().map(c=>c.id); S.causeOrder=reorderById(ids,fromId,toId); save(); render(); }
 function dropAction(fromId,toId){ const ids=displayActs().map(x=>x.a.id); if(S.actionSort&&S.actionSort.col)S.actionSort=null; S.actionOrder=reorderById(ids,fromId,toId); save(); render(); }
 function sortChrono(){S.chrono.sort((a,b)=>{const x=timeVal(a.time),y=timeVal(b.time);if(x<0)return 1;if(y<0)return -1;return x-y;});save();render();}
+function maybeAddDtpMarker(){ // точка отсчёта: время ДТП → запись в хронологии. Срабатывает один раз.
+  if(S._dtpMarker) return;                                  // уже ставили — больше не трогаем (даже если правят записи или меняют время)
+  const t=((S.info&&S.info.time)||"").trim();
+  if(!t) return;                                            // время ДТП ещё не задано
+  const tm=/^\d{1,2}:\d{2}$/.test(t)?t+":00":t;             // привести к чч:мм:сс для единообразия
+  if(!Array.isArray(S.chrono)) S.chrono=[];
+  const rec={id:uid(),time:tm,end:"",lane:"",text:"ДТП",src:"",isFact:false,inchain:false};
+  S.chrono.push(rec);
+  S._dtpMarker=rec.id;                                      // флаг: точка создана
+  sortChrono();                                             // расставить по времени (внутри save()+render())
+}
 function scaleTip(ev,i){
   const r=S.chrono[i]; if(!r)return;
   let tip=document.getElementById("scaleTip");
@@ -3315,11 +3328,11 @@ function circRow(c,i){
   return `<div class="card" style="border-left:5px solid var(--blue)">
     <div style="display:flex;gap:10px"><div style="flex:1">
       <div class="fieldrow"><span>Обстоятельство</span><div>${inp(c,"text","",true)}</div></div>${body}
-      ${reviewContextBlock(c)}
+      ${c.influence==="yes"?reviewContextBlock(c):""}
     </div><button class="btn small danger noprint" style="align-self:flex-start" onclick="S.circs.splice(${i},1);save();render()">✕</button></div></div>`;
 }
 function setInfl(i,val){const c=S.circs[i];c.influence=val;
-  if(val==="no")c.verdict={kind:"stop"};
+  if(val==="no"){ c.verdict={kind:"stop"}; (c.ctxFacts||[]).forEach(anId=>{ const f=analysisFactByAnId(anId); if(f&&f.o) f.o.anUsed=false; }); c.ctxFacts=[]; }
   else if(val==="yes"){c.verdict={kind:"cause",text:c.verdict&&c.verdict.text||"",cat:c.verdict&&c.verdict.cat||""};}
   // при val==="" (изменить выбор) verdict/барьер/причины НЕ трогаем — вернётся, если снова выберут «Да»
   save();render();}
