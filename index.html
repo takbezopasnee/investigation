@@ -649,7 +649,7 @@ function sel(obj,key,opts,onch,always){ if(LOCKED()&&!always) return roView(obj[
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.value=obj[key]||"";
     e.onchange=()=>{obj[key]=e.value;save();if(onch)onch();};},0);
   return `<select id="${id}"><option value="">—</option>${opts.map(o=>`<option>${esc(o)}</option>`).join("")}</select>`;}
-function chk(obj,key,label,onch){ if(LOCKED()) return `<span class="pill" style="background:var(--gray-l)">${obj[key]?"✓ ":"☐ "}${esc(label||"")}</span>`; const id=uid();
+function chk(obj,key,label,onch,force){ if(LOCKED()&&!force) return `<span class="pill" style="background:var(--gray-l)">${obj[key]?"✓ ":"☐ "}${esc(label||"")}</span>`; const id=uid();
   setTimeout(()=>{const e=document.getElementById(id);if(!e)return;e.checked=!!obj[key];
     e.onchange=()=>{obj[key]=e.checked;save();(onch||render)();};},0);
   return `<label style="display:flex;gap:6px;align-items:center;font-weight:400;color:var(--ink);font-size:13px"><input type="checkbox" id="${id}">${esc(label)}</label>`;}
@@ -2195,7 +2195,7 @@ function screen0(){
   <div class="sub">Шапка расследования: номер, вид ДТП, подразделение, комиссия. Данные о водителе, ТС, месте и времени — на шаге «Факты».</div>
   ${(typeof PROFILE!=="undefined"&&PROFILE&&PROFILE.is_admin)?`<div class="card" style="border-left:5px solid var(--gold)">
     <div style="display:flex;align-items:center;gap:10px">
-      ${(S.archived||S.is_sample)?chk(S,"is_sample","учебный образец — виден специалистам всех организаций",()=>{save();render();}):`<span class="hint" style="margin:0">Сделать образцом можно только дело в архиве. Сначала поместите расследование в архив (шаг «Выводы» или кнопка «в архив» на карточке).</span>`}
+      ${(S.archived||S.is_sample)?chk(S,"is_sample","учебный образец — виден специалистам всех организаций",()=>{save();render();},true):`<span class="hint" style="margin:0">Сделать образцом можно только дело в архиве. Сначала поместите расследование в архив (шаг «Выводы» или кнопка «в архив» на карточке).</span>`}
       <span style="flex:1"></span>
       ${S.is_sample?`<span class="pill" style="background:var(--gold-l);color:var(--amber)">образец</span>`:""}
     </div>
