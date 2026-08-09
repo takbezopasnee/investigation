@@ -913,11 +913,13 @@ function caseRow(c){ // вынесенные колонки для статис�
   };
 }
 async function cloudLoadCases(){
-  const r=await api("/rest/v1/cases?select=id,updated_at,data&order=updated_at.desc");
+  const r=await api("/rest/v1/cases?select=*&order=updated_at.desc");
   if(!r.ok){ const t=await r.text(); throw new Error("Не удалось загрузить дела: "+t.slice(0,200)); }
   const rows=await r.json();
+  CASE_ORG={}; rows.forEach(x=>{ CASE_ORG[x.id]={owner:x.owner||null, org:x.org||null}; }); // владелец/компания дела (для реестра админа)
   const out=rows.map(x=>{ const c=x.data||{}; c.id=x.id; c.updated=new Date(x.updated_at).getTime(); migrateCase(c); return c; }); try{refreshCaseUnread();}catch(e){} return out;
 }
+let CASE_ORG={}; // {caseId:{owner,org}} — держим отдельно, чтобы не засорять JSON-блоб дела
 let cloudTimer=null, savingQueue=new Set();
 function cloudSaveCase(c){
   if(!CLOUD) return;
@@ -1301,6 +1303,44 @@ function reassignPanel(){
           ${esc(x.full_name||"без имени")} · ${esc(x.org||"—")}${x.is_admin?" · админ":""}</button>`).join("")}
       </div>
       <div style="margin-top:12px;text-align:right"><button class="btn sec" onclick="cancelReassign()">Отмена</button></div>
+    </div></div>`;
+}
+// --- передача ОДНОГО дела (только админ) ---
+let reassignCaseId=null;
+async function ensureUsers(){ if(USERS) return; try{ const ru=await api("/rest/v1/profiles?select=id,full_name,org,is_admin&order=full_name.asc"); if(ru.ok) USERS=await ru.json(); }catch(e){} }
+async function reassignOneCase(caseId){
+  await ensureUsers();
+  const others=(USERS||[]).filter(x=>!x.blocked&&(x.approved||x.is_admin));
+  if(!others.length){ alert("Некому передать: нет специалистов с доступом."); return; }
+  reassignCaseId=caseId; render();
+}
+async function doReassignOne(toId){
+  const cid=reassignCaseId; if(!cid)return;
+  const to=(USERS||[]).find(x=>x.id===toId);
+  const cs=DB.cases.find(c=>c.id===cid);
+  if(!confirm("Передать расследование «"+((cs&&cs.name)||"без названия")+"» специалисту «"+(to&&to.full_name||"")+"»?"))return;
+  try{
+    const n=await rpc("reassign_single_case",{case_id:cid,to_user:toId});
+    reassignCaseId=null;
+    logAction("передача дела",cid,(to&&to.full_name||toId.slice(0,8)));
+    USERS=null; DB.cases=await cloudLoadCases(); render();
+    alert(n?"Дело передано.":"Дело не найдено или не передано.");
+  }catch(e){ alert("Не удалось передать: "+(e.message||e)); }
+}
+function cancelReassignOne(){ reassignCaseId=null; render(); }
+function reassignOnePanel(){
+  if(!reassignCaseId) return "";
+  const cs=DB.cases.find(c=>c.id===reassignCaseId);
+  const others=(USERS||[]).filter(x=>!x.blocked&&(x.approved||x.is_admin));
+  return `<div class="modalWrap" onclick="if(event.target===this)cancelReassignOne()">
+    <div class="modalBox">
+      <b style="font-size:14px">Передать расследование</b>
+      <div class="hint" style="margin:6px 0 10px">Дело: <b>${esc((cs&&cs.name)||"без названия")}</b>. Выберите, кому передать:</div>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto">
+        ${others.map(x=>`<button class="btn sec" style="justify-content:flex-start;text-align:left" onclick="doReassignOne('${x.id}')">
+          ${esc(x.full_name||"без имени")} · ${esc(x.org||"—")}${x.is_admin?" · админ":""}</button>`).join("")}
+      </div>
+      <div style="margin-top:12px;text-align:right"><button class="btn sec" onclick="cancelReassignOne()">Отмена</button></div>
     </div></div>`;
 }
 async function deleteUser(id){
@@ -4240,6 +4280,7 @@ function regRows(){
     return {c, num:i.num||"", date:i.dateISO||"", time:i.time||"", kind:i.kind||"",
       area:i.area||"", spot:i.spot||"", ts:i.ts||"", tsType:i.tsType||"", unit:i.unit||"",
       driver:i.driver||"", name:c.name||"", causes:st.causes, acts:st.acts, done:st.done,
+      org:(CASE_ORG[c.id]&&CASE_ORG[c.id].org)||"",
       status:c.closed?"закрыто":(st.causes?"в работе":"черновик")};
   });
   if(q){
@@ -4262,20 +4303,23 @@ function regSortBy(col){
 function setRegQuery(v){ regQuery=v; const t=document.getElementById("regTable"); if(t) t.innerHTML=regTableHTML(); }
 function regTableHTML(){
   const rows=regRows();
+  const admin = typeof PROFILE!=="undefined" && PROFILE && PROFILE.is_admin;
   const cols=[["num","№",56],["date","Дата",92],["time","Время",62],["kind","Вид ДТП",150],
     ["area","Место происш.",140],["spot","Место ДТП",150],["tsType","Тип ТС",90],["unit","Подразделение",130],
     ["driver","Водитель",90],["causes","Причин",64],["acts","Мер",70],["status","Статус",90]];
+  if(admin) cols.push(["org","Компания",150]);
   if(!rows.length) return `<div class="empty">${regQuery?"Ничего не найдено — измените запрос.":"Расследований пока нет."}</div>`;
   return `<table class="t"><tr>${cols.map(([k,l,w])=>{
       const on=regSort.col===k;
       return `<th style="width:${w}px;cursor:pointer" onclick="regSortBy('${k}')">${l} ${on?(regSort.dir>0?"▲":"▼"):"↕"}</th>`;
-    }).join("")}</tr>
+    }).join("")}${admin?`<th style="width:90px"></th>`:""}</tr>
     ${rows.map(r=>`<tr class="regRow ${r.c.closed?"st-done":""}" onclick="openFromRegistry('${r.c.id}')">
       <td>${esc(r.num||"—")}</td><td>${esc(isoToRu(r.date)||"—")}</td><td>${esc(r.time||"")}</td>
       <td>${esc(r.kind||"—")}</td><td>${esc(r.area||"")}</td><td>${esc(r.spot||"")}</td>
       <td>${esc(r.tsType||"")}</td><td>${esc(r.unit||"")}</td><td>${esc(r.driver||"")}</td>
       <td><b>${r.causes}</b></td><td>${r.done}/${r.acts}</td>
       <td>${r.c.closed?`<span class="pill" style="background:var(--green-l);color:var(--green)">закрыто</span>`:esc(r.status)}</td>
+      ${admin?`<td>${esc(r.org||"—")}</td><td><button class="btn small sec noprint" onclick="event.stopPropagation();reassignOneCase('${r.c.id}')" title="передать это дело другому специалисту">передать</button></td>`:""}
     </tr>`).join("")}</table>
     <div class="hint" style="margin-top:6px">Показано ${rows.length} из ${DB.cases.length}. Щелчок по строке открывает расследование.</div>`;
 }
@@ -4287,7 +4331,7 @@ function csvRegistry(){
     ...rows.map(r=>[r.num,isoToRu(r.date),r.time,r.kind,r.area,r.spot,r.tsType,r.ts,r.unit,r.driver,r.name,r.causes,r.acts,r.done,r.status])]);
 }
 function screenRegistry(){
-  return `
+  return reassignOnePanel()+`
   <h2>Реестр происшествий</h2>
   <div class="sub">Все расследования таблицей. Поиск идёт по номеру, дате, виду ДТП, месту, ТС, подразделению, водителю и статусу; сортировка — щелчком по заголовку.</div>
   <div class="card">
