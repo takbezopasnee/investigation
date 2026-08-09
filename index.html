@@ -349,9 +349,10 @@ function factToggleUsed(sk,fk){ const o=factObj(sk,fk); if(!o||!o.anId)return; o
 function factToggleUse(sk,fk){ const o=factObj(sk,fk); if(!o)return; o.use=!o.use; if(!o.use){ if(o.chId)factUndoChrono(sk,fk); if(o.anId)factUndoAnalysis(sk,fk); } save(); render(); }
 // Собрать все факты, отправленные «в анализ» (для шапки в шагах 4 и 5). unusedOnly=true — скрыть отмеченные использованными.
 function analysisFacts(unusedOnly){ const out=[]; if(!S.facts)return out;
-  FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(o&&o.anId&&(!unusedOnly||!o.anUsed)) out.push({sk:s.key,fk:fn.k,o:o,label:freeFactLabel(s.key,fn.k),text:factText(s.key,fn.k),inf:o.inf}); });
-    ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_extra:"+s.key,p.id),inf:p.inf}); }); });
-  (S.facts._other||[]).forEach(p=>{ if(p.anId&&(!unusedOnly||!p.anUsed)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_other",p.id),inf:p.inf}); });
+  const infOk=o=>o&&(o.inf==="оказало"||o.inf==="возможно");
+  FACT_SECTIONS.forEach(s=>{ s.factors.forEach(fn=>{ const o=S.facts[s.key]&&S.facts[s.key][fn.k]; if(o&&o.anId&&infOk(o)&&(!unusedOnly||!o.anUsed)) out.push({sk:s.key,fk:fn.k,o:o,label:freeFactLabel(s.key,fn.k),text:factText(s.key,fn.k),inf:o.inf}); });
+    ((S.facts._extra||{})[s.key]||[]).forEach(p=>{ if(p.anId&&infOk(p)&&(!unusedOnly||!p.anUsed)) out.push({sk:"_extra:"+s.key,fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_extra:"+s.key,p.id),inf:p.inf}); }); });
+  (S.facts._other||[]).forEach(p=>{ if(p.anId&&infOk(p)&&(!unusedOnly||!p.anUsed)) out.push({sk:"_other",fk:p.id,o:p,label:p.label||"Прочий факт",text:factText("_other",p.id),inf:p.inf}); });
   return out; }
 // Факт «влияющий, но не задействован»: влияние оказало/возможно, и при этом
 // не в хронологии, не отнесён к влиянию на компанию, и (не в анализе ЛИБО в анализе, но не «использован»).
@@ -424,9 +425,9 @@ function inpDue(obj,key){ if(LOCKED()) return roView(obj[key]); const id=uid(); 
     const c=document.getElementById(cid);
     if(c){ c.onchange=()=>{ if(c.value){ const iso=c.value; const ru=iso.slice(8,10)+"."+iso.slice(5,7)+"."+iso.slice(0,4); obj[key]=ru; e.value=ru; e.title=ru; save(); render(); } }; }
   },0);
-  return `<div style="display:flex;align-items:center;gap:4px;min-width:0">
-    <input type="text" id="${id}" placeholder="срок" class="timefield" style="flex:1 1 auto;min-width:70px">
-    ${LOCKED()?"":`<input type="date" id="${cid}" title="выбрать из календаря" style="flex:0 0 22px;width:22px;height:24px;padding:0;border:none;background:transparent;cursor:pointer;color-scheme:light">`}
+  return `<div style="display:flex;align-items:center;gap:6px;min-width:0">
+    <input type="text" id="${id}" placeholder="срок" class="timefield" style="flex:1 1 auto;min-width:120px">
+    ${LOCKED()?"":`<input type="date" id="${cid}" title="выбрать из календаря" style="flex:0 0 28px;width:28px;height:26px;padding:0;border:none;background:transparent;cursor:pointer;color-scheme:light">`}
   </div>`;
 }
 function inpDate(obj,key){ if(LOCKED()) return roView(isoToRu(obj[key])); const id=uid();
@@ -557,6 +558,7 @@ function flash(t,ms){const f=document.getElementById("saveflash");if(!f)return;f
 
 /* ===== UI ХЕЛПЕРЫ ===== */
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toggleVis(id){ const e=document.getElementById(id); if(!e) return; e.type = e.type==="password" ? "text" : "password"; const b=document.getElementById(id+"Eye"); if(b) b.textContent = e.type==="password" ? "👁" : "🙈"; }
 /* ---- отмена и повтор действий ---- */
 let UNDO=[], REDO=[], undoLast=null, undoCaseId=null;
 function undoCapture(){
@@ -1010,7 +1012,7 @@ function screenSignup(msg,ok){
       <div style="height:8px"></div>
       <label>Рабочая почта</label><input type="email" id="suEmail" autocomplete="username">
       <div style="height:8px"></div>
-      <label>Пароль (не короче 6 знаков)</label><input type="password" id="suPass" autocomplete="new-password">
+      <label>Пароль (не короче 6 знаков)</label><div style="position:relative"><input type="password" id="suPass" autocomplete="new-password" style="padding-right:38px"><span id="suPassEye" onclick="toggleVis('suPass')" title="показать пароль" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;line-height:1">👁</span></div>
       <div style="margin-top:12px;display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink)">
         <input type="checkbox" id="suAgree" style="width:auto;margin-top:2px;flex:0 0 auto">
         <label for="suAgree" style="font-weight:400;color:var(--ink);cursor:pointer;margin:0">
@@ -1052,7 +1054,7 @@ function screenLogin(msg){
       ${msg?`<div class="warn" style="margin-bottom:10px">${esc(msg)}</div>`:""}
       <label>Почта</label><input type="email" id="loginEmail" autocomplete="username">
       <div style="height:8px"></div>
-      <label>Пароль</label><input type="password" id="loginPass" autocomplete="current-password">
+      <label>Пароль</label><div style="position:relative"><input type="password" id="loginPass" autocomplete="current-password" style="padding-right:38px"><span id="loginPassEye" onclick="toggleVis('loginPass')" title="показать пароль" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;line-height:1">👁</span></div>
       <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="doLogin()">Войти</button>
         <button class="btn sec" onclick="loginTab='up';render()">Запросить доступ</button>
@@ -3435,7 +3437,7 @@ function screen7(){
     <td style="width:22px;text-align:center;color:var(--mut)">${LOCKED()?"":`<span class="draghandle" title="потяните, чтобы переставить" draggable="true" ondragstart="dragStartId(event,'action','${a.id}')" ondragend="dragEnd(event)">⠿</span>`}</td>
     <td><div class="hint" style="margin:0 0 3px">${esc(causeLabel)}</div>${inp(a,"text","что сделать (SMART)")}</td>
     <td style="width:190px">${sel(a,"who",ROLES)}</td>
-    <td style="width:160px">${inpDue(a,"due")}</td>
+    <td style="width:210px">${inpDue(a,"due")}</td>
     <td style="width:150px">${sel(a,"status",ACT_STATUS,()=>render(),true)}</td>
     <td style="width:70px"><div style="display:flex;gap:2px">
       <button class="btn small sec noprint" title="дубль" onclick="toggleActDup('${a.id}')">${a.dup?"⟲":"дуб"}</button>
