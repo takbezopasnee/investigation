@@ -1522,7 +1522,7 @@ async function loadChat(){
   chatBusySet(true);
   // администратору нужны имена авторов — подгрузим профили, если их ещё нет
   if(PROFILE&&PROFILE.is_admin&&(USERS===null)){
-    try{ const ru=await api("/rest/v1/profiles?select=id,full_name,org,is_admin&order=full_name.asc"); if(ru.ok) USERS=await ru.json(); }catch(e){}
+    try{ const ru=await api("/rest/v1/profiles?select=id,full_name,org,is_admin,approved,blocked&order=full_name.asc"); if(ru.ok) USERS=await ru.json(); }catch(e){}
   }
   let q;
   if(CHAT_TAB==="org"){
@@ -1727,28 +1727,35 @@ function screenChat(){
   // Вкладка «Администратору» / «Личные вопросы»
   if(CHAT_TAB==="admin"){
     if(isAdmin){
-      // администратор: группируем личные ветки по owner
+      // администратор: список = все действующие участники + владельцы существующих личных веток
       const byOwner={};
       (CHAT_MSGS||[]).forEach(m=>{ const k=m.owner||"—"; (byOwner[k]=byOwner[k]||[]).push(m); });
-      const owners=Object.keys(byOwner);
-      if(!owners.length) return `<div class="card">${head}<div class="empty" style="color:var(--mut)">Личных вопросов пока нет.</div></div>`;
-      let sel=window.__chatOwner||owners[0];
-      if(!byOwner[sel]) sel=owners[0];
-      window.__chatOwner=sel;
-      const list=owners.map(o=>{
-        const nm=authorName(o); const msgs=byOwner[o]; const last=msgs[msgs.length-1];
+      const active=(USERS||[]).filter(u=>u.id!==PROFILE.id && !u.is_admin && !u.blocked && u.approved);
+      const keys=new Set(active.map(u=>u.id));
+      Object.keys(byOwner).forEach(k=>{ if(k!=="—") keys.add(k); });
+      let entries=[...keys].map(o=>{
+        const msgs=byOwner[o]||[]; const last=msgs.length?msgs[msgs.length-1]:null;
         const seen=(PROFILE&&PROFILE.case_seen&&PROFILE.case_seen["thr:"+o])||null;
         const unread=msgs.filter(m=>m.author!==PROFILE.id && (!seen || new Date(m.at).getTime()>new Date(seen).getTime())).length;
-        return `<div onclick="selectThread('${o}')" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:${o===sel?'var(--blue-l)':'transparent'};border:1px solid var(--line)">
-          <div style="min-width:0"><b style="font-size:13px">${esc(nm)}</b>
-          <div class="hint" style="margin:0">${esc((last.body||"").slice(0,42))}${(last.body||"").length>42?"…":""}</div></div>
-          ${unread?`<span style="background:var(--coral);color:#fff;font-weight:700;font-size:11px;border-radius:10px;padding:1px 7px;flex:none" title="непрочитанных сообщений">${unread}</span>`:""}</div>`;
+        return {o, name:authorName(o), last, unread, lastT:last?new Date(last.at).getTime():0};
+      });
+      if(!entries.length) return `<div class="card">${head}<div class="empty" style="color:var(--mut)">Нет действующих участников. Как только специалисты получат доступ, они появятся здесь.</div></div>`;
+      entries.sort((a,b)=> ((b.unread>0)-(a.unread>0)) || (b.lastT-a.lastT) || a.name.localeCompare(b.name,"ru"));
+      let sel=window.__chatOwner||entries[0].o;
+      if(!keys.has(sel)) sel=entries[0].o;
+      window.__chatOwner=sel;
+      const list=entries.map(e=>{
+        const snippet = e.last ? (esc((e.last.body||"").slice(0,42))+((e.last.body||"").length>42?"…":"")) : `<i style="color:var(--mut)">нет сообщений — можно написать первым</i>`;
+        return `<div onclick="selectThread('${e.o}')" style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:${e.o===sel?'var(--blue-l)':'transparent'};border:1px solid var(--line)">
+          <div style="min-width:0"><b style="font-size:13px">${esc(e.name)}</b>
+          <div class="hint" style="margin:0">${snippet}</div></div>
+          ${e.unread?`<span style="background:var(--coral);color:#fff;font-weight:700;font-size:11px;border-radius:10px;padding:1px 7px;flex:none" title="непрочитанных сообщений">${e.unread}</span>`:""}</div>`;
       }).join("");
-      const log=chatLog(byOwner[sel], "admin", "chatList", "chatInput",
+      const log=chatLog(byOwner[sel]||[], "admin", "chatList", "chatInput",
         `sendAdminChat('${sel}')`);
       return `<div class="card">${head}
-        <div style="display:grid;grid-template-columns:210px 1fr;gap:14px">
-          <div style="border-right:1px solid var(--line);padding-right:12px;max-height:60vh;overflow-y:auto"><div class="hint" style="margin:0 0 6px">Кто спрашивал:</div>${list}</div>
+        <div style="display:grid;grid-template-columns:230px 1fr;gap:14px">
+          <div style="border-right:1px solid var(--line);padding-right:12px;max-height:60vh;overflow-y:auto"><div class="hint" style="margin:0 0 6px">Участники (кому можно написать):</div>${list}</div>
           <div>${log}</div>
         </div></div>`;
     } else {
