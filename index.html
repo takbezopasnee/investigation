@@ -1477,8 +1477,8 @@ try{ window.addEventListener("pointerdown", function _unlock(){ _ensureActx(); w
 function beep(){ try{ const ctx=_ensureActx(); if(!ctx) return; const t0=ctx.currentTime; const thump=(f,st,dur,peak)=>{ const o=ctx.createOscillator(), g=ctx.createGain(); o.type="sine"; o.frequency.setValueAtTime(f,t0+st); g.gain.setValueAtTime(.0001,t0+st); g.gain.exponentialRampToValueAtTime(peak,t0+st+.02); g.gain.exponentialRampToValueAtTime(.0001,t0+st+dur); o.connect(g); g.connect(ctx.destination); o.start(t0+st); o.stop(t0+st+dur+.02); }; thump(320,0,.16,.22); thump(300,.14,.18,.20); }catch(e){} }
 function toggleSound(){ SOUND_ON=!SOUND_ON; try{ localStorage.setItem("fb_sound", SOUND_ON?"on":"off"); }catch(e){} if(SOUND_ON) beep(); render(); }
 function totalUnread(){ let s=(typeof CHAT_UNREAD==="number"?CHAT_UNREAD:0); try{ for(const k in CASE_UNREAD){ s+=(CASE_UNREAD[k]||0); } }catch(e){} return s; }
-// вызывается после обновления счётчиков: пищит, если суммарное непрочитанное выросло
-function checkUnreadSound(){ const t=totalUnread(); if(PREV_UNREAD===null){ PREV_UNREAD=t; return; } if(t>PREV_UNREAD && SOUND_ON) beep(); PREV_UNREAD=t; }
+// вызывается после обновления счётчиков: пищит, если выросло непрочитанное ИЛИ число новых заявок в Журнале
+function checkUnreadSound(){ const t=totalUnread() + (typeof PENDING_COUNT==="number"?PENDING_COUNT:0); if(PREV_UNREAD===null){ PREV_UNREAD=t; return; } if(t>PREV_UNREAD && SOUND_ON) beep(); PREV_UNREAD=t; }
 
 // --- счётчик непрочитанных (простой) ---
 async function refreshUnread(){
